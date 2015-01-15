@@ -1,0 +1,12 @@
+include AUTHORS.md
+include INSTALL.md
+include LICENSE.md
+include README.md
+include requirements.txt
+include src/pyq/_k.c
+include src/pyq/k.h
+include src/pyq/p.c
+include src/pyq/py.c
+include src/pyq/p.k
+include src/pyq/python.q
+include src/pyq.c

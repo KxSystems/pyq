@@ -1,0 +1,33 @@
+Metadata-Version: 1.1
+Name: pyq
+Version: 3.7
+Summary: PyQ: Python/Q Integration
+Home-page: http://pyq.enlnt.com
+Author: Enlightenment Research, LLC
+Author-email: pyq@enlnt.com
+License: PyQ General License
+Download-URL: http://code.kx.com/wsvn/code/contrib/serpent.speak/trunk/Q/dist/pyq-3.7.tar.gz?op=dl
+Description: PyQ provides seamless integration of Python and Q code. It brings
+        Python and Q interpreters in the same process and allows code written
+        in either of the languages to operate on the same data. In PyQ, Python
+        and Q objects live in the same memory space and share the same data.
+        
+Platform: Linux
+Platform: Mac OS-X
+Platform: Solaris
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Financial and Insurance Industry
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: Other/Proprietary License
+Classifier: Natural Language :: English
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Operating System :: POSIX :: SunOS/Solaris
+Classifier: Programming Language :: C
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Topic :: Database
+Classifier: Topic :: Software Development :: Libraries :: Python Modules

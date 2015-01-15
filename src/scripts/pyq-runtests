@@ -1,0 +1,9 @@
+#!/usr/bin/env pyq
+import sys
+import pytest
+
+args = ['-vv', '--cov-report', 'term-missing', '--cov', 'pyq', '--pyargs', 'pyq']
+if sys.version_info[0] < 3:
+    args.append('--doctest-modules')
+rc = pytest.main(args)
+sys.exit(rc)

@@ -1,0 +1,37 @@
+#!/usr/bin/env python
+"""
+Combines coverage between python and c code for display in CI.
+
+            Covered Python units + Covered C units
+ Coverage = --------------------------------------  x 100%
+                     Python units + C units
+
+"""
+from __future__ import division
+from __future__ import print_function
+
+import sys
+import re
+
+if __name__ == '__main__':
+    if len(sys.argv[1:]) == 4:
+        r = re.compile("(\d+.?\d+)")
+
+        # Lines executed:85.91% of 1121
+        c2_percent, c2_total = r.findall(sys.argv[1])
+        c2_covered = float(c2_total) * float(c2_percent) // 100.
+        c3_percent, c3_total = r.findall(sys.argv[2])
+        c3_covered = float(c3_total) * float(c3_percent) // 100.
+
+        # TOTAL                                                  352     58    84%
+        p2_total, p2_missing, _ = r.findall(sys.argv[3])
+        p2_covered = float(p2_total) - float(p2_missing)
+        p3_total, p3_missing, _ = r.findall(sys.argv[4])
+        p3_covered = float(p3_total) - float(p3_missing)
+
+        cov = 100 * (c2_covered + c3_covered + p2_covered + p3_covered) / (float(c2_total) + float(c3_total) +
+                                                                           float(p2_total) + float(p3_total))
+
+        print("Combined coverage: %.02f%%" % cov)
+    else:
+        print("Usage: pyq-coverage clines2 clines3 plines2 plines3")
