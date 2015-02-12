@@ -2218,10 +2218,8 @@ K_buffer_releasebuffer(KObject * self, Py_buffer * view)
 #endif
 
 static Py_ssize_t
-K_length(KObject * k)
+klen(K x)
 {
-    K x = k->x;
-
     if (xt < 0)
         return 1;
     if (xt < 98)
@@ -2237,6 +2235,12 @@ K_length(KObject * k)
         return kK(kK(x->k)[1])[0]->n;
     }
     return 1;
+}
+
+static Py_ssize_t
+K_length(KObject * k)
+{
+    return klen(k->x);
 }
 
 static PyObject *getitem(PyTypeObject * ktype, K x, Py_ssize_t i);
@@ -2608,10 +2612,10 @@ static PyObject *
 getitem(PyTypeObject * ktype, K x, Py_ssize_t i)
 {
     PyObject *ret = NULL;
-
+    Py_ssize_t n = klen(x);
     if (i < 0)
-        i += xn;
-    if (i >= xn || i < 0) {
+        i += n;
+    if (i >= n || i < 0) {
         PyErr_SetString(PyExc_IndexError, "k index out of range");
         return NULL;
     }
@@ -2767,6 +2771,8 @@ K_pys(KObject * self)
         return u2py(xi);
     case -KV:
         return v2py(xi);
+    case -KZ:
+        return z2py(xf);
     }
     PyErr_SetString(PyExc_NotImplementedError, "not implemented");
     return NULL;

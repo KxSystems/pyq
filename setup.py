@@ -8,7 +8,7 @@ and Q objects live in the same memory space and share the same data.
 ###############################################################################
 metadata = dict(
     name='pyq',
-    version='3.7',
+    version='3.7.1',
     packages=['pyq', 'pyq.tests', ],
     scripts=['src/scripts/pyq-runtests', 'src/scripts/pyq-coverage', ],
     url='http://pyq.enlnt.com',
@@ -67,8 +67,8 @@ if os.uname()[0] == 'Darwin':
         if b'Python' in line:
             pypath = decode(line.split()[0])
             pypath = pypath.replace('@executable_path', os.path.dirname(sys.executable))
-            while os.path.islink(pypath):
-                pypath = os.readlink(pypath)
+            #while os.path.islink(pypath):
+            #    pypath = os.readlink(pypath)
             python_lib_dir = os.path.join(os.path.dirname(pypath), 'lib')
             break
     else:
@@ -663,6 +663,7 @@ class Distribution(_Distribution):
         self.cmdclass['test'] = PyTest
 
         self.qhome = os.getenv('QHOME') or os.path.join(os.getenv('HOME'), 'q')
+        bits = 8 * get_config_var('SIZEOF_VOID_P')
         u = os.uname()
         if u[0] == 'Linux':
             o = 'l'
@@ -670,10 +671,10 @@ class Distribution(_Distribution):
             o = 'v' if u[-1] == 'i86pc' else 's'
         elif u[0] == 'Darwin':
             o = 'm'
+            bits = 32
         else:
             sys.stderr.write("Unknown platform: %s\n" % str(u))
             sys.exit(1)
-        bits = 8 * get_config_var('SIZEOF_VOID_P')
         self.qarch = "%s%d" % (o, bits)
         self.install_data = os.path.join(self.qhome, self.qarch)
         self.kxver = self.get_kxver(self.qhome)

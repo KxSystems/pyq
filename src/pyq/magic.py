@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import pyq
 from io import StringIO
 from getopt import getopt
+import sys
 
 try:
     string_types = (str, unicode)
@@ -30,34 +31,61 @@ def logical_lines(lines):
         yield chunk
 
 
-def q(line, cell=None):
+def q(line, cell=None, _ns=None):
     """Run q code.
 
     Options:
        -l (dir|script) - pre-load database or script
        -h host:port - execute on the given host
+       -o var - send output to a variable named var.
+       -i var1,..,varN - input variables
     """
+    if _ns is None:
+        _ns = vars(sys.modules['__main__'])
+    input = output = None
+    preload = []
     try:
         if cell is None:
-            return pyq.q(line)
-        h = pyq.q
-        if line:
-            for opt, value in getopt(line.split(), "h:l:")[0]:
-                if opt == '-l':
-                    h(r"\l " + value)
-                elif opt == '-h':
-                    def h(chunk, _handle="`:" + value):
-                        return pyq.q(_handle, pyq.kp(chunk))
-        for chunk in logical_lines(cell):
-            r = h(chunk)
-            if r != Q_NONE:
-                r.show()
+            r = pyq.q(line)
+        else:
+            h = pyq.q('0i')
+            if line:
+                for opt, value in getopt(line.split(), "h:l:o:i:")[0]:
+                    if opt == '-l':
+                        preload.append(value)
+                    elif opt == '-h':
+                        h = pyq.K(str(':' + value))
+                    elif opt == '-o':
+                        output = str(value)  # (see #673)
+                    elif opt == '-i':
+                        input = str(value).split(',')
+            r = None
+            for script in preload:
+                h(pyq.kp(r"\l " + script))
+            if input is not None:
+                for chunk in logical_lines(cell):
+                    func = "{[%s]%s}" % (';'.join(input), chunk)
+                    args = tuple(_ns[i] for i in input)
+                    r = h((pyq.kp(func),) + args)
+            else:
+                for chunk in logical_lines(cell):
+                    r = h(pyq.kp(chunk))
     except pyq.kerr as e:
         print("'%s" % e)
+    else:
+        if output is not None:
+            if output.startswith('q.'):
+                pyq.q('@[`.;;]', output[2:], r)
+            else:
+                _ns[output] = r
+        else:
+            if r != Q_NONE:
+                return r
 
 
 def _q_formatter(x, p, _):
-    p.text(x.show(output=str))
+    x_show = x.show(output=str)
+    p.text(x_show.strip())
 
 
 def load_ipython_extension(ipython):

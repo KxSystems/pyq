@@ -5,7 +5,7 @@ import sys
 
 import pytest
 
-linux_only = pytest.mark.skipif(sys.platform != 'linux2', reason="requires linux")
+linux_only = pytest.mark.skipif('linux' not in sys.platform.lower(), reason="requires linux")
 
 
 def test_pyq_executable_success():
@@ -45,4 +45,4 @@ def test_pyq_executable_error():
 def test_pyq_taskset(c, r, monkeypatch):
     monkeypatch.setenv('CPUS', c)
     monkeypatch.setenv('TEST_CPUS', 'y')
-    assert r == subprocess.check_output(['pyq'])
+    assert r == subprocess.check_output(['pyq']).decode()

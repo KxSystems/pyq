@@ -10,7 +10,8 @@
 
 To install from source, run `python setup.py install`.
  
-To install latest stable release, run `pip install -i https://pypi.enlnt.com -U pyq`.
+To install latest stable release, run `pip install -i https://pypi.enlnt.com -U pyq`, 
+or install via PyPI: `pip install --allow-external pyq pyq`.
 
 #### Solaris
 

@@ -308,10 +308,32 @@ def test_convertion_to_bool_scalar(t, f):
 def test_show_str():
     x = K(1)
     assert x.show(0, (1, 2), output=str) == '1\n'
+    assert x.show(output=str) == '1\n'
+
+
+def test_show_capture(capsys):
+    x = K(1)
+    x.show(0, (1, 2))
+    out, _ = capsys.readouterr()
+    assert out == '1\n'
+
+
+def test_show_start():
+    t = q("([]til 10)")
+    assert t.show(5, (20, 20), str) == t.show(-5, (20, 20), str) == """\
+x
+-
+5
+6
+7
+8
+9
+"""
 
 
 @pytest.mark.parametrize('x,fmt,r', [
     ('2001.01.01', '{:%Y-%m-%d}',  '2001-01-01'),
+    ('2001.01.01T12', '{:%Y-%m-%d %H}',  '2001-01-01 12'),
     ('2001.01m', '{:%Y-%m}',  '2001-01'),
     ('12t', '{:%H}', '12'),
     ('12:00', '{:%H}', '12'),
@@ -442,3 +464,52 @@ def test_scalar_conversion_error(cls):
     x = q('1 2')
     with pytest.raises(TypeError):
         eval(cls)(x)
+
+
+def test_unicode():
+    assert K(u'abc') == u'abc'
+    assert K([u'abc']) == [u'abc']
+
+
+def test_call_proxy():
+    assert isinstance(K.__call__, K_call_proxy)
+
+
+def test_q_error():
+    with pytest.raises(TypeError):
+        q(1)
+
+
+def test_q_cmdloop(monkeypatch):
+    called = [0]
+
+    def cmdloop(self):
+        called[0] += 1
+
+    from ..cmd import Cmd
+    monkeypatch.setattr(Cmd, 'cmdloop', cmdloop)
+    q()
+    assert called[0]
+
+
+def test_contains():
+    assert 1 in q('1 2 3')
+    assert 'abc' in q('(1;2.0;`abc)')
+
+
+def test_scalar_conversions():
+    x = K(1)
+    assert float(x) == 1
+    assert int(x) == 1
+
+
+def test_call():
+    f = q('{x-y}')
+    assert f(1, 2) == f(y=2, x=1) == f(y=2)(1) == -1
+    with pytest.raises(TypeError):
+        f(1, x=1)
+
+
+def test_issue_715():
+    t = q("([]a:til 3)")
+    assert t[2].value == [2]

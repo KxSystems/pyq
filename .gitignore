@@ -1,0 +1,10 @@
+.cache/
+.idea/
+build/
+__pycache__/
+dist/
+.tox/
+src/pyq.egg-info/
+
+*.pyc
+.coverage

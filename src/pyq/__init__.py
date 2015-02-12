@@ -57,7 +57,7 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
 
-__version__ = '3.7'
+__version__ = '3.7.1'
 __metaclass__ = type
 import os
 
@@ -91,15 +91,8 @@ _ij['b'] = repr(bytes())[-3:-2]  # 'b' in py3k, '' otherwise
 _int_types = (int, ) if PY3K else (int, long)
 
 if PY3K:
-    _ij['_'] = ''
     _ij['div'] = 'truediv'
 else:
-    def _print(*args):
-        for a in args:
-            print(a, end=' ')
-        print()
-
-    _ij['_'] = '_'
     _ij['div'] = 'div'
 __doc__ += """
 Input/Output
@@ -221,28 +214,7 @@ class K(_k.K):
 
    """.format(**dtypes)
         del dtypes
-    try:
-        import Numeric
-    except ImportError:
-        pass
-    else:
-        del Numeric
-        __doc__ += """
-    Numeric support
-    ---------------
 
-    >>> from Numeric import asarray, array
-    >>> asarray(k("1 2 3h"))
-    array([1, 2, 3],'s')
-    >>> K(array([1, 2, 3], 'd'))
-    k('1 2 3f')
-
-    K scalars behave like Numeric scalars
-    >>> asarray([1,2,3]) + asarray(k('0.5'))
-    array([ 1.5,  2.5,  3.5])
-    >>> K(array(1.5))
-    k('1.5')
-    """
     __doc__ += """
     Low level interface
     -------------------
@@ -370,10 +342,8 @@ class K(_k.K):
         except AttributeError:
             i = K(x)
         else:
-            if step != 0:
-                i = start + step * q.til((stop - start) // step)
-            else:
-                raise ValueError('slice step cannot be zero')
+            # NB: .indices() cannot return step=0.
+            i = start + step * q.til((stop - start) // step)
 
         return self._k(0, "@", self, i)
 
@@ -489,8 +459,10 @@ class K(_k.K):
 
         Among other uses, enables interoperability between q and
         python dicts.
-        >>> dict(q('`a`b!1 2'))
-        {'a': k('1'), 'b': k('2')}
+
+        >>> from collections import OrderedDict
+        >>> OrderedDict(q('`a`b!1 2'))
+        OrderedDict([('a', k('1')), ('b', k('2'))])
         >>> d = {}; d.update(q('`a`b!1 2'))
         >>> list(sorted(d.items()))
         [('a', k('1')), ('b', k('2'))]
@@ -637,7 +609,7 @@ class K(_k.K):
     Q objects can be used in Python arithmetic expressions
 
     >>> x,y,z = map(K._ki, (1,2,3))
-    >>> {_}print(x + y, x * y, z/y, x|y, x&y, abs(-z))  #doctest: +NORMALIZE_WHITESPACE
+    >>> print(x + y, x * y, z/y, x|y, x&y, abs(-z))  #doctest: +NORMALIZE_WHITESPACE
     3{i} 2{i} 1.5 2{i} 1{i} 3{i}
 
     Mixing Q objects with python numbers is allowed
@@ -842,6 +814,9 @@ converters = {
 if PY3K:
     converters[bytes] = K._kp
     converters[dict] = lambda x: K._xD(K(list(x.keys())), K(list(x.values())))
+else:
+    converters[unicode] = K._ks
+    _X[unicode] = lambda x: K([i.encode() for i in x])
 
 try:
     converters[buffer] = K._kp
@@ -877,12 +852,11 @@ _imp = __builtin__.__import__
 
 
 def __import__(name, globals={}, locals={}, fromlist=[], level=[-1, 0][PY3K],
-               _imp=_imp, _lc=lazy_converters):
+               _imp=_imp, _c=converters, _lc=lazy_converters):
     m = _imp(name, globals, locals, fromlist, level)
     pairs = _lc.get(name)
     if pairs is not None:
-        converters.update((getattr(m, cname), conv)
-                          for cname, conv in pairs)
+        _c.update((getattr(m, cname), conv) for cname, conv in pairs)
     return m
 
 
