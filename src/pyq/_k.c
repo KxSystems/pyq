@@ -761,7 +761,7 @@ k_ktype(PyArrayInterface *inter, PyObject *obj, J *offset, J *scale)
         case 8:
             return KF;
         default:
-            return -1;
+            goto error;
         }
     case 'i':
         switch (itemsize) {
@@ -774,33 +774,39 @@ k_ktype(PyArrayInterface *inter, PyObject *obj, J *offset, J *scale)
         case 8:
             return KJ;
         default:
-            return -1;
+            goto error;
         }
     case 'S':
-        return itemsize == 1 ? KC : -1;
+        if (itemsize == 1)
+            return KC;
+        else
+            goto error;
     case 'b':
         return KB;
     case 'O':
         return KS;
     case 'u':
-        return itemsize == 1 ? KG : -1;
+        if (itemsize == 1)
+            return KG;
+        else
+            goto error;
     case 'M': {
         char *s, unit;
         Py_ssize_t n;
-	PyObject *descr = array_descr(obj);
-	if (descr == NULL)
-	    return -1;
-	if (PY_STR_AsStringAndSize(descr, &s, &n) == -1) {
-	    Py_DECREF(descr);
-	    return -1;
-	}
-	if (n < 5) {
-	    PyErr_Format(PyExc_TypeError, "invalid descr %s", s);
-	    Py_DECREF(descr);
-	    return -1;
-	}
-	unit = s[4];
-	Py_DECREF(descr);	
+        PyObject *descr = array_descr(obj);
+        if (descr == NULL)
+            return -1;
+        if (PY_STR_AsStringAndSize(descr, &s, &n) == -1) {
+            Py_DECREF(descr);
+            return -1;
+        }
+        if (n < 5) {
+            PyErr_Format(PyExc_TypeError, "invalid descr %s", s);
+            Py_DECREF(descr);
+            return -1;
+        }
+        unit = s[4];
+        Py_DECREF(descr);
         switch(unit) {
         case 'Y':
             *offset = (1970 - 2000) * 12;
@@ -825,21 +831,21 @@ k_ktype(PyArrayInterface *inter, PyObject *obj, J *offset, J *scale)
     case 'm': {
         char *s, unit[2];
         Py_ssize_t n;
-	PyObject *descr = array_descr(obj);
-	if (descr == NULL)
-	    return -1;
-	if (PY_STR_AsStringAndSize(descr, &s, &n) == -1) {
-	    Py_DECREF(descr);
-	    return -1;
-	}
-	if (n < 5) {
-	    PyErr_Format(PyExc_TypeError, "invalid descr %s", s);
-	    Py_DECREF(descr);
-	    return -1;
-	}
-	unit[0] = s[n - 2];
-	unit[1] = s[n - 3];
-	Py_DECREF(descr);	
+        PyObject *descr = array_descr(obj);
+        if (descr == NULL)
+            return -1;
+        if (PY_STR_AsStringAndSize(descr, &s, &n) == -1) {
+            Py_DECREF(descr);
+            return -1;
+        }
+        if (n < 5) {
+            PyErr_Format(PyExc_TypeError, "invalid descr %s", s);
+            Py_DECREF(descr);
+            return -1;
+        }
+        unit[0] = s[n - 2];
+        unit[1] = s[n - 3];
+        Py_DECREF(descr);
         switch(unit[0]) {
             case 's':
 	         switch(unit[1]) {
@@ -877,8 +883,13 @@ k_ktype(PyArrayInterface *inter, PyObject *obj, J *offset, J *scale)
                 return -1;
         }
         return KN;
+    }
+    case 'V': {
+        PyErr_SetString(PyExc_NotImplementedError, "typecode 'V' is not implemented in C");
+        return -1;
     }}
-    PyErr_Format(PyExc_ValueError, "cannot handle type '%c%d'",
+  error:
+    PyErr_Format(PyExc_TypeError, "cannot handle type '%c%d'",
                  inter->typekind, inter->itemsize);
     return -1;
 }
@@ -2114,6 +2125,11 @@ K_buffer_getbuffer(KObject * self, Py_buffer * view, int flags)
         return -1;
     }
     int itemsize = k_itemsize(x);
+
+    if (xt > 19) {
+        PyErr_Format(PyExc_BufferError, "k object of type %dh", xt);
+        return -1;
+    }
 
     if (xt > 0) {
         view->ndim = 1;

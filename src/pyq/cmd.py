@@ -17,7 +17,7 @@ class Cmd(_cmd.Cmd):
     def prompt(self):
         code = _prompt_color()
         prompt = self._prompt.format(ns=_prompt_namespace())
-        return "\033[%d;1m%s\033[0m" % (code, prompt)
+        return "\001\033[%d;1m\002%s\001\033[0m\002" % (code, prompt)
 
     def precmd(self, line):
         if line.startswith('help'):

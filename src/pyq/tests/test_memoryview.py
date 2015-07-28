@@ -80,7 +80,7 @@ def test_readonly(expr, ro):
 
 
 @pytest.mark.parametrize('x', [
-    '()', '(1;`)', '(1 2;3 4f)', '(1 2 3;4 5)',
+    '()', '(1;`)', '(1 2;3 4f)', '(1 2 3;4 5)', '`sym?`a`b`c',
 ])
 def test_memoryview_errors(x):
     k = q(x)

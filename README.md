@@ -1,13 +1,13 @@
 Quick install:
 
 ```
-$ pip install -i https://pypi.enlnt.com -U pyq
-```
-
-or 
-
-```
 $ pip install --allow-external pyq pyq 
+```
+
+or
+
+```
+$ pip install -i https://pypi.enlnt.com -U pyq
 ```
 
 For detailed installation instructions see [INSTALL](INSTALL.md).

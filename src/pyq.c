@@ -132,6 +132,7 @@ main(int argc, char *argv[])
     int rc, i;
     char **args, *p, *qpath;
     qpath = find_q();
+    setenv("QBIN", qpath, 1);
     args = malloc((sizeof (char*)) * (argc + 3));
 #ifdef __APPLE__
     /* TODO: Check for error and dynamically allocate progpath. */

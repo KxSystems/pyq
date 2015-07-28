@@ -235,3 +235,15 @@ def test_record_arrays():
 
     r = K(a[0])
     assert r == q("`date`num`val!(2001.01.01;1h;3.14e)")
+
+
+def test_unsupported_dtype_errors():
+    with pytest.raises(TypeError):
+        a = numpy.array('abc', dtype='S3')
+        K(a)
+
+
+def test_conversion_errors():
+    x = q('`sum?`a`b`c')
+    with pytest.raises(NotImplementedError):
+        numpy.ma.asarray(x)

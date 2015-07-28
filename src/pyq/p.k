@@ -1,11 +1,12 @@
 PYVER:"2.7"
 SOEXT:".so\000"
+PSO:`p
 lib:"libpython",PYVER,SOEXT
 PYTHON:"python.py"
 
 `QVER setenv$_.Q.k
 \d .p
-@[`p 2:(`i;1);`.[`lib]]
+@[`.[`PSO]2:(`i;1);`. `lib]
 e:{e0 x,"\000";}
 \d .
 p)import sys, os

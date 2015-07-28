@@ -8,7 +8,7 @@ and Q objects live in the same memory space and share the same data.
 ###############################################################################
 metadata = dict(
     name='pyq',
-    version='3.7.1',
+    version='3.7.2',
     packages=['pyq', 'pyq.tests', ],
     scripts=['src/scripts/pyq-runtests', 'src/scripts/pyq-coverage', ],
     url='http://pyq.enlnt.com',
@@ -273,6 +273,7 @@ class build_qk(Command):
         soabi = get_config_var('SOABI')
         if soabi:
             self.q_module_rules.append(((None, 'PYSO:', 'PYSO: `$"py.%s"\n' % soabi)))
+            self.q_module_rules.append(((None, 'PSO:', 'PSO: `$"p.%s"\n' % soabi)))
         soext = '.dylib\\000' if os.uname()[0] == 'Darwin' else '.so\\000'
         self.q_module_rules.append((None, 'SOEXT:', 'SOEXT: "%s"\n' % soext))
         virtual_env = os.getenv('VIRTUAL_ENV')

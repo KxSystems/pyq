@@ -57,7 +57,7 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
 
-__version__ = '3.7.1'
+__version__ = '3.7.2'
 __metaclass__ = type
 import os
 
@@ -262,8 +262,7 @@ class K(_k.K):
         else:
             try:
                 k = K._from_array_interface(array_struct, x)
-            # TODO: Unsupported formats should raise NotImplementedError
-            except ValueError:
+            except NotImplementedError:
                 fields = [f for f, t in x.dtype.descr]
                 k = q('!', list(fields), [K(x[f]) for f in fields])
                 if x.ndim:
@@ -341,11 +340,14 @@ class K(_k.K):
             start, stop, step = x.indices(len(self))
         except AttributeError:
             i = K(x)
-        else:
-            # NB: .indices() cannot return step=0.
-            i = start + step * q.til((stop - start) // step)
+            return self._k(0, "@", self, i)
 
-        return self._k(0, "@", self, i)
+        if step == 1:
+            return self._k(0, "sublist", self._J([start, stop - start]), self)
+        # NB: .indices() cannot return step=0.
+        i = start + step * q.til((stop - start) // step)
+
+        return self._k(0, "{$[99=type x;(key[x]y)!value[x]y;x y]}", self, i)
 
     def __getattr__(self, a):
         """table columns can be accessed via dot notation
@@ -828,9 +830,7 @@ except NameError:
 # Lazy addition of converters
 ###############################################################################
 lazy_converters = {'uuid': [('UUID', lambda u: K._kguid(u.int))],
-                   'collections': [('OrderedDict', lambda x:
-                   q("{![;].(flip x)}",
-                     K._K(K(i) for i in x.items())))],
+                   'collections': [('OrderedDict', converters[dict])],
                    'py._path.local': [('LocalPath', lambda p: q.hsym(p.strpath))]
 }
 

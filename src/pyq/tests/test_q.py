@@ -127,7 +127,7 @@ class TestOrderedDict(unittest.TestCase):
             self.skipTest("no OrderedDict in collections")
         od = odict([('a', 1.0), ('b', 2.0)])
         self.assertEqual(K(od), q('`a`b!1 2f'))
-
+        self.assertEqual(K(odict()), q('()!()'))
 
 def test_seu():
     t = q('([]a:5 8 9 4;b:4 3 2 4)')
@@ -450,6 +450,10 @@ def test_slice(start, stop, stride, size):
     x = q.til(size)
     y = list(range(size))
     assert x[start:stop:stride] == y[start:stop:stride]
+
+    d = q('!', x, x)
+    s = d[start:stop:stride]
+    assert s.key == s.value == y[start:stop:stride]
 
 
 def test_slice_error():
