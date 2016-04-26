@@ -847,3 +847,9 @@ def test_datetime_conversion(Y, M, D, h, m, s, u):
     d = datetime(Y, M, D, h, m, s, u)
     x = q('enlist', kzz(d))
     assert x[0] == d
+
+
+def test_errmsg():  # Issue #737
+    with pytest.raises(TypeError) as e:
+        F([1., 1])
+    assert 'float' in e.value.args[0]

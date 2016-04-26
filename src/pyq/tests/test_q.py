@@ -338,7 +338,14 @@ x
     ('12t', '{:%H}', '12'),
     ('12:00', '{:%H}', '12'),
     ('12:01:02', '{:%H%M%S}', '120102'),
-    ('`xyz', '{}', 'xyz'),
+    ('`xyz', '{:4s}', 'xyz '),
+    ('1b', '{:d}', '1'),
+    ('10000i', '{:,}', '10,000'),
+    ('10000j', '{:,}', '10,000'),
+    ('3.14e', '{:.1f}', '3.1'),
+    ('3.14f', '{:.1f}', '3.1'),
+    ('"Z"', '{:2s}', 'Z '),
+    ('0xef', '{:x}', 'ef'),
 ])
 def test_format(x, fmt, r):
     assert fmt.format(q(x)) == r
@@ -517,3 +524,13 @@ def test_call():
 def test_issue_715():
     t = q("([]a:til 3)")
     assert t[2].value == [2]
+
+
+@pytest.mark.skipif(PY3K, reason="No 'long' type in Python 3.x")
+def test_list_of_long():
+    x = eval("[1L, 2L]")
+    assert K(x) == [1, 2]
+    x = eval("[1, 2L]")
+    assert K(x) == [1, 2]
+    x = eval("[1L, 2]")
+    assert K(x) == [1, 2]

@@ -80,7 +80,7 @@ def test_readonly(expr, ro):
 
 
 @pytest.mark.parametrize('x', [
-    '()', '(1;`)', '(1 2;3 4f)', '(1 2 3;4 5)', '`sym?`a`b`c',
+    '()', '(1;`)', '(1 2;3 4f)', '(1 2 3;4 5)',
 ])
 def test_memoryview_errors(x):
     k = q(x)
@@ -94,3 +94,9 @@ def test_memoryview_bytes():
 
     y = q('"x"$"ABCD"')
     assert memoryview(y).tobytes() == b'ABCD'
+
+
+def test_memoryview_enum(q):
+    x = q('`sym?`a`b`c')
+    m = memoryview(x)
+    assert m.format == K_INT_CODE

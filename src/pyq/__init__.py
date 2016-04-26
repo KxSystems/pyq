@@ -1,13 +1,13 @@
 """Python interface to the Q language
 
-The following examples are adapted from the "Kdb+ Database and Language Primer"
-by Dennis Shasha <http://kx.com/q/d/primer.htm>
+The following examples were adapted from the
+`"Kdb+ Database and Language Primer" <http://kx.com/q/d/primer.htm>`_.
 
 >>> y = q('`aaa`bbbdef`c'); y[0]
 'aaa'
 
-Unlike in Q, in python function call syntax uses '()' and
-indexing uses '[]':
+Unlike in Q, in python function call syntax uses ``()`` and indexing uses ``[]``
+
 >>> z = q('(`abc; 10 20 30; (`a; `b); 50 60 61)')
 >>> z(2, 0)
 k('`a')
@@ -16,6 +16,7 @@ k('(`abc;`a`b)')
 
 
 Dictionaries
+------------
 
 >>> fruitcolor = q('`cherry`plum`tomato!`brightred`violet`brightred')
 >>> fruitcolor['plum']
@@ -25,6 +26,7 @@ k('`violet')
 k('`cherry`plum`tomato`grannysmith`prune!`brightred`reddish`brightred`green`black')
 
 Tables from Dictionaries
+------------------------
 
 >>> d = q('`name`salary! (`tom`dick`harry;30 30 35) ')
 >>> e = q.flip(d)
@@ -44,6 +46,7 @@ k(',`name')
 k('`name`salary')
 
 Temporal Primitives
+-------------------
 
 >>> x = datetime(2004,7,3,16,35,24,980000)
 >>> K(x)
@@ -57,9 +60,13 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
 
-__version__ = '3.7.2'
 __metaclass__ = type
 import os
+
+try:
+    from .version import version as __version__
+except ImportError:
+    __version__ = 'unknown'
 
 try:
     import numpy as _np
@@ -96,9 +103,10 @@ else:
     _ij['div'] = 'div'
 __doc__ += """
 Input/Output
+------------
 
 >>> import os
->>> r,w = os.pipe()
+>>> r, w = os.pipe()
 >>> h = K(w)(kp("xyz"))
 >>> os.read(r, 100)
 {b}'xyz'
@@ -124,23 +132,28 @@ class K(_k.K):
     k('2005.01.01 2005.12.04')
 
     Iteration over simple lists produces python objects
+
     >>> list(q("`a`b`c`d"))
     ['a', 'b', 'c', 'd']
 
     Iteration over q tables produces q dictionaries
+
     >>> list(q("([]a:`x`y`z;b:1 2 3)"))
     [k('`a`b!(`x;1)'), k('`a`b!(`y;2)'), k('`a`b!(`z;3)')]
 
     Iteration over a q dictionary iterates over its key
+
     >>> list(q('`a`b!1 2'))
     ['a', 'b']
 
     as a consequence, iteration over a keyed table is the same as
     iteration over its key table
+
     >>> list(q("([a:`x`y`z]b:1 2 3)"))
     [k('(,`a)!,`x'), k('(,`a)!,`y'), k('(,`a)!,`z')]
 
     Callbacks into python
+
     >>> def f(x, y):
     ...     return x + y
     >>> q('{[f]f(1;2)}', f)
@@ -148,7 +161,8 @@ class K(_k.K):
     if not PY3K:
         __doc__ += """
 
-    Buffer protocol:
+    Buffer protocol
+
     >>> x = kp('xxxxxx')
     >>> import os; r,w = os.pipe()
     >>> os.write(w, 'abcdef') == os.fdopen(r).readinto(x)
@@ -157,7 +171,8 @@ class K(_k.K):
     k('"abcdef"')"""
     __doc__ += """
 
-    Array protocol:
+    Array protocol
+
     >>> ','.join([k(x).__array_typestr__
     ...  for x in ('0b;0x00;0h;0i;0j;0e;0.0;" ";`;2000.01m;2000.01.01;'
     ...            '2000.01.01T00:00:00.000;00:00;00:00:00;00:00:00.000')
@@ -177,7 +192,6 @@ class K(_k.K):
             dtypes = dict(i_dtype=', dtype=int32', j_dtype='')
         __doc__ += """
     Numpy support
-    ---------------
 
     >>> from numpy import asarray, array
     >>> asarray(k("1010b"))
@@ -217,14 +231,15 @@ class K(_k.K):
 
     __doc__ += """
     Low level interface
-    -------------------
+
 
     The K type provides a set of low level functions that are similar
-    to the C API provided by the k.h header. The C API functions that
-    return K objects in C are implemented as class methods that return
-    instances of K type.
+    to the C API provided by the `k.h header <http://kx.com/q/c/c/k.h>`_.
+    The C API functions that return K objects in C are implemented as
+    class methods that return instances of K type.
 
-    Atoms:
+    Atoms
+
     >>> K._kb(True), K._kg(5), K._kh(42), K._ki(-3), K._kj(2**40), K._ke(3.5)
     (k('1b'), k('0x05'), k('42h'), k('-3{i}'), k('1099511627776{j}'), k('3.5e'))
 
@@ -235,11 +250,13 @@ class K(_k.K):
     (k('2000.01.01'), k('2000.01.01T00:00:00.000'), k('00:00:00.000'))
 
 
-    Tables and dictionaries:
+    Tables and dictionaries
+
     >>> x = K._xD(k('`a`b`c'), k('1 2 3')); x, K._xT(x)
     (k('`a`b`c!1 2 3'), k('+`a`b`c!1 2 3'))
 
-    Keyed table:
+    Keyed table
+
     >>> t = K._xD(K._xT(K._xD(k(",`a"), k(",1 2 3"))),
     ...           K._xT(K._xD(k(",`b"), k(",10 20 30"))))
     >>> K._ktd(t)
@@ -285,11 +302,13 @@ class K(_k.K):
         """call the k object
 
         Arguments are automatically converted to appropriate k objects
+
         >>> k('+')(date(1999,12,31), 2)
         k('2000.01.02')
 
         Strings are converted into symbols, use kp to convert to char
-        vectors:
+        vectors
+
         >>> f = k('::')
         >>> [f(x) for x in ('abc', kp('abc'))]
         [k('`abc'), k('"abc"')]
@@ -469,7 +488,8 @@ class K(_k.K):
         >>> list(sorted(d.items()))
         [('a', k('1')), ('b', k('2'))]
 
-        An elegant idiom to unpack q tables:
+        An elegant idiom to unpack q tables
+
         >>> u = locals().update
         >>> for r in q('([]a:`x`y`z;b:1 2 3;c:"XYZ")'):
         ...     u(r); a, b, c
@@ -493,7 +513,8 @@ class K(_k.K):
         z| 3 30
 
         the first optional argument, 'start' specifies the first row to be
-        printed (negative means from the end):
+        printed (negative means from the end)
+
         >>> x.show(2)  # doctest: +NORMALIZE_WHITESPACE
         k| a b
         -| ----
@@ -506,7 +527,8 @@ class K(_k.K):
         z| 3 30
 
         the geometry is the height and width of the console
-        >>> x.show(geometry=[4,6])
+
+        >>> x.show(geometry=[4, 6])
         k| a..
         -| -..
         x| 1..
@@ -615,6 +637,7 @@ class K(_k.K):
     3{i} 2{i} 1.5 2{i} 1{i} 3{i}
 
     Mixing Q objects with python numbers is allowed
+
     >>> 1/q('1 2 4')
     k('1 0.5 0.25')
     >>> q.til(5)**2
@@ -714,10 +737,11 @@ class _Q(object):
 
 __doc__ += """
 Q variables can be accessed as attributes of the 'q' object:
->>> q.test = q('([]a:1 2i;b:`x`y)')
->>> sum(q.test.a)
+
+>>> q.t = q('([]a:1 2i;b:`x`y)')
+>>> sum(q.t.a)
 3
->>> del q.test
+>>> del q.t
 """
 q = _Q()
 nil = q('(value +[;0])1')
@@ -777,6 +801,7 @@ listtok converts python list to k
 k('()')
 
 Type is determined by the type of the first element of the list
+
 >>> listtok(list("abc"))
 k('`a`b`c')
 >>> listtok([1,2,3])
@@ -785,10 +810,11 @@ k('1 2 3')
 k('0.5 1 1.5')
 
 All elements must have the same type for conversion
+
 >>> listtok([0.5,'a',5])
 Traceback (most recent call last):
   ...
-TypeError: K._F: 2-nd item is not an int
+TypeError: K._F: 2-nd item is not a float
 
 """
 
@@ -819,7 +845,7 @@ if PY3K:
 else:
     converters[unicode] = K._ks
     _X[unicode] = lambda x: K([i.encode() for i in x])
-
+    _X[long] = K._J
 try:
     converters[buffer] = K._kp
 except NameError:

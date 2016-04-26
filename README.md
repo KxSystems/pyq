@@ -1,16 +1,11 @@
 Quick install:
 
 ```
-$ pip install --allow-external pyq pyq 
-```
-
-or
-
-```
 $ pip install -i https://pypi.enlnt.com -U pyq
 ```
 
-For detailed installation instructions see [INSTALL](INSTALL.md).
+For detailed installation instructions see [INSTALL](doc/INSTALL.rst).
+
 
 Usage:
 
@@ -18,7 +13,7 @@ Usage:
 pyq [python options] python-script
 ```
 
-Documentation:
+Documentation available on [https://pyq.enlnt.com](https://pyq.enlnt.com) or via pydoc:
 
 ```
 pyq -m pydoc pyq

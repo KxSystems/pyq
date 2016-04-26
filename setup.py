@@ -5,10 +5,50 @@ Python and Q interpreters in the same process and allows code written
 in either of the languages to operate on the same data. In PyQ, Python
 and Q objects live in the same memory space and share the same data.
 """
-###############################################################################
+import os
+import struct
+import sys
+from subprocess import check_output, call
+from distutils.ccompiler import new_compiler, CCompiler
+from distutils.util import get_platform
+from os.path import join
+from distutils import log
+from stat import ST_MODE
+
+try:
+    from setuptools import Extension
+    from setuptools import setup, Command
+    from setuptools import Distribution as _Distribution
+    from setuptools.command.install_lib import install_lib as _install_lib
+    from setuptools.command.install import install as _install
+except ImportError:
+    from distutils.core import Extension
+    from distutils.core import setup, Command
+    from distutils.core import Distribution as _Distribution
+    from distutils.command.install_lib import install_lib as _install_lib
+    from distutils.command.install import install as _install
+from distutils.command.build import build as _build
+from distutils.command.config import config as _config
+from distutils.command.build_ext import build_ext as _build_ext
+from distutils.sysconfig import customize_compiler, get_config_var, get_python_inc
+from distutils.command.install_scripts import install_scripts as _install_scripts
+
+try:
+    from os import uname
+except ImportError:
+    # NB: Windows does not support os.uname, need to use platform.uname.
+    from platform import uname
+
+
+VERSION = '3.8'
+IS_RELEASE = True
+PYQ_SRC_DIR = os.path.join('src', 'pyq')
+VERSION_FILE = os.path.join(PYQ_SRC_DIR, 'version.py')
+BITS = struct.calcsize('P') * 8
+
+
 metadata = dict(
     name='pyq',
-    version='3.7.2',
     packages=['pyq', 'pyq.tests', ],
     scripts=['src/scripts/pyq-runtests', 'src/scripts/pyq-coverage', ],
     url='http://pyq.enlnt.com',
@@ -29,26 +69,12 @@ metadata = dict(
                  'Programming Language :: C',
                  'Programming Language :: Python :: 2.7',
                  'Programming Language :: Python :: 3.4',
+                 'Programming Language :: Python :: 3.5',
                  'Programming Language :: Python :: Implementation :: CPython',
                  'Topic :: Database',
                  'Topic :: Software Development :: Libraries :: Python Modules'],
 )
-###############################################################################
-import os
-import sys
-from subprocess import check_output, call
-from distutils.ccompiler import new_compiler, CCompiler
-from distutils.util import get_platform
-from os.path import join
-from distutils import log
-from stat import ST_MODE
 
-try:
-    from setuptools import Extension
-except ImportError:
-    from distutils.core import Extension
-
-PYQ_SRC_DIR = 'src/pyq'
 
 if str is bytes:
     def decode(x):
@@ -57,7 +83,13 @@ else:
     def decode(x):
         return x.decode()
 
-if os.uname()[0] == 'Darwin':
+k_extra_compile_args = ['-Wpointer-arith']
+py_extra_compile_args = ['-O0', '-g']
+extra_link_args = []
+libraries = []
+
+platform = uname()[0]
+if platform == 'Darwin':
     out = check_output(['otool', '-L', sys.executable])
     for line in out.splitlines():
         if b'libpython' in line:
@@ -67,13 +99,13 @@ if os.uname()[0] == 'Darwin':
         if b'Python' in line:
             pypath = decode(line.split()[0])
             pypath = pypath.replace('@executable_path', os.path.dirname(sys.executable))
-            #while os.path.islink(pypath):
+            # while os.path.islink(pypath):
             #    pypath = os.readlink(pypath)
             python_lib_dir = os.path.join(os.path.dirname(pypath), 'lib')
             break
     else:
         python_lib_dir = '/System/Library/Frameworks/Python.framework/Versions/%s/lib' % sys.version[0:3]
-else:
+elif platform.startswith(('Linux', 'SunOS')):
     out = check_output(['ldd', sys.executable])
     for line in out.splitlines():
         if b'libpython' in line:
@@ -82,16 +114,54 @@ else:
             break
     else:
         python_lib_dir = os.path.join(sys.exec_prefix, 'lib')
+elif platform == 'Windows':
+    python_lib_dir = os.path.join(sys.exec_prefix, 'libs')
+    libraries = ['python%s%s' % sys.version_info[:2]]
+    k_extra_compile_args = []
+    py_extra_compile_args = []
+    extra_link_args = [os.path.join(PYQ_SRC_DIR, 'w%i' % BITS, 'q.lib')]
+else:
+    raise ValueError('PyQ is not supported under %s.' % platform)
+
+
+def get_version():
+    if IS_RELEASE:
+        version = VERSION
+    elif os.path.exists('.git'):
+        try:
+            out = check_output(['git', 'describe'])
+            tag, commits, revision = decode(out).strip().split('-')
+            version = VERSION + '.dev{}+{}'.format(commits, revision[1:])
+        except (OSError, ValueError):
+            version = VERSION + '.dev0+unknown'
+    elif os.path.exists(VERSION_FILE):
+        import imp
+        ver = imp.load_source('pyq.version', VERSION_FILE)
+        version = ver.version
+    else:
+        version = VERSION + '.dev0+unknown'
+
+    version_code = "# generated by setup.py\nversion = '{}'\n".format(version)
+    with open(VERSION_FILE, 'w') as f:
+        f.write(version_code)
+    print("version written")
+    return version
+
+
+pyq_version = get_version()
 
 _k = Extension('pyq._k',
                sources=[os.path.join(PYQ_SRC_DIR, '_k.c'), ],
-               extra_compile_args=[],
-               include_dirs=[], )
+               extra_compile_args=k_extra_compile_args,
+               include_dirs=[],
+               extra_link_args=extra_link_args, )
 py = Extension('py',
                sources=[os.path.join(PYQ_SRC_DIR, 'py.c'), ],
-               extra_compile_args=['-O0', '-g'],
+               extra_compile_args=py_extra_compile_args,
                runtime_library_dirs=[python_lib_dir],
-               library_dirs=[python_lib_dir], )
+               library_dirs=[python_lib_dir],
+               libraries=libraries,
+               extra_link_args=extra_link_args, )
 p = Extension('p',
               sources=[os.path.join(PYQ_SRC_DIR, 'p.c'), ],
               extra_compile_args=[],
@@ -116,22 +186,6 @@ metadata.update(
     ext_modules=[_k, ],
     qext_modules=[py, p, ],
 )
-###############################################################################
-try:
-    from setuptools import setup, Command
-    from setuptools import Distribution as _Distribution
-    from setuptools.command.install_lib import install_lib as _install_lib
-    from setuptools.command.install import install as _install
-except ImportError:
-    from distutils.core import setup, Command
-    from distutils.core import Distribution as _Distribution
-    from distutils.command.install_lib import install_lib as _install_lib
-    from distutils.command.install import install as _install
-from distutils.command.build import build as _build
-from distutils.command.config import config as _config
-from distutils.command.build_ext import build_ext as _build_ext
-from distutils.sysconfig import customize_compiler, get_config_var, get_python_inc
-from distutils.command.install_scripts import install_scripts as _install_scripts
 
 
 class config(_config):
@@ -217,9 +271,9 @@ class build_exe(Command):
         for exe in self.distribution.executables:
             exe.include_dirs.append(get_python_inc())
             compiler = new_compiler(  # compiler=self.compiler,
-                                      verbose=self.verbose,
-                                      dry_run=self.dry_run,
-                                      force=self.force)
+                verbose=self.verbose,
+                dry_run=self.dry_run,
+                force=self.force)
             customize_compiler(compiler)
             compiler.set_include_dirs(exe.include_dirs)
             for (name, value) in exe.define_macros:
@@ -240,7 +294,7 @@ class build_exe(Command):
                           output_filename=exe_path,
                           library_dirs=library_dirs,
                           libraries=exe.libraries
-            )
+                          )
 
 
 class build_qk(Command):
@@ -274,7 +328,9 @@ class build_qk(Command):
         if soabi:
             self.q_module_rules.append(((None, 'PYSO:', 'PYSO: `$"py.%s"\n' % soabi)))
             self.q_module_rules.append(((None, 'PSO:', 'PSO: `$"p.%s"\n' % soabi)))
-        soext = '.dylib\\000' if os.uname()[0] == 'Darwin' else '.so\\000'
+
+        # FIXME: Windows
+        soext = '.dylib\\000' if platform == 'Darwin' else '.so\\000'
         self.q_module_rules.append((None, 'SOEXT:', 'SOEXT: "%s"\n' % soext))
         virtual_env = os.getenv('VIRTUAL_ENV')
 
@@ -286,7 +342,7 @@ class build_qk(Command):
 
         self.q_module_rules.append((None, 'PYTHON:', 'PYTHON: "%s"\n' % python_path))
 
-        if os.uname()[0] == 'Darwin' or sys.version_info[0] >= 3:  # Issue #559
+        if platform == 'Darwin' or sys.version_info[0] >= 3:  # Issue #559
             if virtual_env:
                 if sys.version_info[0] < 3:
                     lib_string = 'lib:"%s\\000"\n' % os.path.join(virtual_env, '.Python')
@@ -354,6 +410,13 @@ class build_ext(_build_ext):
         kxver = self.distribution.kxver
         return filename[:-len(so_ext)] + kxver.split('.')[0] + so_ext
 
+    def get_export_symbols(self, ext):
+        kxver = self.distribution.kxver.split('.')[-1]
+        initfunc_name = "init" + ext.name.split('.')[-1] + kxver
+        if initfunc_name not in ext.export_symbols:
+            ext.export_symbols.append(initfunc_name)
+        return ext.export_symbols
+
 
 class build_qext(_build_ext):
     description = "build Q extension modules"
@@ -367,7 +430,7 @@ class build_qext(_build_ext):
         filename = _build_ext.get_ext_filename(self, ext_name)
         so_ext = get_config_var('SO')
         soabi = get_config_var('SOABI')
-        if soabi and os.uname()[0] == 'Darwin':
+        if sys.version_info < (3, 5) and soabi and platform == 'Darwin':
             filename = "%s.%s%s" % (filename[:-len(so_ext)], soabi, so_ext)
         return filename
 
@@ -384,7 +447,7 @@ class build_qext(_build_ext):
                                    ('debug', 'debug'),
                                    ('force', 'force'),
                                    ('plat_name', 'plat_name'),
-        )
+                                   )
         self.extensions = self.distribution.qext_modules
 
         # TODO: Don't add python stuff to q extentions that don't need it
@@ -481,7 +544,7 @@ class install_qlib(_install_lib):
                                    ('force', 'force'),
                                    ('compile', 'compile'),
                                    ('skip_build', 'skip_build'),
-        )
+                                   )
         self.optimize = 0
         if self.install_dir is None:
             self.install_dir = self.distribution.qhome
@@ -510,12 +573,12 @@ class install_qext(_install_lib):
                                    ('force', 'force'),
                                    ('compile', 'compile'),
                                    ('skip_build', 'skip_build'),
-        )
+                                   )
         self.optimize = 0
         if self.install_dir is None:
             self.install_dir = self.distribution.qhome
 
-        if os.uname()[0] == 'Darwin' and get_config_var('SIZEOF_VOID_P') * 8 == 64 and \
+        if platform == 'Darwin' and BITS == 64 and \
                 not os.path.exists(self.install_dir):
             # This is a hack to make 32-bit q work on 64-bit Mac for testing purposes.
             qhome_m32 = os.path.join(self.distribution.qhome, 'm32')
@@ -536,7 +599,7 @@ class install_exe(_install_scripts):
                                    ('install_scripts', 'install_dir'),
                                    ('force', 'force'),
                                    ('skip_build', 'skip_build'),
-        )
+                                   )
 
     def run(self):
         if not self.skip_build:
@@ -584,13 +647,12 @@ class install(_install):
         self.set_undefined_options('build',
                                    ('build_qlib', 'build_qlib'),
                                    ('build_qext', 'build_qext'),
-        )
+                                   )
         dst = self.distribution
         if self.install_qlib == None:
             self.install_qlib = dst.qhome
         if self.install_qext == None:
             self.install_qext = os.path.join(dst.qhome, dst.qarch)
-
 
     user_options = _install.user_options + [
         ('install-qlib=', None,
@@ -663,18 +725,22 @@ class Distribution(_Distribution):
 
         self.cmdclass['test'] = PyTest
 
-        self.qhome = os.getenv('QHOME') or os.path.join(os.getenv('HOME'), 'q')
-        bits = 8 * get_config_var('SIZEOF_VOID_P')
-        u = os.uname()
-        if u[0] == 'Linux':
+        default_qhome_root = os.getenv('SystemDrive') + '\\' if platform == 'Windows' else os.getenv('HOME')
+        self.qhome = os.getenv('QHOME') or os.path.join(default_qhome_root, 'q')
+
+        bits = BITS
+        if platform == 'Linux':
             o = 'l'
-        elif u[0] == 'SunOS':
-            o = 'v' if u[-1] == 'i86pc' else 's'
-        elif u[0] == 'Darwin':
+        elif platform == 'SunOS':
+            o = 'v' if uname()[-1] == 'i86pc' else 's'
+        elif platform == 'Darwin':
             o = 'm'
             bits = 32
+        elif platform == 'Windows':
+            o = 'w'
+            bits = 32  # FIXME: We test with 32-bit kdb+ on Windows, so forcing 32-bit version.
         else:
-            sys.stderr.write("Unknown platform: %s\n" % str(u))
+            sys.stderr.write("Unknown platform: %s\n" % str(platform))
             sys.exit(1)
         self.qarch = "%s%d" % (o, bits)
         self.install_data = os.path.join(self.qhome, self.qarch)
@@ -689,18 +755,17 @@ class Distribution(_Distribution):
 
 
 ###############################################################################
+
 summary, details = __doc__.split('\n\n', 2)
-download_url = ("http://code.kx.com/wsvn/code/contrib/"
-                "serpent.speak/trunk/Q/dist/"
-                "%(name)s-%(version)s.tar.gz?op=dl" % metadata)
 
 with open('requirements.txt') as reqfile:
     REQUIREMENTS = reqfile.read().splitlines()
 
-setup(distclass=Distribution,
+setup(version=pyq_version,
+      distclass=Distribution,
       description=summary,
       long_description=details,
-      download_url=download_url,
+      download_url="https://github.com/enlnt/pyq/archive/pyq-{version}.tar.gz".format(version=pyq_version),
       package_dir={'': 'src'},
       install_requires=REQUIREMENTS,
       zip_safe=False,

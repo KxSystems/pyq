@@ -243,7 +243,8 @@ def test_unsupported_dtype_errors():
         K(a)
 
 
-def test_conversion_errors():
-    x = q('`sum?`a`b`c')
-    with pytest.raises(NotImplementedError):
-        numpy.ma.asarray(x)
+def test_enum_conversion(q):
+    x = q('`sym?`a`b`c')
+    a = numpy.asarray(x)
+    a.tolist() == [0, 1, 2]
+
