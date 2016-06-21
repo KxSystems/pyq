@@ -4,10 +4,23 @@
 Version History
 ===============
 
+PyQ 3.8.1
+---------
+
+Released on 2016-06-21
+
+- !292 -  #744: Print guessed path of q executable when exec fails.
+- !293, !294 -  #748 Use VIRTUAL_ENV environment variable to guess QHOME.
+- !301, !295 -  #751: Update documentation.
+- !296 -  #750: Fall back on 32-bit version of q if 64-bit version does not run.
+- !298, !299, !300, !303 -  #753: CI Improvements.
+- !302 -  #755: Use preserveEnumerations=1 option to b9 instead of -1.
+
+
 PyQ 3.8
 -------
 
-Released on 2015-04-26.
+Released on 2016-04-26.
 
 - !256 - #670: Enable 32-bit CI
 - !258 - #717 Expose sd0 and sd1 in python.

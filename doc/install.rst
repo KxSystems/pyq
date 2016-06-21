@@ -26,13 +26,13 @@ Use following pip command to install PyQ into your environment.
 
 ::
 
-    pip -i https://pyq.enlnt.com install pyq
+    pip install -i https://pyq.enlnt.com --no-binary pyq pyq
 
 You can specify which version you would like to install:
 
 ::
 
-    pip -i https://pyq.enlnt.com install pyq==3.8
+    pip install -i https://pyq.enlnt.com --no-binary pyq pyq==3.8
 
 
 Using source code

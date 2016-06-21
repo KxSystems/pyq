@@ -1,7 +1,7 @@
 Quick install:
 
 ```
-$ pip install -i https://pypi.enlnt.com -U pyq
+$ pip install -i https://pypi.enlnt.com -U --no-binary pyq pyq
 ```
 
 For detailed installation instructions see [INSTALL](doc/INSTALL.rst).

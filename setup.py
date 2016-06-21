@@ -40,7 +40,7 @@ except ImportError:
     from platform import uname
 
 
-VERSION = '3.8'
+VERSION = '3.8.1'
 IS_RELEASE = True
 PYQ_SRC_DIR = os.path.join('src', 'pyq')
 VERSION_FILE = os.path.join(PYQ_SRC_DIR, 'version.py')

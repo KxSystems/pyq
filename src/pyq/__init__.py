@@ -294,7 +294,7 @@ class K(_k.K):
         return c(x)
 
     def __reduce_ex__(self, proto):
-        x = self._b9(-1, self)
+        x = self._b9(1, self)
         b = memoryview(x).tobytes()
         return (d9, (b,))
 

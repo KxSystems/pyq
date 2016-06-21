@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
+
 import subprocess
 import sys
 
@@ -46,3 +47,64 @@ def test_pyq_taskset(c, r, monkeypatch):
     monkeypatch.setenv('CPUS', c)
     monkeypatch.setenv('TEST_CPUS', 'y')
     assert r == subprocess.check_output(['pyq']).decode()
+
+
+def test_q_not_found(tmpdir, monkeypatch):
+    q_home = str(tmpdir)
+    monkeypatch.setenv('QHOME', q_home)
+    p = subprocess.Popen(['pyq'], stderr=subprocess.PIPE)
+    errors = p.stderr.readlines()
+    assert errors[0].startswith(q_home.encode())
+
+
+@pytest.fixture
+def q_arch():
+    path = ''  # Make PyCharm happy
+    if sys.platform.startswith('linux'):
+        path = 'l64'
+    elif sys.platform.startswith('darwin'):
+        path = 'm32'
+    return path
+
+
+def test_q_venv0(tmpdir, monkeypatch, q_arch):
+    # QHOME not set, $VIRTUAL_ENV/q present with q executable
+    monkeypatch.setenv("VIRTUAL_ENV", tmpdir)
+    monkeypatch.delenv("QHOME")
+    venv = tmpdir.join('q')
+    venv.join('python.q').ensure()
+    q_exe = venv.join(q_arch, 'q')
+    q_exe.write("#/usr/bin/env\necho 'pass'", ensure=True)
+    q_exe.chmod(0o755)
+    p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    err = p.stderr.readlines()
+    assert err == []
+    out = p.stdout.readlines()
+    assert out[0].strip() == b'pass'
+
+
+def test_q_venv1(tmpdir, monkeypatch):
+    # QHOME not set, $VIRTUAL_ENV/q present, but no q executable
+    monkeypatch.setenv("VIRTUAL_ENV", tmpdir)
+    monkeypatch.delenv("QHOME")
+    venv = tmpdir.join('q', 'python.q').ensure()
+    p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    err = p.stderr.readlines()
+    assert err[0].startswith(venv.dirname.encode())
+
+
+def test_q_venv2(tmpdir, monkeypatch, q_arch):
+    # QHOME not set, VIRTUAL_ENV not set, HOME set to tempdir
+    monkeypatch.setenv("HOME", tmpdir)
+    monkeypatch.delenv("QHOME")
+    monkeypatch.delenv("VIRTUAL_ENV")
+
+    q_exe = tmpdir.join('q', q_arch, 'q')
+    q_exe.write("#/usr/bin/env\necho 'pass'", ensure=True)
+    q_exe.chmod(0o755)
+
+    p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out = p.stdout.readlines()
+    err = p.stderr.readlines()
+    assert out[0].strip() == b'pass'
+    assert err == []

@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <pwd.h>
 
 #ifdef __APPLE__
@@ -15,7 +16,7 @@
 #include <uuid/uuid.h>
 #include <sys/dirent.h>
 
-#define QBIN "/m32/q"
+#define QBIN "/m64/q"
 static char progpath[1024];
 static uint32_t nsexeclength = 1024;
 #endif
@@ -96,30 +97,62 @@ taskset(void)
 #endif
 #define QHBIN "/q" QBIN
 
+static int
+no_q(char *path)
+{
+    int result;
+    struct stat st;
+    char *q_path;
+    q_path = malloc(strlen(path) + 12);
+    strcpy(q_path, path);
+    strcat(q_path, "/q/python.q");
+    result = stat(q_path, &st) != 0;
+    /* Add more checks for a valid QHOME */
+    free(q_path);
+    return result;
+}
+
 char *
 find_q(void)
 {
-    char *qhome, *home, *qpath;
+    char *qhome, *home, *qpath, *venv;
     int pathlen;
     qhome = getenv("QHOME");
+    venv = getenv("VIRTUAL_ENV");
     if (qhome == NULL) {
-        home = getenv("HOME");
-        if (home == NULL) {
-            struct passwd *pw = getpwuid(getuid());
-            home = pw->pw_dir;
+        if (venv && no_q(venv)) {
+            venv = NULL;
         }
-        pathlen = strlen(home) + strlen(QHBIN) +1;
+        if (venv == NULL) {
+            home = getenv("HOME");
+            if (home == NULL) {
+                struct passwd *pw = getpwuid(getuid());
+                home = pw->pw_dir;
+            }
+            pathlen = strlen(home) + strlen(QHBIN) + 1;
+        }
+        else {
+            pathlen = strlen(venv) + strlen(QHBIN) + 1;
+        }
     }
     else {
         pathlen = strlen(qhome) + strlen(QBIN) + 1;
     }
     qpath = malloc(pathlen);
     if (qhome == NULL) {
-        strcat(qpath, home);
-        strcat(qpath, QHBIN);
+        if (venv) {
+            strcpy(qpath, venv);
+            strcat(qpath, "/q");
+            setenv("QHOME", strdup(qpath), 1);
+            strcat(qpath, QBIN);
+        }
+        else {
+            strcpy(qpath, home);
+            strcat(qpath, QHBIN);
+        }
     }
     else {
-        strcat(qpath, qhome);
+        strcpy(qpath, qhome);
         strcat(qpath, QBIN);
     }
 
@@ -161,7 +194,12 @@ main(int argc, char *argv[])
 #endif
     rc = execvp(qpath, args);
     /* we can only get here on error */
-    perror(argv[0]);
+    i = strlen(qpath) - strlen(QBIN);
+    strncpy(qpath + i + 2, "32", 2);
+    setenv("QBIN", qpath, 1);
+    rc = execvp(qpath, args);
+    /* we can only get here on error */
+    perror(qpath);
 
     return rc;
 }

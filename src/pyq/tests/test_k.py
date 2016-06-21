@@ -463,12 +463,12 @@ else:
 
 class SerializationTestCase(K_TestCase):
     def test_b9(self):
-        self.assert_k_is(b9(-1, kb(1)), '0x010000010a000000ff01')
-        self.assert_k_is(b9(-1, kc(b'a')), '0x010000010a000000f661')
-        self.assert_k_is(b9(-1, kg(1)), '0x010000010a000000fc01')
-        self.assert_k_is(b9(-1, ki(1)), '0x010000010d000000fa01000000')
-        self.assert_k_is(b9(-1, kj(1)), '0x0100000111000000f90100000000000000')
-        self.assert_k_is(b9(-1, kp(b'')), '0x01000001120000000a000000000000000000')
+        self.assert_k_is(b9(0, kb(1)), '0x010000000a000000ff01')
+        self.assert_k_is(b9(0, kc(b'a')), '0x010000000a000000f661')
+        self.assert_k_is(b9(0, kg(1)), '0x010000000a000000fc01')
+        self.assert_k_is(b9(0, ki(1)), '0x010000000d000000fa01000000')
+        self.assert_k_is(b9(0, kj(1)), '0x0100000011000000f90100000000000000')
+        self.assert_k_is(b9(0, kp(b'')), '0x010000000e0000000a0000000000')
 
     def test_d9(self):
         self.assert_k_is(d9(q('0x010000000a000000ff00')), "0b")
