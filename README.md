@@ -1,10 +1,15 @@
+# PyQ
+
+[![Documentation Status](https://readthedocs.org/projects/pyq/badge/?version=latest)](http://pyq.readthedocs.io/en/latest/?badge=latest)
+
+
 Quick install:
 
 ```
 $ pip install -i https://pypi.enlnt.com -U --no-binary pyq pyq
 ```
 
-For detailed installation instructions see [INSTALL](doc/INSTALL.rst).
+For detailed installation instructions see [INSTALL](doc/install.rst).
 
 
 Usage:

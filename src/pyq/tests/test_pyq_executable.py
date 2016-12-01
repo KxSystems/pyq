@@ -22,6 +22,15 @@ def test_pyq_executable_error():
     assert rc == 42
 
 
+def test_pyq_executable_versions():
+    stream = 'stderr' if str is bytes else 'stdout'
+    p = subprocess.Popen(['pyq', '--versions'], **{stream: subprocess.PIPE})
+    versions = getattr(p, stream).read()
+    assert b'PyQ ' in versions
+    assert b'KDB+ ' in versions
+    assert b'Python ' in versions
+
+
 @linux_only
 @pytest.mark.parametrize('c, r', [
     ('0', 'n = 1\n0 \n'),
@@ -50,21 +59,20 @@ def test_pyq_taskset(c, r, monkeypatch):
 
 
 def test_q_not_found(tmpdir, monkeypatch):
-    q_home = str(tmpdir)
-    monkeypatch.setenv('QHOME', q_home)
+    monkeypatch.setenv('QHOME', tmpdir)
+    monkeypatch.setenv("VIRTUAL_ENV", tmpdir)
+    monkeypatch.setenv('PATH', tmpdir, prepend=':')
+    tmpdir.join('pyq').mksymlinkto(sys.executable)
     p = subprocess.Popen(['pyq'], stderr=subprocess.PIPE)
-    errors = p.stderr.readlines()
-    assert errors[0].startswith(q_home.encode())
+    errors = p.stderr.read()
+    rc = p.wait()
+    assert rc != 0
+    assert b"No such file or directory" in errors
 
 
 @pytest.fixture
-def q_arch():
-    path = ''  # Make PyCharm happy
-    if sys.platform.startswith('linux'):
-        path = 'l64'
-    elif sys.platform.startswith('darwin'):
-        path = 'm32'
-    return path
+def q_arch(q):
+    return str(q('.z.o'))
 
 
 def test_q_venv0(tmpdir, monkeypatch, q_arch):
@@ -74,7 +82,7 @@ def test_q_venv0(tmpdir, monkeypatch, q_arch):
     venv = tmpdir.join('q')
     venv.join('python.q').ensure()
     q_exe = venv.join(q_arch, 'q')
-    q_exe.write("#/usr/bin/env\necho 'pass'", ensure=True)
+    q_exe.write("#!/usr/bin/env bash\necho 'pass'", ensure=True)
     q_exe.chmod(0o755)
     p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     err = p.stderr.readlines()
@@ -87,10 +95,14 @@ def test_q_venv1(tmpdir, monkeypatch):
     # QHOME not set, $VIRTUAL_ENV/q present, but no q executable
     monkeypatch.setenv("VIRTUAL_ENV", tmpdir)
     monkeypatch.delenv("QHOME")
+    monkeypatch.setenv('PATH', tmpdir, prepend=':')
+    tmpdir.join('pyq').mksymlinkto(sys.executable)
     venv = tmpdir.join('q', 'python.q').ensure()
     p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    err = p.stderr.readlines()
-    assert err[0].startswith(venv.dirname.encode())
+    err = p.stderr.read()
+    rc = p.wait()
+    assert rc != 0
+    assert venv.dirname.encode() in err
 
 
 def test_q_venv2(tmpdir, monkeypatch, q_arch):
@@ -98,9 +110,11 @@ def test_q_venv2(tmpdir, monkeypatch, q_arch):
     monkeypatch.setenv("HOME", tmpdir)
     monkeypatch.delenv("QHOME")
     monkeypatch.delenv("VIRTUAL_ENV")
+    monkeypatch.setenv('PATH', tmpdir, prepend=':')
+    tmpdir.join('pyq').mksymlinkto(sys.executable)
 
     q_exe = tmpdir.join('q', q_arch, 'q')
-    q_exe.write("#/usr/bin/env\necho 'pass'", ensure=True)
+    q_exe.write("#!/usr/bin/env bash\necho 'pass'", ensure=True)
     q_exe.chmod(0o755)
 
     p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -108,3 +122,28 @@ def test_q_venv2(tmpdir, monkeypatch, q_arch):
     err = p.stderr.readlines()
     assert out[0].strip() == b'pass'
     assert err == []
+
+
+def test_q_venv3(tmpdir, monkeypatch, q_arch):
+    # QHOME not set, VIRTUAL_ENV not set, q is next to bin/pyq
+    monkeypatch.delenv("QHOME")
+    monkeypatch.delenv("VIRTUAL_ENV")
+    bindir = tmpdir.join('bin')
+    bindir.ensure(dir=1)
+    monkeypatch.setenv('PATH', bindir, prepend=':')
+    bindir.join('pyq').mksymlinkto(sys.executable)
+
+    q_exe = tmpdir.join('q', q_arch, 'q')
+    q_exe.write("#!/usr/bin/env bash\necho 'pass'", ensure=True)
+    q_exe.chmod(0o755)
+
+    p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out = p.stdout.readlines()
+    err = p.stderr.readlines()
+    assert out[0].strip() == b'pass'
+    assert err == []
+
+
+def test_pyq_trace():
+    output = subprocess.check_output(['pyq', '--pyq-trace', '-c', '0'])
+    assert b"pyq trace is on" in output

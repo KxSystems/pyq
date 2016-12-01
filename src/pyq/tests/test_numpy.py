@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+
 try:
     import numpy
     from numpy import ma
@@ -10,7 +11,6 @@ import pytest
 import pyq
 from pyq import *
 from .test_k import K_INT_CODE, K_LONG_CODE
-
 
 pytestmark = pytest.mark.skipif(numpy is None, reason="numpy is not installed")
 SIZE_OF_PTR = pyq._k.SIZEOF_VOID_P
@@ -243,8 +243,29 @@ def test_unsupported_dtype_errors():
         K(a)
 
 
-def test_enum_conversion(q):
-    x = q('`sym?`a`b`c')
+@pytest.mark.parametrize('e', ['sym', 'other'])
+def test_enum_conversion(q, e):
+    x = q('`%s?`a`b`c' % e)
     a = numpy.asarray(x)
     a.tolist() == [0, 1, 2]
 
+
+def test_numpy_in_versions(capsys):
+    versions()
+    out = capsys.readouterr()[not PY3K]
+    assert 'NumPy' in out
+
+
+def test_no_dtype():
+
+    class NoDtype(numpy.ndarray):
+        """A helper class to test error branches"""
+
+        @property
+        def dtype(self):
+            raise AttributeError('intentional error')
+
+    x = NoDtype([0], dtype='M8[D]')
+    with pytest.raises(AttributeError) as info:
+        K(x)
+    assert 'intentional error' in str(info.value)

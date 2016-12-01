@@ -237,7 +237,6 @@ class CallsTestCase(K_TestCase):
         self.assert_k_is(x, y)
         self.assertRaises(_k.error, q('+')._dot, q('``'))
 
-
     def test_a0(self):
         x = k(0, '{1}')._a0()
         self.assert_k_is(x, '1')
@@ -297,6 +296,18 @@ class ReprTestCase(unittest.TestCase):
 
 
 class JoinTestCase(K_TestCase):
+    def test_any(self):
+        x = ktn(0, 0)
+        x._ja(ktj(101, 0))
+        x._ja(ktj(101, 0))
+        self.assert_k_is(x, '(::; ::)')
+
+    def test_bool(self):
+        x = q('10b')
+        x._ja(True)
+        y = '101b'
+        self.assert_k_is(x, y)
+
     def test_byte(self):
         x = q('0x0102')
         x._ja(3)
@@ -345,13 +356,6 @@ class JoinTestCase(K_TestCase):
         y = '`a`b`c'
         self.assert_k_is(x, y)
 
-@pytest.mark.parametrize('f', [
-    B, I, J, F, S, K,
-])
-def test_ja_errors(f):
-    x = f([])
-    with pytest.raises(TypeError):
-        x._ja(None)
 
 @pytest.mark.parametrize('f', [
     B, I, J, F, S, K,
@@ -359,7 +363,26 @@ def test_ja_errors(f):
 def test_ja_errors(f):
     x = f([])
     with pytest.raises(TypeError):
+        x._ja({})
+
+
+@pytest.mark.parametrize('x', [
+    "0x0102", "0 0h", "0 0e", '""',
+])
+def test_ja_errors_2(x):
+    x = q(x)
+    with pytest.raises(TypeError):
+        x._ja({})
+
+
+@pytest.mark.parametrize('f', [
+    B, I, J, F, S, K,
+])
+def test_ja_overflow_errors(f):
+    x = f([])
+    with pytest.raises(TypeError):
         x._ja([])
+
 
 @pytest.mark.parametrize('t', [
     'h', 'i', 'j', 'e', 'f'
@@ -625,6 +648,9 @@ def test_errors_ka():
 def test_errors_dot():
     with pytest.raises(TypeError):
         dot(None, None)
+    f = ktj(101, 0)  # ::
+    with pytest.raises(TypeError):
+        dot(f, None)
 
 
 def test_errors_a1():
@@ -853,3 +879,61 @@ def test_errmsg():  # Issue #737
     with pytest.raises(TypeError) as e:
         F([1., 1])
     assert 'float' in e.value.args[0]
+
+
+@pytest.mark.parametrize('x,y', [
+    ('0b', False),
+    ('1b', True),
+    ('"x"', 'x'),
+    ('0x00', 0),
+    ('0h', 0),
+    ('0i', 0),
+    ('0', 0),
+    ('0e', 0.0),
+    ('0f', 0.0),
+])
+def test_pys(x, y):
+    k = q(x)
+    s = k._pys()
+    assert s == y
+    if str is not bytes:
+        assert type(s) is type(y)
+
+
+def test_pys_vector():
+    x = q('1 2')
+    with pytest.raises(TypeError):
+        x._pys()
+
+
+def test_pys_nyi():
+    # Timestamp conversion is not implemented to
+    # avoid the loss of precision.
+    x = ka(-_k.KP, 0)
+    with pytest.raises(NotImplementedError):
+        x._pys()
+
+
+def test_getitem_neg():
+    x = I([0, 1, 2, 3])
+    assert x[-2] == 2
+
+@pytest.mark.parametrize('i', [-5, 4, 10])
+def test_getitem_out_of_range(i):
+    x = I([0, 1, 2, 3])
+    with pytest.raises(IndexError):
+        x[i]
+
+
+def test_getitem_nyi():
+    x = q('0N 0Np')
+    with pytest.raises(NotImplementedError):
+        x[0]
+
+# XXX: This is commented out because it induces failures
+# in unrelated tests.  TODO: investigate whether additional
+# cleanup is needed upon a connection error.
+#def test_connection_error():
+#    with pytest.raises(OSError):
+#        k(-1, "")
+

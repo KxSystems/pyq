@@ -1,7 +1,11 @@
 .. _pyq:
 
-PyQ
-===
+=============
+PyQ Reference
+=============
+
+(This section is generated from the PyQ source code.  You can access most of this
+material using pydoc or the built-in help method.)
 
 .. automodule:: pyq
     :members: d9, kp
@@ -12,7 +16,8 @@ class pyq.K
 -----------
 
 .. autoclass:: K
-    :members: exec_, select, show, update, _call, _call_lambda, __getitem__, __getattr__, __int__, __float__, __eq__, __contains__, __get__, keys
+    :members: exec_, select, show, update, _call, _call_lambda, __getitem__,
+              __getattr__, __int__, __float__, __eq__, __contains__, __get__, keys
 
     .. method:: abs(args)
 

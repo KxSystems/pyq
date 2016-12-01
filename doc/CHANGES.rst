@@ -4,8 +4,51 @@
 Version History
 ===============
 
-PyQ 3.8.1
----------
+`PyQ 3.8.2 <http://pyq.readthedocs.io/en/pyq-3.8.2/>`_
+------------------------------------------------------
+
+Released on 2016-12-01
+
+Documentation improvements:
+
+  - !306 - #763: Update README.md - fixed INSTALL link.
+  - !312 - Fix formatting; ?? -> date of the release in the CHANGELOG.
+  - !322 - Fixed formatting error in the documentation.
+  - !324 - #744: use pip to install from the source.
+  - !338 - #785: Virtual environment setup guide.
+  - !346 - #764: docs improvements
+  - !342 - #787: Added links to rtd documentation.
+
+
+PyQ executable improvements:
+
+  - !310 - #761: Allow PyQ executable to be compiled as 32-bit on 64-bit platform.
+  - !329 - #646: Print PyQ, KDB+ and Python versions if --versions option is given to pyq.
+  - !332 - #646: Print full PyQ version.
+  - !333 - #781: Find QHOME when q is installed next to bin/pyq but no venv is set.
+  - !336 - #783: Fixed a bug in CPUS processing
+  - !345 - #646: Added NumPy version to --versions output.
+
+
+Other improvements and bug fixes:
+
+  - !308 - #759: Return an empty slice when (stop - start) // stride < 0.
+  - !320 - #771: Workaround for OrderedDict bug in Python 3.5
+  - !323 - #773: Renamed ipython into jupyter; added starting notebook command.
+  - !326 - #720: Simplified the test demonstrating the difference in Python 2 and 3 behaviors.
+  - !327 - #720: Finalize embedded Python interpreter on exit from q.
+  - !331, !343 - #768: Improve C coverage
+
+
+Improvement in the (internal) CI:
+
+  - !305, !309, !311, !321, !335, !347 - Multiple improvements in the CI.
+  - !319 - #770: Run doctests in tox.
+
+
+
+`PyQ 3.8.1 <http://pyq.readthedocs.io/en/pyq-3.8.1/>`_
+------------------------------------------------------
 
 Released on 2016-06-21
 
@@ -17,8 +60,8 @@ Released on 2016-06-21
 - !302 -  #755: Use preserveEnumerations=1 option to b9 instead of -1.
 
 
-PyQ 3.8
--------
+`PyQ 3.8 <http://pyq.readthedocs.io/en/pyq-3.8/>`_
+--------------------------------------------------
 
 Released on 2016-04-26.
 

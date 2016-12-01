@@ -36,21 +36,15 @@ sys.exit(0)
 
 
 def test_test_p_exception(tmpdir):
-    p = tmpdir.join('test.p')
-    p.write("""\
-import sys
-from pyq import q
-
-def test(a, b):
-    return a + b
-
-q("p)test(1, 'a')")
-sys.exit(0)
-
-""")
+    p = tmpdir.join('test.q')
+    p.write("p)1+'a'")
     p = subprocess.Popen([os.environ['QBIN'], str(p)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
-
     assert out == b''
-    assert b'python\n@\ncode\n' in err
-    # XXX: Why in python 3 I don't get TypeError in stderr?
+    traceback = b'''\
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+TypeError: unsupported operand type(s) for +: 'int' and 'str'
+'''
+    assert traceback in err
+

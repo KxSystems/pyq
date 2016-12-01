@@ -2369,7 +2369,7 @@ static PySequenceMethods K_as_sequence = {
     (lenfunc) K_length, /* sq_length */
     (binaryfunc) 0,     /* sq_concat */
     (ssizeargfunc) 0,   /* sq_repeat */
-    (ssizeargfunc) K_item,
+    (ssizeargfunc) K_item,  /* sq_item */
 };
 
 #if PY_MAJOR_VERSION < 3
@@ -2735,12 +2735,14 @@ getitem(PyTypeObject * ktype, K x, Py_ssize_t i)
 {
     PyObject *ret = NULL;
     Py_ssize_t n = klen(x);
-    if (i < 0)
-        i += n;
+    /* NB: Negative indexes are handled as follows: if the sq_length
+       slot is filled (our case), it is called and the sequence length
+       is used to compute a positive index which is passed to sq_item. */
     if (i >= n || i < 0) {
         PyErr_SetString(PyExc_IndexError, "k index out of range");
         return NULL;
     }
+
     switch (xt) {
     case KS:           /* most common case: use list(ks) */
         ret = PY_STR_InternFromString(xS[i]);

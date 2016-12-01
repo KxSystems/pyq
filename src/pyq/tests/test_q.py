@@ -470,6 +470,15 @@ def test_slice_error():
     assert x == [0]
 
 
+@pytest.mark.parametrize("start, stop, stride", [
+    (2, 1, 2),
+    (1, 2, -1),
+])
+def test_empty_slice(start, stop, stride):
+    x = q.til(10)
+    assert x[start:stop:stride].count == 0
+
+
 @pytest.mark.parametrize('cls', ['int', 'float'])
 def test_scalar_conversion_error(cls):
     x = q('1 2')
@@ -534,3 +543,9 @@ def test_list_of_long():
     assert K(x) == [1, 2]
     x = eval("[1L, 2]")
     assert K(x) == [1, 2]
+
+
+def test_versions(capsys):
+    versions()
+    out = capsys.readouterr()[not PY3K]
+    assert 'PyQ' in out

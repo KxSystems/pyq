@@ -86,8 +86,9 @@ Table of Contents
     install
     update
     pyq
-    ipython
+    jupyter
     cli
+    centos32on64
     CHANGES
     license
 

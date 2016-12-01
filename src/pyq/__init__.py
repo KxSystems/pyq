@@ -1,81 +1,159 @@
-"""Python interface to the Q language
+"""\
+Python for kdb+
+===============
 
-The following examples were adapted from the
-`"Kdb+ Database and Language Primer" <http://kx.com/q/d/primer.htm>`_.
-
->>> y = q('`aaa`bbbdef`c'); y[0]
-'aaa'
-
-Unlike in Q, in python function call syntax uses ``()`` and indexing uses ``[]``
-
->>> z = q('(`abc; 10 20 30; (`a; `b); 50 60 61)')
->>> z(2, 0)
-k('`a')
->>> z[q('0 2')] # XXX: Should be able to write this as z[0,2]
-k('(`abc;`a`b)')
-
-
-Dictionaries
+------------
+Introduction
 ------------
 
->>> fruitcolor = q('`cherry`plum`tomato!`brightred`violet`brightred')
->>> fruitcolor['plum']
-k('`violet')
->>> fruitcolor2 = q('`grannysmith`plum`prune!`green`reddish`black')
->>> q(',', fruitcolor, fruitcolor2)
-k('`cherry`plum`tomato`grannysmith`prune!`brightred`reddish`brightred`green`black')
+Kdb+, a high-performance database system comes with a programming language (q)
+that may be unfamiliar to many programmers.  PyQ lets you enjoy the power of
+kdb+ in a comfortable environment provided by a mainstream programming language.
 
-Tables from Dictionaries
-------------------------
-
->>> d = q('`name`salary! (`tom`dick`harry;30 30 35) ')
->>> e = q.flip(d)
->>> e[1]
-k('`name`salary!(`dick;30)')
->>> q('{select name from x}', e)
-k('+(,`name)!,`tom`dick`harry')
->>> q('{select sum salary from x}', e).salary
-k(',95')
-
->>> e2 = q.xkey('name', e)
->>> q('+', e2, e2)
-k('(+(,`name)!,`tom`dick`harry)!+(,`salary)!,60 60 70')
->>> q.keys(e2)
-k(',`name')
->>> q.cols(e2)
-k('`name`salary')
-
-Temporal Primitives
+From Python to kdb+
 -------------------
 
->>> x = datetime(2004,7,3,16,35,24,980000)
->>> K(x)
-k('2004.07.03D16:35:24.980000000')
->>> K(x.date()), K(x.time())
-(k('2004.07.03'), k('16:35:24.980'))
->>> K(timedelta(200,200,200))
-k('200D00:03:20.000200000')
+Meet ``q`` - your portal to kdb+.  You can pass data from Python to kdb+ by
+assigning to ``q`` attributes.  For example,
+
+>>> q.i = 42
+>>> q.a = [1, 2, 3]
+>>> q.t = ('Python', 3.5)
+>>> q.d = {'date': date(2012, 12, 12)}
+>>> q.value.each(['i', 'a', 't', 'd']).show()
+42
+1 2 3
+(`Python;3.5)
+(,`date)!,2012.12.12
+
+Note that Python objects are automatically converted to kdb+ form when they are
+assigned in the ``q`` namespace, but when they are retrieved, Python gets a "handle"
+to kdb+ data.
+
+For example, passing an ``int`` to ``q`` results in
+
+>>> q.i
+k('42')
+
+If you want a Python integer instead, you have to convert explicitly
+
+>>> int(q.i)
+42
+
+This will be covered in more detail in the next section.
+
+You can also create kdb+ objects by calling ``q`` functions that are also
+accessible as ``q`` attributes.  For example,
+
+>>> q.til(5)
+k('0 1 2 3 4')
+
+Some q functions don't have names because q uses special characters.
+For example, to generate random data in q you should use the ``?``
+function (operator).  While PyQ does not supply a Python name for ``?``,
+you can easily add it to your own toolkit:
+
+>>> rand = q('?')
+
+And use it as you would any other Python function
+
+>>> x = rand(10, 2)  # generates 10 random 0's or 1's (coin toss)
+
+From kdb+ to Python
+-------------------
+
+In many cases your data is already stored in kdb+ and PyQ philosophy is
+that it should stay there.  Rather than converting kdb+ objects to Python,
+manipulating Python objects and converting them back to kdb+, PyQ lets
+you work directly with kdb+ data as if it was already in Python.
+
+For example, let us retrieve the release date from kdb+:
+
+>>> d1 = q('.z.k')
+
+add 30 days to get another date
+
+>>> d2 = d1 + 30
+
+and find the difference in whole weeks
+
+>>> (d2 - d1) % 7
+k('2')
 """
+# Module docstring will continue below
+
 from __future__ import division
 from __future__ import absolute_import
 from __future__ import print_function
-
-__metaclass__ = type
 import os
+QVER = os.environ.get('QVER')
+del os
+PY3K = str is not bytes  # don't want to import sys
+# Starting with version 3.0, q default integer type is 64 bit.  Thus
+# '1' now means '1j' rather than '1i'.  This messes up doctests. To
+# fix this problem, _ij dict is introduced below.  We use the same
+# mechanism to apply Py3K fixes.
+_ij = {'i': 'i', 'j': ''} if QVER[0] >= '3' else {'i': '', 'j': 'j'}
+if PY3K:
+    _ij.update(b='b', L='', div='truediv')
+else:
+    _ij.update( b='', L='L', div='div')
+__doc__ += """
+Note that the result of operations are (handles to) kdb+ objects.  The only exceptions
+to this rule are indexing and iteration over simple kdb+ vectors.  These operations
+produce Python scalars
+>>> list(q.a)
+[1{L}, 2{L}, 3{L}]
+>>> q.a[-1]
+3{L}
+
+In addition to Python operators, one invoke q functions on kdb+ objects directly
+from Python using convenient attribute access / method call syntax.  For example
+
+>>> q.i.neg.exp.log.mod(5)
+k('3f')
+
+Note that the above is equivalent to
+
+>>> q.mod(q.log(q.exp(q.neg(q.i))), 5)
+k('3f')
+
+but shorter and closer to ``q`` syntax
+
+>>> q('(log exp neg i)mod 5')
+k('3f')
+
+The difference being that in q, functions are applied right to left, by in PyQ
+left to right.""".format(**_ij)
+
+try:
+    import numpy as _np
+except ImportError:
+    _np = None
+else:
+    __doc__ += """
+Finally, if q does not provide the function that you need, you can unleash the
+full power of numpy or scipy on your kdb+ data.
+
+>>> import numpy
+>>> numpy.log2(q.a)
+array([ 0.       ,  1.       ,  1.5849625])
+
+Note that the result is a numpy array, but you can redirect the output back to
+kdb+
+
+>>> b = q.a * 0.0  # create a vector of 0s in kdb+
+>>> _ = numpy.log2(q.a, out=numpy.asarray(b))
+>>> b              # the result of a numpy function is in kdb+
+k('0 1 1.584963')
+""".format(**_ij)
 
 try:
     from .version import version as __version__
 except ImportError:
     __version__ = 'unknown'
 
-try:
-    import numpy as _np
-except ImportError:
-    _np = None
 
-QVER = os.environ.get('QVER')
-del os
-PY3K = str is not bytes  # don't want to import sys
 # Q sets QVER environment variable to communicate its version info to
 # python. If it is not set - most likely you are attempting to run
 # _PyQ under regular python.
@@ -86,21 +164,6 @@ _k = __import__('pyq.' + _mod, level=0)
 _k = getattr(_k, _mod)
 from datetime import datetime, date, time, timedelta
 
-# Starting with version 3.0, q default integer type is 64 bit.  Thus
-# '1' now means '1j' rather than '1i'.  This messes up doctests. To
-# fix this problem, _ij dict is introduced below.  We use the same
-# mechanism to apply Py3K fixes.
-if QVER[0] >= '3':
-    _ij = dict(i='i', j='')
-else:
-    _ij = dict(i='', j='j')
-_ij['b'] = repr(bytes())[-3:-2]  # 'b' in py3k, '' otherwise
-_int_types = (int, ) if PY3K else (int, long)
-
-if PY3K:
-    _ij['div'] = 'truediv'
-else:
-    _ij['div'] = 'div'
 __doc__ += """
 Input/Output
 ------------
@@ -112,7 +175,7 @@ Input/Output
 {b}'xyz'
 >>> os.close(r); os.close(w)
 """.format(**_ij)
-
+__metaclass__ = type
 kerr = _k.error
 
 
@@ -364,7 +427,7 @@ class K(_k.K):
         if step == 1:
             return self._k(0, "sublist", self._J([start, stop - start]), self)
         # NB: .indices() cannot return step=0.
-        i = start + step * q.til((stop - start) // step)
+        i = start + step * q.til(max(0, (stop - start) // step))
 
         return self._k(0, "{$[99=type x;(key[x]y)!value[x]y;x y]}", self, i)
 
@@ -380,6 +443,10 @@ class K(_k.K):
 
         if t == 99:
             if self._k(0, "{11h~type key x}", self):
+                if a == 'items':
+                    # NB: Workaround for a bug in OrderedDict in Python 3.5.
+                    # See http://bugs.python.org/issue27576 for details.
+                    raise AttributeError
                 return self._k(0, '{x`%s}' % a, self)
 
             return self._k(0, '{(0!x)`%s}' % a, self)
@@ -926,3 +993,11 @@ else:
 
 _genmethods(K)
 del _genmethods, _ij
+
+def versions():
+    stream = sys.stdout if PY3K else sys.stderr
+    print('PyQ', __version__, file=stream)
+    if _np is not None:
+        print('NumPy', _np.__version__, file=stream)
+    print('KDB+ %s (%s)' % (q('.z.K'), q('.z.k')), file=stream)
+    print('Python', sys.version, file=stream)
