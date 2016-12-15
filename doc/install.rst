@@ -52,5 +52,5 @@ Using source code
 
     ::
 
-        $ python setup.py install
+        $ pip install <path to the source>
 

@@ -102,6 +102,7 @@ __doc__ += """
 Note that the result of operations are (handles to) kdb+ objects.  The only exceptions
 to this rule are indexing and iteration over simple kdb+ vectors.  These operations
 produce Python scalars
+
 >>> list(q.a)
 [1{L}, 2{L}, 3{L}]
 >>> q.a[-1]

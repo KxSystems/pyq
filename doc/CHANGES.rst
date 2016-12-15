@@ -4,6 +4,16 @@
 Version History
 ===============
 
+`PyQ 3.8.3 <http://pyq.readthedocs.io/en/pyq-3.8.3/>`_
+------------------------------------------------------
+
+Released on 2016-12-15
+
+- !357 - #799: Several documentation fixes.
+- !368 - #802: Setup should not fail if $VIRTUAL_ENV/q does not exist.
+
+
+
 `PyQ 3.8.2 <http://pyq.readthedocs.io/en/pyq-3.8.2/>`_
 ------------------------------------------------------
 
