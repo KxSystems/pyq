@@ -40,7 +40,7 @@ except ImportError:
     from platform import uname
 
 
-VERSION = '3.8.3'
+VERSION = '3.8.4'
 IS_RELEASE = True
 PYQ_SRC_DIR = os.path.join('src', 'pyq')
 VERSION_FILE = os.path.join(PYQ_SRC_DIR, 'version.py')
@@ -730,12 +730,12 @@ class Distribution(_Distribution):
         if 'QHOME' in os.environ:
             self.qhome = os.getenv('QHOME')
         else:
-            path = os.path.join(os.getenv('VIRTUAL_ENV'), 'q')
-            if os.path.exists(path):
-                self.qhome = path
-            else:
-                qhome_root = os.getenv('SystemDrive') + '\\' if platform == 'Windows' else os.getenv('HOME')
-                self.qhome = os.path.join(qhome_root, 'q')
+            qhome_root = os.getenv('SystemDrive') + '\\' if platform == 'Windows' else os.getenv('HOME')
+            self.qhome = os.path.join(qhome_root, 'q')
+            if 'VIRTUAL_ENV' in os.environ:
+                path = os.path.join(os.getenv('VIRTUAL_ENV'), 'q')
+                if os.path.exists(path):
+                    self.qhome = path
 
         bits = BITS
         if platform == 'Linux':

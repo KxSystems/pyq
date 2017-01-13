@@ -4,6 +4,16 @@
 Version History
 ===============
 
+`PyQ 3.8.4 <http://pyq.readthedocs.io/en/pyq-3.8.4/>`_
+------------------------------------------------------
+
+Released on 2017-01-13
+
+- !414 - #843: Setup should not fail if VIRTUAL_ENV is undefined
+- !395 - #825: Fixed uninitialized "readonly" field in getbuffer
+
+
+
 `PyQ 3.8.3 <http://pyq.readthedocs.io/en/pyq-3.8.3/>`_
 ------------------------------------------------------
 

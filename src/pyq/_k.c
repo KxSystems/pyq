@@ -2309,6 +2309,7 @@ K_buffer_getbuffer(KObject * self, Py_buffer * view, int flags)
         view->strides[1] = itemsize;
 
         view->buf = xG;
+        view->readonly = 0;
     }
     Py_INCREF(self);
     view->obj = (PyObject *)self;

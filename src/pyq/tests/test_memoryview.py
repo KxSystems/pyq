@@ -71,7 +71,7 @@ def test_shape(expr, shape):
 @pytest.mark.parametrize(('expr', 'ro'), [
     ('0', False),
     ('`s#0 1', True),
-    ('(1 2;3 4)', True),
+    ('(1 2;3 4)', False),
 ])
 def test_readonly(expr, ro):
     x = q(expr)
