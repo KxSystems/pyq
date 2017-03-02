@@ -88,22 +88,28 @@ static char __version__[] = "$Revision: 10002$";
 #    define PY_STR_Format PyUnicode_Format
 #    define PY_STR_FromStringAndSize PyUnicode_FromStringAndSize
 
+#    define PY_INT_From_LongLong PyLong_FromLongLong
+
 #define PY_SET_SN(var, obj) {                                   \
         Py_ssize_t size;                                        \
-        char *str = _PyUnicode_AsStringAndSize(obj, &size);     \
+        char *str = PyUnicode_AsUTF8AndSize(obj, &size);        \
         var = sn(str, size);                                    \
         }
 
 static int
-PY_STR_AsStringAndSize(PyObject *obj, char **str, Py_ssize_t * size)
+PY_STR_AsStringAndSize(PyObject *obj, char **pstr, Py_ssize_t *psize)
 {
-    *str = _PyUnicode_AsStringAndSize(obj, size);
-    return str ? 0 : -1;
+    char *str = PyUnicode_AsUTF8AndSize(obj, psize);
+    if (str != NULL) {
+        *pstr = str;
+        return 0;
+    }
+    return -1;
 }
 
 #    define MOD_ERROR_VAL NULL
 #    define MOD_SUCCESS_VAL(val) val
-#    define MOD_INIT(name) PyMODINIT_FUNC XCAT(PyInit_##name, QVER)(void)
+#    define MOD_INIT(name) PyMODINIT_FUNC PyInit_##name(void)
 #    define MOD_DEF(ob, name, doc, methods)                       \
         static struct PyModuleDef moduledef = {                   \
                 PyModuleDef_HEAD_INIT, name, doc, -1, methods, }; \
@@ -123,10 +129,18 @@ PY_STR_AsStringAndSize(PyObject *obj, char **str, Py_ssize_t * size)
 
 #    define MOD_ERROR_VAL
 #    define MOD_SUCCESS_VAL(val)
-#    define MOD_INIT(name) void XCAT(init##name, QVER)(void)
+#    define MOD_INIT(name) void init##name(void)
 #    define MOD_DEF(ob, name, doc, methods)             \
         ob = Py_InitModule3(name, methods, doc);
-#endif /* PY_MAJOR_VERSION >= 3 */
+#if SIZEOF_VOID_P > SIZEOF_LONG  /* 64-bit build */
+#     define PY_INT_From_LongLong PyInt_FromSsize_t
+#else
+#    define PY_INT_From_LongLong(val) \
+     ((val <= (PY_LONG_LONG)LONG_MAX && val >= (PY_LONG_LONG)LONG_MIN) ? \
+      PyInt_FromLong((long)val) : PyLong_FromLongLong(val))
+#endif /* SIZEOF_SIZEOF_VOID_P > SIZEOF_LONG */
+
+    #endif /* PY_MAJOR_VERSION >= 3 */
 /* ^^^ Py3K compatibility ^^^ */
 
 /* these should be in k.h */
@@ -391,22 +405,18 @@ K_ja(KObject * self, PyObject *arg)
         }
     case KJ:{
             int overflow;
-            J j;
-            long long a = PyLong_AsLongLongAndOverflow(arg, &overflow);
-            if (a == -1) {
-                if (PyErr_Occurred()) {
-                    if (arg == Py_None) {
-                        PyErr_Clear();
-                        j = nj;
-                    }
-                    else
-                        R NULL;
-                } else if (overflow) {
-                    j = overflow * wj;
+            J j = PyLong_AsLongLongAndOverflow(arg, &overflow);
+            if (j == -1 && PyErr_Occurred()) {
+                if (arg == Py_None) {
+                    PyErr_Clear();
+                    j = nj;
                 }
+                else
+                    R NULL;
             }
-            else
-                j = (J)a;
+            if (overflow) {
+                j = overflow * wj;
+            }
             ja(&self->x, &j);
             break;
         }
@@ -480,9 +490,11 @@ K_ja(KObject * self, PyObject *arg)
 
         }
     case KT:{
+
+        }
+    default:
             R PyErr_Format(PyExc_NotImplementedError, "appending to type %d",
                            (int)self->x->t);
-        }
     }
     Py_RETURN_NONE;
 }
@@ -509,12 +521,24 @@ K_str(KObject * self)
     case KC:
         return PY_STR_FromStringAndSize((S) xC, xn);
     case -KS:
-        return PY_STR_FromString(xs);
+        return PY_STR_InternFromString(xs);
     case -KC:
         return PY_STR_FromStringAndSize((S) & xg, 1);
     case 101:
         if(xj == 0)
             return PY_STR_FromString("::");
+    }
+    if (-xt >= 20 && -xt < ENUMS_END) {
+        x = k(0, "value", r1(x), (K)0);
+        if (xt == -128)
+            return PyErr_SetString(ErrorObject, xs ? xs : (S) "not set"), r0(x),
+                NULL;
+        if (xt == -11) {
+            res = PY_STR_InternFromString(xs);
+            r0(x);
+            return res;
+        }
+        /* Pass through - deleted enum vector */
     }
     x = k(0, "@", r1(k_repr), r1(x), (K) 0);
     if (xt == -128)
@@ -562,6 +586,7 @@ K_repr(KObject * self)
 /** Array interface **/
 
 /* Array Interface flags */
+#define CONTIGUOUS    0x001
 #define FORTRAN       0x002
 #define ALIGNED       0x100
 #define NOTSWAPPED    0x200
@@ -580,12 +605,13 @@ typedef struct {
     PyObject *descr;
 } PyArrayInterface;
 
-static char typechars[20] = "ObXXuiiiffSOXiifXiii";
+/*                           01234567890123456789  */
+static char typechars[20] = "ObXXuiiiffSOiiifiiii";
 
 static int
 k_typekind(K x)
 {
-    int t = abs(x->t);
+    unsigned int t = abs(xt);
 
     if (t < sizeof(typechars))
         return typechars[t];
@@ -600,7 +626,7 @@ k_itemsize(K x)
     static int itemsizes[] = {
         sizeof(void *),
         1,              /* bool */
-#if KXVER>=0
+#if KXVER >= 3
         16,
 #else
         0,
@@ -622,7 +648,7 @@ k_itemsize(K x)
         4,              /* second */
         4,              /* time */
     };
-    int t = abs(x->t);
+    unsigned int t = abs(xt);
 
     if (t < sizeof(itemsizes) / sizeof(*itemsizes))
         return itemsizes[t];
@@ -652,50 +678,41 @@ k_array_struct_free(void *ptr, void *arr)
 static PyObject *
 K_array_struct_get(KObject * self)
 {
-    K k = self->x;
+    K x = self->x;
     PyArrayInterface *inter;
     int typekind, nd;
-    typekind = k_typekind(k);
+    typekind = k_typekind(x);
 
-#if PY_MAJOR_VERSION >= 3
-        PyErr_SetString(PyExc_AttributeError, "__array_struct__");
-        return NULL;
-#endif
-    if (!k) {
-        PyErr_SetString(PyExc_AttributeError, "Null k object");
+    if (abs(xt) >= KS || xt == 0) {
+        PyErr_Format(PyExc_AttributeError, "k object of type %dh", xt);
         return NULL;
     }
 
-    if (strchr("XO", typekind)) {
-        PyErr_Format(PyExc_AttributeError, "Unsupported K type %d"
-                     " (maps to %c)", k->t, (char)typekind);
-        return NULL;
-    }
     if (!(inter = (PyArrayInterface *) malloc(sizeof(PyArrayInterface))))
         goto fail_inter;
-    nd = (k->t >= 0);       /* scalars have t < 0 in k4 */
+    nd = (xt >= 0);       /* scalars have t < 0 in k4 */
 
     inter->version = 2;
     inter->nd = nd;
     inter->typekind = typekind;
-    inter->itemsize = k_itemsize(k);
-    inter->flags = ALIGNED | NOTSWAPPED | WRITEABLE;
+    inter->itemsize = k_itemsize(x);
+    inter->flags = ALIGNED | NOTSWAPPED | WRITEABLE | CONTIGUOUS;
     if (nd) {
         if (!(inter->shape = (Py_intptr_t *) malloc(sizeof(Py_intptr_t) * 2)))
             goto fail_shape;
-        inter->shape[0] = k->n;
+        inter->shape[0] = xn;
         inter->strides = inter->shape + 1;
         inter->strides[0] = inter->itemsize;
-        inter->data = kG(k);
+        inter->data = kG(x);
     }
     else {
         inter->shape = inter->strides = NULL;
-        inter->data = &k->g;
+        inter->data = &xg;
     }
     Py_INCREF(self);
 #if PY_MAJOR_VERSION >= 3
     PyObject *cap =
-        PyCapsule_New(inter, "__array_struct__", &k_array_struct_free);
+        PyCapsule_New(inter, NULL, &k_array_struct_free);
     if (PyCapsule_SetContext(cap, self)) {
         Py_DECREF(cap);
         return NULL;
@@ -713,32 +730,63 @@ K_array_struct_get(KObject * self)
 static PyObject *
 K_array_typestr_get(KObject * self)
 {
-    K k = self->x;
+    K x = self->x;
 
     static int const one = 1;
 
     char const endian = "><"[(int)*(char const *)&one];
 
-    char const typekind = k_typekind(k);
+    char const typekind = k_typekind(x);
 
     return PY_STR_FromFormat("%c%c%d", typekind == 'O' ? '|' : endian,
-                             typekind, k_itemsize(k));
+                             typekind, k_itemsize(x));
 }
 
 static PyObject *K_K(PyTypeObject * type, PyObject *arg);
 
 static PyObject *
-K_call_any(KObject * self, PyObject *args)
+K_call_any(KObject * self, PyObject *args, PyObject *kwds)
 {
+    PyTypeObject *type = Py_TYPE(self);
     PyObject *ret, *kargs;
+    Py_ssize_t i, n;
+    if (self->xt >= 100 && kwds != NULL && PyDict_Size(kwds) > 0) {
+        PyObject *call_lambda = PyObject_GetAttrString((PyObject *)self, "_call_lambda");
+        if (call_lambda == NULL)
+            return NULL;
+        ret = PyObject_Call(call_lambda, args, kwds);
+        Py_DECREF(call_lambda);
+        return ret;
+    }
 
-    switch (PyTuple_GET_SIZE(args)) {
+    switch ((n = PyTuple_GET_SIZE(args))) {
     case 0:
         R K_a0(self);
     case 1:
-        R K_a1(self, PyTuple_GET_ITEM(args, 0));
+        kargs = PyTuple_GET_ITEM(args, 0);
+        if (!K_Check(kargs)) {
+            kargs = PyObject_CallFunctionObjArgs((PyObject *)type, kargs, NULL);
+            if (kargs == NULL)
+                return NULL;
+            ret = K_a1(self, kargs);
+            Py_DECREF(kargs);
+            return ret;
+        }
+        R K_a1(self, kargs);
     }
-    kargs = K_K(Py_TYPE(self), args);
+    /* TODO: Unpack arguments directly to K list */
+    for (i = 0; i < n; ++i) {
+        PyObject *old_arg, *new_arg;
+        old_arg = PyTuple_GET_ITEM(args, i);
+        if (!K_Check(old_arg)) {
+            new_arg = PyObject_CallFunctionObjArgs((PyObject *)type, old_arg, NULL);
+            if (new_arg == NULL)
+                return NULL;
+            PyTuple_SET_ITEM(args, i, new_arg);
+            Py_DECREF(old_arg);
+        }
+    }
+    kargs = K_K(type, args);
     if (kargs == NULL)
         R NULL;
 
@@ -807,7 +855,7 @@ k_ktype(PyArrayInterface *inter, PyObject *obj, J *offset, J *scale)
         else
             goto error;
     case 'M': {
-        char *s, unit;
+        char *s, unit, unit2;
         Py_ssize_t n;
         PyObject *descr = array_descr(obj);
         if (descr == NULL)
@@ -816,30 +864,58 @@ k_ktype(PyArrayInterface *inter, PyObject *obj, J *offset, J *scale)
             Py_DECREF(descr);
             return -1;
         }
-        if (n < 5) {
+        if (n < 5 || itemsize != 8) {
             PyErr_Format(PyExc_TypeError, "invalid descr %s", s);
             Py_DECREF(descr);
             return -1;
         }
         unit = s[4];
+        unit2 = s[5];
         Py_DECREF(descr);
         switch(unit) {
         case 'Y':
             *offset = (1970 - 2000) * 12;
             *scale = 12;
-            return itemsize == 8 ? KM : -1;
+            return KM;
         case 'M':
             *offset = (1970 - 2000) * 12;
             *scale = 1;
-            return itemsize == 8 ? KM : -1;
+            return KM;
         case 'W':
             *offset = -10957;
             *scale = 7;
-            return itemsize == 8 ? KD : -1;
+            return KD;
         case 'D':
             *offset = -10957;
             *scale = 1;
-            return itemsize == 8 ? KD : -1;
+            return KD;
+        case 'h': /* hour */
+            *offset = -10957 * 24 * 60 * 60 * 1000000000LL;
+            *scale = 60 * 60 * 1000000000LL;
+            return KP; /* timestamp */
+        case 'm': /* minute or millisecond */
+            if (unit2 == 's') { /* millisecond */
+                *offset = -10957 * 24 * 60 * 60 * 1000000000LL;
+                *scale = 1000000LL;
+            }
+            else { /* minute */
+                *offset = -10957 * 24 * 60 * 60 * 1000000000LL;
+                *scale = 60 * 1000000000LL;
+            }
+            return KP; /* timestamp */
+        case 's': /* second */
+            *offset = -10957 * 24 * 60 * 60 * 1000000000LL;
+            *scale = 1000000000LL;
+            return KP; /* timestamp */
+        case 'u': /* microsecond */
+            *offset = -10957 * 24 * 60 * 60 * 1000000000LL;
+            *scale = 1000LL;
+            return KP; /* timestamp */
+        case 'n': /* nanosecond */
+            *offset = -10957 * 24 * 60 * 60 * 1000000000LL;
+            *scale = 1;
+            return KP; /* timestamp */
+
         default:
             PyErr_Format(PyExc_TypeError, "invalid descr %s", s);
             return -1;
@@ -910,37 +986,73 @@ k_ktype(PyArrayInterface *inter, PyObject *obj, J *offset, J *scale)
     return -1;
 }
 
+ZK _from_array_struct(PyTypeObject * type, PyObject *arg);
+
 /* K class methods */
-PyDoc_STRVAR(K_from_array_interface_doc, "K object from __array_struct__");
+PyDoc_STRVAR(K_from_array_struct_doc, "K object from __array_struct__");
 static PyObject *
-K_from_array_interface(PyTypeObject * type, PyObject *args)
+K_from_array_struct(PyTypeObject * type, PyObject *args)
 {
-    PyObject *arg, *obj;
-    PyArrayInterface *inter;
-    J offset = 0, scale = 1;
+    PyObject *arg;
     K x;
 
-    int t, s;
-    if (!PyArg_ParseTuple(args, "O|O:K._from_array_interface", &arg, &obj))
+    if (!PyArg_ParseTuple(args, "O:K._from_array_struct", &arg))
         return NULL;
+    x = _from_array_struct(type, arg);
+    if (x)
+        return KObject_FromK(type, x);
+    else
+        return NULL;
+}
+
+static int
+c_contiguous(PyArrayInterface *inter)
+{
+    if ((inter->flags & CONTIGUOUS) || inter->strides == NULL)
+        return 1;
+    else {
+        int r = 1, n = inter->nd, i;
+        Py_intptr_t stride = inter->itemsize;
+        for (i = n - 1; i >= 0; --i) {
+            r &= (inter->strides[i] == stride);
+            stride *= inter->shape[i];
+        }
+        return r;
+    }
+}
+
+ZK
+_from_array_struct(PyTypeObject * type, PyObject *arg)
+{
+    PyArrayInterface *inter;
+    PyObject *obj;
+    J offset = 0, scale = 1, size = 1;
+    K x, shape = (K)0;
+    int t, itemsize;
 
 #if PY_MAJOR_VERSION >= 3
     if (!PyCapsule_CheckExact(arg)) {
         PyErr_Format(PyExc_ValueError, "invalid __array_struct__ type:"
-                     " expected PyCapsule, not %s", Py_TYPE(arg)->tp_name);
+                     " expected PyCapsule, not %.200s", Py_TYPE(arg)->tp_name);
         return NULL;
     }
     inter = (PyArrayInterface *) PyCapsule_GetPointer(arg, NULL);
     if (inter == NULL)
         return NULL;
+    obj = (PyObject *) PyCapsule_GetContext(arg);
+    if (obj == NULL)
+        return NULL;
 #else
     if (!PyCObject_Check(arg)) {
         PyErr_Format(PyExc_ValueError, "invalid __array_struct__ type:"
-                     " expected PyCObject, not %s", Py_TYPE(arg)->tp_name);
+                     " expected PyCObject, not %.200s", Py_TYPE(arg)->tp_name);
         return NULL;
     }
     inter = (PyArrayInterface *) PyCObject_AsVoidPtr(arg);
     if (inter == NULL)
+        return NULL;
+    obj = (PyObject *) PyCObject_GetDesc(arg);
+    if (obj == NULL)
         return NULL;
 #endif
     if (inter->version != 2) {
@@ -948,18 +1060,34 @@ K_from_array_interface(PyTypeObject * type, PyObject *args)
                      " expected version 2, not %d", inter->version);
         return NULL;
     }
-    if (inter->nd > 1) {
-        PyErr_Format(PyExc_ValueError, "cannot handle nd=%d", inter->nd);
-        return NULL;
-    }
-    s = inter->itemsize;
     t = k_ktype(inter, obj, &offset, &scale);
     if (t < 0) {
         return NULL;
     }
-    x = inter->nd ? ktn(t, inter->shape[0]) : ka(-t);
-    if (!x)
-        return PyErr_NoMemory();
+    if (inter->nd > 1) {
+        if (t > KC) {
+              PyErr_Format(PyExc_ValueError, "Cannot handle nd=%d, kind='%c'",
+                           inter->nd, inter->typekind);
+              return NULL;
+        }
+
+        shape = ktn(KJ, inter->nd);
+        if (shape == (K)0) {
+            PyErr_NoMemory();
+            return NULL;
+        }
+        DO(inter->nd, kJ(shape)[i] = inter->shape[i]);
+        DO(inter->nd, size *= inter->shape[i]);
+    }
+    else if (inter->nd == 1)
+        size = inter->shape[0];
+    /* if nd == 0 - size = 1 */
+    itemsize = inter->itemsize;
+    x = inter->nd ? ktn(t, size) : ka(-t);
+    if (!x) {
+        PyErr_NoMemory();
+        R NULL;
+    }
     if (xt == -128) {
         PyErr_SetString(ErrorObject, xs);
         return NULL;
@@ -974,7 +1102,7 @@ K_from_array_interface(PyTypeObject * type, PyObject *args)
 
             dest = xS;
             for (i = 0; i < n; ++i) {
-                PyObject *obj = src[i * inter->strides[0] / s];
+                PyObject *obj = src[i * inter->strides[0] / itemsize];
 
                 if (!PY_STR_Check(obj)) {
                     PyErr_SetString(PyExc_ValueError,
@@ -996,6 +1124,12 @@ K_from_array_interface(PyTypeObject * type, PyObject *args)
         }
         else
             xi = (I)(offset + scale * *(long long *)inter->data);
+    } else if (t == KP) {
+        if (inter->nd) {
+            DO(inter->shape[0], xJ[i] = offset + scale * *(long long *)((S)inter->data + i * inter->strides[0]));
+        }
+        else
+            xj = offset + scale * *(long long *)inter->data;
     } else if (t == KN && scale != 1) {
         if (inter->nd) {
             DO(inter->shape[0], xJ[i] = (J)(scale * *(long long *)((S)inter->data + i * inter->strides[0])));
@@ -1004,15 +1138,26 @@ K_from_array_interface(PyTypeObject * type, PyObject *args)
             xj = (J)(scale * *(long long *)inter->data);
     }
     else {
-        if (inter->nd) {
-            int n = inter->shape[0];
-
-            DO(n, memcpy(xG + i * s, (S)inter->data + i * inter->strides[0], s));
+        void *dest = (xt < 0)?&xg:xG;
+        if (c_contiguous(inter)) {
+                memcpy(dest, inter->data, size * itemsize);
         }
-        else
-            memcpy(&x->g, inter->data, inter->itemsize);
+        else {
+            if (inter->nd == 1) {
+                int n = inter->shape[0];
+                DO(n, memcpy(xG + i * itemsize, (S)inter->data + i * inter->strides[0], itemsize));
+            }
+            else {
+                r0(x);r0(shape);
+                PyErr_Format(PyExc_ValueError, "strided nd=%d", inter->nd);
+                return NULL;
+            }
+        }
     }
-    return KObject_FromK(type, x);
+    if (shape) {
+        x = k(0, "#", shape, x, (K)0);
+    }
+    return x;
 }
 
 PyDoc_STRVAR(K_ktd_doc, "flip from keyed table(dict)");
@@ -1024,10 +1169,7 @@ K_ktd(PyTypeObject * type, PyObject *args)
     if (!PyArg_ParseTuple(args, "O&", &getK, &x)) {
         return NULL;
     }
-    if (!x) {
-        PyErr_BadArgument();
-        return NULL;
-    }
+    assert(x);
     return KObject_FromK(type, ktd(r1(x)));
 }
 
@@ -1124,20 +1266,15 @@ K_ka(PyTypeObject * type, PyObject *args)
 #define K_ATOM(a, T, t, doc)                                    \
         PyDoc_STRVAR(K_k##a##_doc, doc);                        \
         static PyObject *                                       \
-        K_k##a(PyTypeObject *type, PyObject *args)              \
+        K_k##a(PyTypeObject *type, PyObject *arg)               \
         {                                                       \
                 K x;                                            \
                 T g;                                            \
-                if (!PyArg_ParseTuple(args, #t ":K._k"#a, &g))  \
+                if (py2##a(arg, &g) == -1)                      \
                         return NULL;                            \
                 x = k##a(g);                                    \
                 return KObject_FromK(type, x);                  \
         }
-
-K_ATOM(b, G, b, "returns a K bool")
-K_ATOM(g, G, b, "returns a K byte")
-K_ATOM(h, H, h, "returns a K short")
-K_ATOM(i, I, i, "returns a K int")
 
 ZS th(I i)
 {
@@ -1146,11 +1283,402 @@ ZS th(I i)
     R "th";
 }
 
-PyDoc_STRVAR(K_B_doc, "returns a K bool list");
+static int
+py2j(PyObject *obj, J *j)
+{
+    PY_LONG_LONG val;
+    int overflow;
+    PyObject* int_obj = PyNumber_Index(obj);
+    if (int_obj == NULL)
+        return -1;
+#if PY_MAJOR_VERSION < 3
+    if (PyInt_Check(int_obj)) {
+        val = PyInt_AS_LONG(int_obj);
+        Py_DECREF(int_obj);
+    }
+    else
+#endif
+    if (PyLong_Check(int_obj)) {
+        val = PyLong_AsLongLongAndOverflow(int_obj, &overflow);
+        Py_DECREF(int_obj);
+        if (val == -1 && PyErr_Occurred())
+            return -1;
+        if (val == nj)
+            overflow = -1;
+        if (overflow) {
+            /* Return +- inf on overflow */
+            val = overflow * wj;
+        }
+    } else {
+        Py_DECREF(int_obj);
+        PyErr_Format(PyExc_TypeError, "__index__ returned a non-integer");
+        return -1;
+    }
+    *j = val;
+    return 0;
+}
+
+static int
+py2b(PyObject *obj, G *g)
+{
+    if (obj == Py_True)
+        *g = 1;
+    else if (obj == Py_False || obj == Py_None)
+        *g = 0;
+    else {
+        J x;
+        if (py2j(obj, &x) == -1)
+            return -1;
+        *g = (G)(x != 0);
+    }
+    return 0;
+}
+
+static int
+py2i(PyObject *obj, I *i)
+{
+    J j;
+    if (py2j(obj, &j) == -1)
+        return -1;
+    if (j <= -wi) {
+        *i = -wi;
+    }
+    else if (j >= wi) {
+        *i = wi;
+    }
+    else
+        *i = (I)j;
+
+    return 0;
+}
+
+static int
+py2h(PyObject *obj, H *h)
+{
+    J j;
+    if (py2j(obj, &j) == -1)
+        return -1;
+    if (j <= -wh) {
+        *h = -wh;
+    }
+    else if (j >= wh) {
+        *h = wh;
+    }
+    else
+        *h = (H)j;
+
+    return 0;
+}
+
+static int
+py2g(PyObject *obj, G *g)
+{
+    J j;
+    if (py2j(obj, &j) == -1)
+        return -1;
+
+    if (j > 0xff || j < 0) {
+        PyErr_Format(PyExc_OverflowError, "too big");
+        return -1;
+    }
+    *g = (G)j;
+    return 0;
+}
+
+static int
+py2c(PyObject *obj, C *c)
+{
+    if (PyUnicode_Check(obj)) {
+        obj = PyUnicode_AsUTF8String(obj);
+        if (obj == NULL)
+            return -1;
+    }
+    else if (PyBytes_Check(obj)) {
+        Py_INCREF(obj);
+    } else {
+        PyErr_Format(PyExc_TypeError, "expected bytes or str, not %.200s.",
+                     Py_TYPE(obj)->tp_name);
+        return -1;
+    }
+
+    if (PyBytes_GET_SIZE(obj) != 1) {
+        PyErr_Format(PyExc_TypeError, "expected char, not str");
+        Py_DECREF(obj);
+        return -1;
+    }
+    *c = *PyBytes_AS_STRING(obj);
+    Py_DECREF(obj);
+    return 0;
+}
+
+static int
+py2f(PyObject *obj, F *f)
+{
+    PyObject *float_obj;
+    float_obj = PyNumber_Float(obj);
+    if (float_obj == NULL)
+        return -1;
+    *f = PyFloat_AS_DOUBLE(float_obj);
+    Py_DECREF(float_obj);
+    return 0;
+}
+
+static int
+py2e(PyObject *obj, E *e)
+{
+    F f;
+    if (py2f(obj, &f) == -1)
+        return -1;
+    *e = (E)f;
+    return 0;
+}
+
+#define MAX_D 106285            /* = ymd(2290, 12, 31) */
+#define MIN_D -MAX_D            /* = ymd(1709, 1, 1) */
+#define NS_IN_DAY 24 * 60 * 60 * 1000000000LL
+/* timestamp/span or +/- 0Wj if strict - 0Nj and set error */
+ZJ
+clip_p(I ord, J ns)
+{
+    int overflow = 0;
+    if (ord > MAX_D)
+        overflow = 1;
+    else if (ord < MIN_D)
+        overflow = -1;
+
+    if (overflow)
+        return overflow * wj;
+
+    return (J)ord * NS_IN_DAY + ns;
+}
+
+static int
+py2p(PyObject *obj, J *j)
+{
+    J p, ns = 0;
+    I ord;
+    if (py2j(obj, &p) == -1) {
+        PyErr_Clear();
+        if (!PyDate_Check(obj)) {
+            PyErr_Format(PyExc_TypeError, "expected int or date");
+            return -1;
+        }
+        ord = ymd(PyDateTime_GET_YEAR(obj),
+                  PyDateTime_GET_MONTH(obj),
+                  PyDateTime_GET_DAY(obj));
+        if (PyDateTime_Check(obj)) {
+            int h, m, s, u;
+            h = PyDateTime_DATE_GET_HOUR(obj);
+            m = PyDateTime_DATE_GET_MINUTE(obj);
+            s = PyDateTime_DATE_GET_SECOND(obj);
+            u = PyDateTime_DATE_GET_MICROSECOND(obj);
+            ns = (((h * 60 + m) * 60 + s) * 1000000LL + u) * 1000LL;
+        }
+        p = clip_p(ord, ns);
+    }
+    *j = p;
+    return 0;
+}
+
+static int
+py2z(PyObject *obj, F *f) {
+    if (PyFloat_Check(obj)) {
+        *f = PyFloat_AS_DOUBLE(obj);
+    }
+    else {
+        J p;
+        if (py2p(obj, &p) == -1)
+            return -1;
+        *f = p / (F)NS_IN_DAY;
+    }
+    return 0;
+}
+
+#define MAX_M 3491          /* "i"$2290.12m */
+#define MIN_M (-MAX_M - 1)  /* "i"$1709.01m */
+
+static int
+py2m(PyObject *obj, I *i)
+{
+    I month;
+    int overflow = 0;
+    if (py2i(obj, &month) == -1) {
+        PyErr_Clear();
+        if (PyDate_Check(obj)) {
+            int y, m;
+            y = PyDateTime_GET_YEAR(obj);
+            m = PyDateTime_GET_MONTH(obj);
+            month = 12 * (y - 2000) + m - 1;
+        }
+        else {
+            PyErr_Format(PyExc_TypeError, "expected int or date");
+            return -1;
+        }
+    }
+    if (month > MAX_M)
+        overflow = 1;
+    else if (month < MIN_M)
+        overflow = -1;
+    if (overflow)
+        month = overflow * wi;
+    *i = month;
+    return 0;
+}
+
+static int
+py2d(PyObject *obj, I *i)
+{
+    I date;
+    int overflow = 0;
+    if (py2i(obj, &date) == -1) {
+        PyErr_Clear();
+        if (PyDate_Check(obj)) {
+            int y, m, d;
+            y = PyDateTime_GET_YEAR(obj);
+            m = PyDateTime_GET_MONTH(obj);
+            d = PyDateTime_GET_DAY(obj);
+            date = ymd(y, m, d);
+        }
+        else {
+            PyErr_Format(PyExc_TypeError, "expected int or date");
+            return -1;
+        }
+    }
+    if (date > MAX_D)
+        overflow = 1;
+    else if (date < MIN_D)
+        overflow = -1;
+    if (overflow)
+        date = overflow * wi;
+    *i = date;
+    return 0;
+}
+
+static int
+py2n(PyObject *obj, J *j)
+{
+    J n, ns = 0;
+    if (py2j(obj, &n) == -1) {
+        int d, s, u;
+        PyErr_Clear();
+        if (!PyDelta_Check(obj)) {
+            PyErr_Format(PyExc_TypeError, "expected int or timedelta");
+            return -1;
+        }
+        d = ((PyDateTime_Delta *)obj)->days;
+        s = ((PyDateTime_Delta *)obj)->seconds;
+        u = ((PyDateTime_Delta *)obj)->microseconds;
+        ns =(s * 1000000LL + u) * 1000LL;
+        n = clip_p(d, ns);
+    }
+    *j = n;
+    return 0;
+}
+
+#define MAX_U 5999          /* "i"$99:59  */
+#define MIN_U (-MAX_U)      /* "i"$-99:59 */
+
+static int
+py2u(PyObject *obj, I *i)
+{
+    I minute;
+    int overflow = 0;
+    if (py2i(obj, &minute) == -1) {
+        PyErr_Clear();
+        if (PyTime_Check(obj)) {
+            int h, m;
+            h = PyDateTime_TIME_GET_HOUR(obj);
+            m = PyDateTime_TIME_GET_MINUTE(obj);
+            minute = h * 60 + m;
+        }
+        else {
+            PyErr_Format(PyExc_TypeError, "expected int or time");
+            return -1;
+        }
+    }
+    if (minute > MAX_U)
+        overflow = 1;
+    else if (minute < MIN_U)
+        overflow = -1;
+    if (overflow)
+        minute = overflow * wi;
+    *i = minute;
+    return 0;
+}
+
+#define MAX_V 599999          /* "i"$99:59:59  */
+#define MIN_V (-MAX_U)        /* "i"$-99:59:59 */
+
+static int
+py2v(PyObject *obj, I *i)
+{
+    I second;
+    int overflow = 0;
+    if (py2i(obj, &second) == -1) {
+        PyErr_Clear();
+        if (PyTime_Check(obj)) {
+            int h, m, s;
+            h = PyDateTime_TIME_GET_HOUR(obj);
+            m = PyDateTime_TIME_GET_MINUTE(obj);
+            s = PyDateTime_TIME_GET_SECOND(obj);
+            second = (h * 60 + m) * 60 + s;
+        }
+        else {
+            PyErr_Format(PyExc_TypeError, "expected int or time");
+            return -1;
+        }
+    }
+    if (second > MAX_V)
+        overflow = 1;
+    else if (second < MIN_V)
+        overflow = -1;
+    if (overflow)
+        second = overflow * wi;
+    *i = second;
+    return 0;
+}
+
+#define MAX_T 359999999          /* "i"$99:59:59.999  */
+#define MIN_T (-MAX_T)          /* "i"$-99:59:59.999  */
+
+static int
+py2t(PyObject *obj, I *i)
+{
+    I time;
+    int overflow = 0;
+    if (py2i(obj, &time) == -1) {
+        PyErr_Clear();
+        if (PyTime_Check(obj)) {
+            int h, m, s, u;
+            h = PyDateTime_TIME_GET_HOUR(obj);
+            m = PyDateTime_TIME_GET_MINUTE(obj);
+            s = PyDateTime_TIME_GET_SECOND(obj);
+            u = PyDateTime_TIME_GET_MICROSECOND(obj);
+            time = 1000 *((h * 60 + m) * 60 + s) + u / 1000;
+        }
+        else {
+            PyErr_Format(PyExc_TypeError, "expected int or time");
+            return -1;
+        }
+    }
+    if (time > MAX_T)
+        overflow = 1;
+    else if (time < MIN_T)
+        overflow = -1;
+    if (overflow)
+        time = overflow * wi;
+    *i = time;
+    return 0;
+}
+
+PyDoc_STRVAR(K_B_doc, "returns a K boolean list");
 static PyObject *
 K_B(PyTypeObject * type, PyObject *arg)
 {
     PyObject *ret = NULL;
+
+    G item;
+
     PyObject *seq = PySequence_Fast(arg, "K._B: not a sequence");
     int i, n;
     K x;
@@ -1164,16 +1692,93 @@ K_B(PyTypeObject * type, PyObject *arg)
     for (i = 0; i < n; ++i) {
         PyObject *o = PySequence_Fast_GET_ITEM(seq, i);
 
-        if (o == Py_False)
-            xG[i] = (G) 0;
-        else if (o == Py_True)
-            xG[i] = (G) 1;
-        else {
+        if (py2b(o, &item) == -1) {
             r0(x);
-            PyErr_Format(PyExc_TypeError,
-                         "K._B: %d-%s item is not a bool", i + 1, th(i + 1));
             goto error;
         }
+        xG[i] = item;
+    }
+    ret = KObject_FromK(type, x);
+  error:
+    Py_DECREF(seq);
+    return ret;
+}
+
+PyDoc_STRVAR(K_kb_doc, "converts any object to q boolean");
+static PyObject *
+K_kb(PyTypeObject * type, PyObject * arg)
+{
+    G g;
+    K x;
+    if (py2b(arg, &g) == -1)
+        return NULL;
+    x = kb(g);
+    return KObject_FromK(type, x);
+}
+
+PyDoc_STRVAR(K_G_doc, "returns a K byte list");
+static PyObject *
+K_G(PyTypeObject * type, PyObject *arg)
+{
+    PyObject *ret = NULL;
+
+    G item;
+
+    PyObject *seq = PySequence_Fast(arg, "K._G: not a sequence");
+    int i, n;
+    K x;
+
+    if (seq == NULL)
+        return NULL;
+    n = PySequence_Fast_GET_SIZE(seq);
+
+    x = ktn(KG, n);
+
+    for (i = 0; i < n; ++i) {
+        PyObject *o = PySequence_Fast_GET_ITEM(seq, i);
+
+        if (o == Py_None)
+             item = 0;
+        else if (py2g(o, &item) == -1) {
+            r0(x);
+            goto error;
+        }
+        xG[i] = item;
+    }
+    ret = KObject_FromK(type, x);
+  error:
+    Py_DECREF(seq);
+    return ret;
+}
+
+PyDoc_STRVAR(K_H_doc, "returns a K short list");
+static PyObject *
+K_H(PyTypeObject * type, PyObject *arg)
+{
+    PyObject *ret = NULL;
+
+    H item;
+
+    PyObject *seq = PySequence_Fast(arg, "K._H: not a sequence");
+    int i, n;
+    K x;
+
+    if (seq == NULL)
+        return NULL;
+    n = PySequence_Fast_GET_SIZE(seq);
+
+    x = ktn(KH, n);
+
+    for (i = 0; i < n; ++i) {
+        PyObject *o = PySequence_Fast_GET_ITEM(seq, i);
+
+        if (o == Py_None)
+             item = nh;
+        else if (py2h(o, &item) == -1) {
+            r0(x);
+            goto error;
+        }
+        xH[i] = item;
     }
     ret = KObject_FromK(type, x);
   error:
@@ -1187,7 +1792,7 @@ K_I(PyTypeObject * type, PyObject *arg)
 {
     PyObject *ret = NULL;
 
-    long item;
+    I item;
 
     PyObject *seq = PySequence_Fast(arg, "K._I: not a sequence");
     int i, n;
@@ -1202,37 +1807,13 @@ K_I(PyTypeObject * type, PyObject *arg)
     for (i = 0; i < n; ++i) {
         PyObject *o = PySequence_Fast_GET_ITEM(seq, i);
 
-#if PY_MAJOR_VERSION < 3
-        if (PyInt_Check(o))
-            item = PyInt_AS_LONG(o);
-        else
-#endif
-        if (PyLong_Check(o)) {
-            item = PyLong_AsLong(o);
-            if (item == -1 && PyErr_Occurred()) {
-                r0(x);
-                goto error;
-            }
-        }
-        else {
-            if (o == Py_None)
-                item = ni;
-            else {
-                r0(x);
-                PyErr_Format(PyExc_TypeError,
-                             "K._I: %d-%s item is not an int", i + 1,
-                             th(i + 1));
-                goto error;
-            }
-        }
-        if (sizeof(I) != sizeof(long) && item != (I) item) {
+        if (o == Py_None)
+             item = ni;
+        else if (py2i(o, &item) == -1) {
             r0(x);
-            PyErr_Format(PyExc_OverflowError,
-                         "K._I: %d-%s item (%ld) is too big", i + 1, th(i + 1),
-                         item);
             goto error;
         }
-        xI[i] = (I) item;
+        xI[i] = item;
     }
     ret = KObject_FromK(type, x);
   error:
@@ -1246,7 +1827,7 @@ K_J(PyTypeObject * type, PyObject *arg)
 {
     PyObject *ret = NULL;
 
-    PY_LONG_LONG item;
+    J item;
 
     PyObject *seq = PySequence_Fast(arg, "K._J: not a sequence");
     int i, n;
@@ -1261,28 +1842,11 @@ K_J(PyTypeObject * type, PyObject *arg)
     for (i = 0; i < n; ++i) {
         PyObject *o = PySequence_Fast_GET_ITEM(seq, i);
 
-#if PY_MAJOR_VERSION < 3
-        if (PyInt_Check(o))
-            item = PyInt_AS_LONG(o);
-        else
-#endif
-        if (PyLong_Check(o)) {
-            item = PyLong_AsLongLong(o);
-            if (item == -1 && PyErr_Occurred()) {
-                r0(x);
-                goto error;
-            }
-        }
-        else {
-            if (o == Py_None)
-                item = nj;
-            else {
-                r0(x);
-                PyErr_Format(PyExc_TypeError,
-                             "K._J: %d-%s item is not an int", i + 1,
-                             th(i + 1));
-                goto error;
-            }
+        if (o == Py_None)
+             item = nj;
+        else if (py2j(o, &item) == -1) {
+            r0(x);
+            goto error;
         }
         xJ[i] = item;
     }
@@ -1292,14 +1856,48 @@ K_J(PyTypeObject * type, PyObject *arg)
     return ret;
 }
 
+
+K_ATOM(g, G, b, "returns a K byte")
+K_ATOM(h, H, h, "returns a K short")
+K_ATOM(i, I, i, "returns a K int")
 K_ATOM(j, J, L, "returns a K long (64 bits)")
 K_ATOM(e, E, f, "returns a K real (32 bits)")
 K_ATOM(f, F, d, "returns a K float (64 bits)")
+
+PyDoc_STRVAR(K_E_doc, "returns a K real list");
+static PyObject *
+K_E(PyTypeObject * type, PyObject *arg)
+{
+    E item;
+    PyObject *seq = PySequence_Fast(arg, "K._E: not a sequence");
+    int i, n;
+    K x;
+
+    if (seq == NULL)
+        return NULL;
+    n = PySequence_Fast_GET_SIZE(seq);
+
+    x = ktn(KE, n);
+
+    for (i = 0; i < n; ++i) {
+        PyObject *o = PySequence_Fast_GET_ITEM(seq, i);
+
+        if (py2e(o, &item) == -1) {
+            r0(x);
+            Py_DECREF(seq);
+            return NULL;
+        }
+        xE[i] = item;
+    }
+    Py_DECREF(seq);
+    return KObject_FromK(type, x);
+}
 
 PyDoc_STRVAR(K_F_doc, "returns a K float list");
 static PyObject *
 K_F(PyTypeObject * type, PyObject *arg)
 {
+    F item;
     PyObject *seq = PySequence_Fast(arg, "K._F: not a sequence");
     int i, n;
     K x;
@@ -1313,20 +1911,18 @@ K_F(PyTypeObject * type, PyObject *arg)
     for (i = 0; i < n; ++i) {
         PyObject *o = PySequence_Fast_GET_ITEM(seq, i);
 
-        if (!PyFloat_Check(o)) {
+        if (py2f(o, &item) == -1) {
             r0(x);
             Py_DECREF(seq);
-            PyErr_Format(PyExc_TypeError,
-                         "K._F: %d-%s item is not a float", i + 1, th(i + 1));
             return NULL;
         }
-        xF[i] = PyFloat_AS_DOUBLE(o);
+        xF[i] = item;
     }
     Py_DECREF(seq);
     return KObject_FromK(type, x);
 }
 
-K_ATOM(c, G, c, "returns a K char")
+K_ATOM(c, C, c, "returns a K char")
 
 PyDoc_STRVAR(K_ks_doc, "returns a K symbol");
 static PyObject *
@@ -1345,25 +1941,72 @@ K_ks(PyTypeObject * type, PyObject *args)
     return KObject_FromK(type, x);
 }
 
-PyDoc_STRVAR(K_kdd_doc, "converts datetime.date to q date");
+PyDoc_STRVAR(K_P_doc, "returns a K timestamp list");
 static PyObject *
-K_kdd(PyTypeObject * type, PyDateTime_Date * arg)
+K_P(PyTypeObject * type, PyObject *arg)
 {
-    int y, m, d;
+    PyObject *ret = NULL;
+    J item;
+    int i, n;
     K x;
-    if (!PyDate_Check(arg))
-        return PyErr_Format(PyExc_TypeError, "expected a date object, not %s",
-                            Py_TYPE(arg)->tp_name);
 
-    y = PyDateTime_GET_YEAR(arg);
-    m = PyDateTime_GET_MONTH(arg);
-    d = PyDateTime_GET_DAY(arg);
-    x = kd(ymd(y, m, d));
+    PyObject *seq = PySequence_Fast(arg, "K._P: not a sequence");
 
-    if (!type) {
-        type = &K_Type;
+    if (seq == NULL)
+        return NULL;
+    n = PySequence_Fast_GET_SIZE(seq);
+
+    x = ktn(KP, n);
+
+    for (i = 0; i < n; ++i) {
+        PyObject *o = PySequence_Fast_GET_ITEM(seq, i);
+        if (o == Py_None)
+            item = nj;
+        else if (py2p(o, &item) == -1) {
+            r0(x);
+            goto error;
+        }
+        xJ[i] = item;
     }
-    return KObject_FromK(type, x);
+    ret = KObject_FromK(type, x);
+  error:
+    Py_DECREF(seq);
+    return ret;
+}
+
+
+PyDoc_STRVAR(K_M_doc, "returns a K month list");
+static PyObject *
+K_M(PyTypeObject * type, PyObject *arg)
+{
+    PyObject *ret = NULL;
+    I item;
+    int i, n;
+    K x;
+
+    PyObject *seq = PySequence_Fast(arg, "K._M: not a sequence");
+
+    if (seq == NULL)
+        return NULL;
+    n = PySequence_Fast_GET_SIZE(seq);
+
+    x = ktn(KM, n);
+
+    for (i = 0; i < n; ++i) {
+        PyObject *o = PySequence_Fast_GET_ITEM(seq, i);
+
+        if (o == Py_None)
+            item = ni;
+        else if (py2m(o, &item)) {
+            r0(x);
+            goto error;
+        }
+        xI[i] = item;
+    }
+    ret = KObject_FromK(type, x);
+  error:
+    Py_DECREF(seq);
+    return ret;
 }
 
 PyDoc_STRVAR(K_D_doc, "returns a K date list");
@@ -1386,16 +2029,10 @@ K_D(PyTypeObject * type, PyObject *arg)
     for (i = 0; i < n; ++i) {
         PyObject *o = PySequence_Fast_GET_ITEM(seq, i);
 
-        if (PyDate_Check(o))
-            item =
-                ymd(PyDateTime_GET_YEAR(o), PyDateTime_GET_MONTH(o),
-                    PyDateTime_GET_DAY(o));
-        else if (o == Py_None)
+        if (o == Py_None)
             item = ni;
-        else {
+        else if (py2d(o, &item)) {
             r0(x);
-            PyErr_Format(PyExc_TypeError,
-                         "K._D: %d-%s item is not a date", i + 1, th(i + 1));
             goto error;
         }
         xI[i] = item;
@@ -1406,27 +2043,143 @@ K_D(PyTypeObject * type, PyObject *arg)
     return ret;
 }
 
-PyDoc_STRVAR(K_ktt_doc, "converts datetime.time to q time");
+PyDoc_STRVAR(K_N_doc, "returns a K timespan list");
 static PyObject *
-K_ktt(PyTypeObject * type, PyObject *arg)
+K_N(PyTypeObject * type, PyObject *arg)
 {
-    int h, m, s, u;
+    PyObject *ret = NULL;
+    J item;
+    int i, n;
     K x;
-    if (!PyTime_Check(arg))
-        return PyErr_Format(PyExc_TypeError, "expected a time object, not %s",
-                            Py_TYPE(arg)->tp_name);
 
-    h = PyDateTime_TIME_GET_HOUR(arg);
-    m = PyDateTime_TIME_GET_MINUTE(arg);
-    s = PyDateTime_TIME_GET_SECOND(arg);
-    u = PyDateTime_TIME_GET_MICROSECOND(arg);
-    x = kt(((h * 60 + m) * 60 + s) * 1000 + u / 1000);
+    PyObject *seq = PySequence_Fast(arg, "K._D: not a sequence");
 
-    if (!type) {
-        type = &K_Type;
+    if (seq == NULL)
+        return NULL;
+    n = PySequence_Fast_GET_SIZE(seq);
+
+    x = ktn(KN, n);
+
+    for (i = 0; i < n; ++i) {
+        PyObject *o = PySequence_Fast_GET_ITEM(seq, i);
+
+        if (o == Py_None)
+            item = nj;
+        else if (py2n(o, &item) == -1) {
+            r0(x);
+            goto error;
+        }
+        xJ[i] = item;
     }
-    return KObject_FromK(type, x);
+    ret = KObject_FromK(type, x);
+  error:
+    Py_DECREF(seq);
+    return ret;
 }
+
+PyDoc_STRVAR(K_U_doc, "returns a K minute list");
+static PyObject *
+K_U(PyTypeObject * type, PyObject *arg)
+{
+    PyObject *ret = NULL;
+    I item;
+    int i, n;
+    K x;
+
+    PyObject *seq = PySequence_Fast(arg, "K._U: not a sequence");
+
+    if (seq == NULL)
+        return NULL;
+    n = PySequence_Fast_GET_SIZE(seq);
+
+    x = ktn(KU, n);
+
+    for (i = 0; i < n; ++i) {
+        PyObject *o = PySequence_Fast_GET_ITEM(seq, i);
+
+        if (o == Py_None)
+            item = ni;
+        else if (py2u(o, &item) == -1) {
+            r0(x);
+            goto error;
+        }
+        xI[i] = item;
+    }
+    ret = KObject_FromK(type, x);
+  error:
+    Py_DECREF(seq);
+    return ret;
+}
+
+PyDoc_STRVAR(K_V_doc, "returns a K second list");
+static PyObject *
+K_V(PyTypeObject * type, PyObject *arg)
+{
+    PyObject *ret = NULL;
+    I item;
+    int i, n;
+    K x;
+
+    PyObject *seq = PySequence_Fast(arg, "K._V: not a sequence");
+
+    if (seq == NULL)
+        return NULL;
+    n = PySequence_Fast_GET_SIZE(seq);
+
+    x = ktn(KV, n);
+
+    for (i = 0; i < n; ++i) {
+        PyObject *o = PySequence_Fast_GET_ITEM(seq, i);
+
+        if (o == Py_None)
+            item = ni;
+        else if (py2v(o, &item) == -1) {
+            r0(x);
+            goto error;
+        }
+        xI[i] = item;
+    }
+    ret = KObject_FromK(type, x);
+  error:
+    Py_DECREF(seq);
+    return ret;
+}
+
+
+PyDoc_STRVAR(K_T_doc, "returns a K time list");
+static PyObject *
+K_T(PyTypeObject * type, PyObject *arg)
+{
+    PyObject *ret = NULL;
+    I item;
+    int i, n;
+    K x;
+
+    PyObject *seq = PySequence_Fast(arg, "K._T: not a sequence");
+
+    if (seq == NULL)
+        return NULL;
+    n = PySequence_Fast_GET_SIZE(seq);
+
+    x = ktn(KT, n);
+
+    for (i = 0; i < n; ++i) {
+        PyObject *o = PySequence_Fast_GET_ITEM(seq, i);
+
+        if (o == Py_None)
+            item = ni;
+        else if (py2t(o, &item) == -1) {
+            r0(x);
+            goto error;
+        }
+        xI[i] = item;
+    }
+    ret = KObject_FromK(type, x);
+  error:
+    Py_DECREF(seq);
+    return ret;
+}
+
 
 PyDoc_STRVAR(K_kzz_doc, "converts datetime.datetime to q datetime");
 static PyObject *
@@ -1435,7 +2188,7 @@ K_kzz(PyTypeObject * type, PyObject *arg)
     int y, m, d, h, u, s, i;
     K x;
     if (!PyDateTime_Check(arg))
-        return PyErr_Format(PyExc_TypeError, "expected a date object, not %s",
+        return PyErr_Format(PyExc_TypeError, "expected a datetime object, not %s",
                             Py_TYPE(arg)->tp_name);
 
     y = PyDateTime_GET_YEAR(arg);
@@ -1448,58 +2201,33 @@ K_kzz(PyTypeObject * type, PyObject *arg)
     x = kz(ymd(y, m, d) +
            (((h * 60 + u) * 60 + s) * 1000 +
             i / 1000) / (24 * 60 * 60 * 1000.));
-    if (!type) {
-        type = &K_Type;
-    }
+
+
     return KObject_FromK(type, x);
 }
 
 #ifdef KN
-PyDoc_STRVAR(K_knz_doc, "converts datetime.datetime to q timestamp");
+PyDoc_STRVAR(K_knz_doc, "converts an integer or timedelta to q timespan");
 static PyObject *
 K_knz(PyTypeObject * type, PyObject *arg)
 {
-    int d, s, u;
+    J n;
     K x;
-    if (!PyDelta_Check(arg))
-        return PyErr_Format(PyExc_TypeError,
-                            "expected a timedelta object, not %s",
-                            Py_TYPE(arg)->tp_name);
-
-    d = ((PyDateTime_Delta *) arg)->days;
-    s = ((PyDateTime_Delta *) arg)->seconds;
-    u = ((PyDateTime_Delta *) arg)->microseconds;
-    x = ktj(-KN, 1000000000ll * (d * 24 * 60 * 60 + s) + 1000l * u);
-
-    if (!type) {
-        type = &K_Type;
-    }
+    if (py2n(arg, &n) == -1)
+        return NULL;
+    x = ktj(-KN, n);
     return KObject_FromK(type, x);
 }
 
-PyDoc_STRVAR(K_kpz_doc, "converts datetime.timedelta to q timespan");
+PyDoc_STRVAR(K_kpz_doc, "converts an integer or date to q timestamp");
 static PyObject *
 K_kpz(PyTypeObject * type, PyObject *arg)
 {
-    int y, m, d, h, u, s, i;
     K x;
-    if (!PyDateTime_Check(arg))
-        return PyErr_Format(PyExc_TypeError, "expected a date object, not %s",
-                            Py_TYPE(arg)->tp_name);
-
-    y = PyDateTime_GET_YEAR(arg);
-    m = PyDateTime_GET_MONTH(arg);
-    d = PyDateTime_GET_DAY(arg);
-    h = PyDateTime_DATE_GET_HOUR(arg);
-    u = PyDateTime_DATE_GET_MINUTE(arg);
-    s = PyDateTime_DATE_GET_SECOND(arg);
-    i = PyDateTime_DATE_GET_MICROSECOND(arg);
-    x = ktj(-KP, 1000000000ll * (((ymd(y, m, d) * 24 + h) * 60 + u) * 60 + s)
-              + 1000l * i);
-
-    if (!type) {
-        type = &K_Type;
-    }
+    J p;
+    if (py2p(arg, &p) == -1)
+        return NULL;
+    x = ktj(-KP, p);
     return KObject_FromK(type, x);
 }
 #endif
@@ -1534,13 +2262,16 @@ K_S(PyTypeObject * type, PyObject *arg)
 }
 
 K_ATOM(m, I, i, "returns a K month")
-    K_ATOM(d, I, i, "returns a K date")
-    K_ATOM(z, F, d, "returns a K datetime")
-    K_ATOM(uu, I, i, "returns a K minute")
-    K_ATOM(v, I, i, "returns a K second")
-    K_ATOM(t, I, i, "returns a K time")
-    PyDoc_STRVAR(K_kp_doc, "returns a K string");
-     static PyObject *K_kp(PyTypeObject * type, PyObject *args)
+K_ATOM(d, I, i, "returns a K date")
+K_ATOM(z, F, d, "returns a K datetime")
+#define ku kuu
+K_ATOM(u, I, i, "returns a K minute")
+#undef ku
+K_ATOM(v, I, i, "returns a K second")
+K_ATOM(t, I, i, "returns a K time")
+
+PyDoc_STRVAR(K_kp_doc, "returns a K string");
+static PyObject *K_kp(PyTypeObject * type, PyObject *args)
 {
     KObject *ret = 0;
     S s;
@@ -1552,28 +2283,82 @@ K_ATOM(m, I, i, "returns a K month")
     }
     x = kpn(s, n);
 
-    if (!type) {
-        type = &K_Type;
-    }
     return KObject_FromK(type, x);
 }
 
 #if KXVER>=3
+/* PyObject to guid: accepts (long) integers or objects with .int attr. */
+static int
+py2uu(PyObject *obj, U *uu)
+{
+    int ret = 0;
+    PyObject *int_obj, *int_attr;
+    int_attr = PyObject_GetAttrString(obj, "int");
+    if (int_attr == NULL) {
+         PyErr_Clear();
+         Py_INCREF(obj);
+    }
+    else
+         obj = int_attr;
+    int_obj = PyNumber_Index(obj);
+    Py_DECREF(obj);
+    if (int_obj == NULL)
+         return -1;
+    /* XXX: Add int/long handling in Python 2.x case. */
+    if (_PyLong_AsByteArray((PyLongObject *)int_obj, uu->g,
+                            16, /* size */
+                            0,  /* little_endian */
+                            0   /* is_signed */ ) == -1)
+        ret = -1;
+     Py_DECREF(int_obj);
+    return ret;
+}
+
 PyDoc_STRVAR(K_kguid_doc, "returns a K guid");
 static PyObject *
-K_kguid(PyTypeObject * type, PyObject *args)
+K_kguid(PyTypeObject * type, PyObject *arg)
 {
     U u;
-
-    PyLongObject *pylong;
-
-    if (!PyArg_ParseTuple(args, "O!:K._kguid", &PyLong_Type, &pylong))
+    if (py2uu(arg, &u) == -1)
         return NULL;
-    if (_PyLong_AsByteArray(pylong, u.g, 16, 0, 0) == -1)
-        return NULL;
-    if (!type)
-        type = &K_Type;
+
     return KObject_FromK(type, ku(u));
+}
+
+PyDoc_STRVAR(K_UU_doc, "returns a K guid list");
+static PyObject *
+K_UU(PyTypeObject * type, PyObject *arg)
+{
+    PyObject *ret = NULL;
+
+    U item;
+
+    PyObject *seq = PySequence_Fast(arg, "K._UU: not a sequence");
+    int i, n;
+    K x;
+
+    if (seq == NULL)
+        return NULL;
+    n = PySequence_Fast_GET_SIZE(seq);
+
+    x = ktn(UU, n);
+
+    for (i = 0; i < n; ++i) {
+        PyObject *o = PySequence_Fast_GET_ITEM(seq, i);
+
+        if (o == Py_None) {
+             DO(16, item.g[i] = 0);
+        }
+        else if (py2uu(o, &item) == -1) {
+            r0(x);
+            goto error;
+        }
+        xU[i] = item;
+    }
+    ret = KObject_FromK(type, x);
+  error:
+    Py_DECREF(seq);
+    return ret;
 }
 #endif
 
@@ -1945,6 +2730,14 @@ K_k(PyTypeObject * type, PyObject *args)
         PyErr_SetString(PyExc_OSError, "connection");
         return NULL;
     }
+    /* From the "Interfacing with Kdb+ from C" cookbook:
+
+       If the handle is <0, this is for async messaging, and the return
+       value can be either 0 (network error) or non-zero (ok).
+       This result should NOT be passed to r0(r). */
+    if (c < 0) {
+        r = r1(k_none);
+    }
     return KObject_FromK(type, r);
 }
 
@@ -1985,9 +2778,16 @@ K_inspect(PyObject *self, PyObject *args)
         PyErr_SetString(PyExc_ValueError, "null k object");
         return NULL;
     }
-
+#if PY_MAJOR_VERSION >= 3
+    if (!PyArg_ParseTuple(args, "C|i:inspect", &c, &i)) {
+        PyErr_Clear();
+        if (!PyArg_ParseTuple(args, "c|i:inspect", &c, &i))
+            return NULL;
+    }
+#else
     if (!PyArg_ParseTuple(args, "c|i:inspect", &c, &i))
         return NULL;
+#endif
     switch (c) {
 #if KXVER >=3
     case 'm':
@@ -2016,7 +2816,7 @@ K_inspect(PyObject *self, PyObject *args)
     case 'i':
         return PyInt_FromLong(k->i);
     case 'j':
-        return PyLong_FromLongLong(k->j);
+        return PY_INT_From_LongLong(k->j);
     case 'e':
         return PyFloat_FromDouble(k->e);
     case 'f':
@@ -2039,7 +2839,7 @@ K_inspect(PyObject *self, PyObject *args)
     case 'I':
         return PyInt_FromLong(kI(k)[i]);
     case 'J':
-        return PyLong_FromLongLong(kJ(k)[i]);
+        return PY_INT_From_LongLong(kJ(k)[i]);
     case 'E':
         return PyFloat_FromDouble(kE(k)[i]);
     case 'F':
@@ -2052,7 +2852,7 @@ K_inspect(PyObject *self, PyObject *args)
     }
     return PyErr_Format(PyExc_KeyError, "no such field: '%c'", c);
 }
-
+ZK py2k(PyObject*);
 /* Calling Python */
 ZK
 call_python_object(K type, K func, K x)
@@ -2081,12 +2881,44 @@ call_python_object(K type, K func, K x)
     res = PyObject_CallObject((PyObject *)func->k, pyargs);
     Py_DECREF(pyargs);
     r0(x);
-    if (!res)
-        R krr("error in python");
-
-    r = K_Check(res)
-        ? r1(((KObject *) res)->x)
-        : krr("py-type error");
+    if (!res || (!(r = py2k(res)) && PyErr_Occurred())) {
+        S err = "n/a";
+        PyObject *type, *value, *traceback;
+        PyErr_Fetch(&type, &value, &traceback);
+        PyErr_NormalizeException(&type, &value, &traceback);
+        if (PyErr_GivenExceptionMatches(value, ErrorObject)) {
+            Py_ssize_t size;
+            PyObject *message;
+            message = PyTuple_GET_ITEM(((PyBaseExceptionObject*)value)->args, 0);
+            if (PY_STR_AsStringAndSize(message, &err, &size) == -1) {
+                PyErr_Clear();
+            }
+        }
+        else {
+            S pdot;
+            err = (S)((PyTypeObject*)type)->tp_name;
+            pdot = strrchr(err, '.');
+            if (pdot != NULL)
+                err = pdot + 1;
+        }
+        /* krr does not create a copy - intern err to keep it alive */
+        krr(ss(err));
+        Py_DECREF(type);
+        /* The value and traceback object may be NULL even when the type object is not. */
+        Py_XDECREF(value);
+        Py_XDECREF(traceback);
+        /* NB: res may not be null here if the error occurs in py2k */
+        Py_XDECREF(res);
+        R NULL;
+    }
+    if (!r) {
+        if (K_Check(res)) {
+            r = r1(((KObject*)res)->x);
+        }
+        else {
+            krr("py2k");
+        }
+    }
     Py_DECREF(res);
     return r;
 }
@@ -2132,37 +2964,45 @@ static PyMethodDef K_methods[] = {
     {"_err", (PyCFunction)K_err, METH_VARARGS | METH_CLASS, K_err_doc},
     {"_ktj", (PyCFunction)K_ka, METH_VARARGS | METH_CLASS, K_ka_doc},
     {"_ka", (PyCFunction)K_ka, METH_VARARGS | METH_CLASS, K_ka_doc},
-    {"_kb", (PyCFunction)K_kb, METH_VARARGS | METH_CLASS, K_kb_doc},
-    {"_kg", (PyCFunction)K_kg, METH_VARARGS | METH_CLASS, K_kg_doc},
-    {"_kh", (PyCFunction)K_kh, METH_VARARGS | METH_CLASS, K_kh_doc},
-    {"_ki", (PyCFunction)K_ki, METH_VARARGS | METH_CLASS, K_ki_doc},
+    {"_kb", (PyCFunction)K_kb, METH_O | METH_CLASS, K_kb_doc},
+    {"_kg", (PyCFunction)K_kg, METH_O | METH_CLASS, K_kg_doc},
+    {"_kh", (PyCFunction)K_kh, METH_O | METH_CLASS, K_kh_doc},
+    {"_ki", (PyCFunction)K_ki, METH_O | METH_CLASS, K_ki_doc},
     {"_B", (PyCFunction)K_B, METH_O | METH_CLASS, K_B_doc},
+    {"_G", (PyCFunction)K_G, METH_O | METH_CLASS, K_G_doc},
+    {"_H", (PyCFunction)K_H, METH_O | METH_CLASS, K_H_doc},
     {"_I", (PyCFunction)K_I, METH_O | METH_CLASS, K_I_doc},
     {"_J", (PyCFunction)K_J, METH_O | METH_CLASS, K_J_doc},
-    {"_kj", (PyCFunction)K_kj, METH_VARARGS | METH_CLASS, K_kj_doc},
-    {"_ke", (PyCFunction)K_ke, METH_VARARGS | METH_CLASS, K_ke_doc},
-    {"_kf", (PyCFunction)K_kf, METH_VARARGS | METH_CLASS, K_kf_doc},
+    {"_kj", (PyCFunction)K_kj, METH_O | METH_CLASS, K_kj_doc},
+    {"_ke", (PyCFunction)K_ke, METH_O | METH_CLASS, K_ke_doc},
+    {"_kf", (PyCFunction)K_kf, METH_O | METH_CLASS, K_kf_doc},
+    {"_E", (PyCFunction)K_E, METH_O | METH_CLASS, K_E_doc},
     {"_F", (PyCFunction)K_F, METH_O | METH_CLASS, K_F_doc},
-    {"_kc", (PyCFunction)K_kc, METH_VARARGS | METH_CLASS, K_kc_doc},
+    {"_kc", (PyCFunction)K_kc, METH_O | METH_CLASS, K_kc_doc},
     {"_ks", (PyCFunction)K_ks, METH_VARARGS | METH_CLASS, K_ks_doc},
     {"_S", (PyCFunction)K_S, METH_O | METH_CLASS, K_S_doc},
-    {"_km", (PyCFunction)K_km, METH_VARARGS | METH_CLASS, K_km_doc},
-    {"_kd", (PyCFunction)K_kd, METH_VARARGS | METH_CLASS, K_kd_doc},
-    {"_kdd", (PyCFunction)K_kdd, METH_O | METH_CLASS, K_kdd_doc},
+    {"_km", (PyCFunction)K_km, METH_O | METH_CLASS, K_km_doc},
+    {"_kd", (PyCFunction)K_kd, METH_O | METH_CLASS, K_kd_doc},
+    {"_P", (PyCFunction)K_P, METH_O | METH_CLASS, K_P_doc},
+    {"_M", (PyCFunction)K_M, METH_O | METH_CLASS, K_M_doc},
     {"_D", (PyCFunction)K_D, METH_O | METH_CLASS, K_D_doc},
-    {"_kz", (PyCFunction)K_kz, METH_VARARGS | METH_CLASS, K_kz_doc},
+    {"_N", (PyCFunction)K_N, METH_O | METH_CLASS, K_N_doc},
+    {"_U", (PyCFunction)K_U, METH_O | METH_CLASS, K_U_doc},
+    {"_V", (PyCFunction)K_V, METH_O | METH_CLASS, K_V_doc},
+    {"_T", (PyCFunction)K_T, METH_O | METH_CLASS, K_T_doc},
+    {"_kz", (PyCFunction)K_kz, METH_O | METH_CLASS, K_kz_doc},
     {"_kzz", (PyCFunction)K_kzz, METH_O | METH_CLASS, K_kzz_doc},
 #ifdef KN
     {"_knz", (PyCFunction)K_knz, METH_O | METH_CLASS, K_knz_doc},
     {"_kpz", (PyCFunction)K_kpz, METH_O | METH_CLASS, K_kpz_doc},
 #endif
-    {"_ku", (PyCFunction)K_kuu, METH_VARARGS | METH_CLASS, K_kuu_doc},
+    {"_ku", (PyCFunction)K_ku, METH_O | METH_CLASS, K_ku_doc},
 #if KXVER>=3
-    {"_kguid", (PyCFunction)K_kguid, METH_VARARGS | METH_CLASS, K_kguid_doc},
+    {"_kguid", (PyCFunction)K_kguid, METH_O | METH_CLASS, K_kguid_doc},
+    {"_UU", (PyCFunction)K_UU, METH_O | METH_CLASS, K_UU_doc},
 #endif
-    {"_kv", (PyCFunction)K_kv, METH_VARARGS | METH_CLASS, K_kv_doc},
-    {"_kt", (PyCFunction)K_kt, METH_VARARGS | METH_CLASS, K_kt_doc},
-    {"_ktt", (PyCFunction)K_ktt, METH_O | METH_CLASS, K_ktt_doc},
+    {"_kv", (PyCFunction)K_kv, METH_O | METH_CLASS, K_kv_doc},
+    {"_kt", (PyCFunction)K_kt, METH_O | METH_CLASS, K_kt_doc},
     {"_kp", (PyCFunction)K_kp, METH_VARARGS | METH_CLASS, K_kp_doc},
     {"_ktn", (PyCFunction)K_ktn, METH_VARARGS | METH_CLASS, K_ktn_doc},
     {"_xT", (PyCFunction)K_xT, METH_VARARGS | METH_CLASS, K_xT_doc},
@@ -2171,8 +3011,8 @@ static PyMethodDef K_methods[] = {
     {"_b9", (PyCFunction)K_b9, METH_VARARGS | METH_CLASS, K_b9_doc},
     {"_d9", (PyCFunction)K_d9, METH_VARARGS | METH_CLASS, K_d9_doc},
 
-    {"_from_array_interface", (PyCFunction)K_from_array_interface,
-     METH_VARARGS | METH_CLASS, K_from_array_interface_doc},
+    {"_from_array_struct", (PyCFunction)K_from_array_struct,
+     METH_VARARGS | METH_CLASS, K_from_array_struct_doc},
 
     {"inspect", (PyCFunction)K_inspect, METH_VARARGS, K_inspect_doc},
     {"_id", (PyCFunction)K_id, METH_NOARGS, K_id_doc},
@@ -2190,7 +3030,7 @@ static PyMethodDef K_methods[] = {
 #error "Unsupported architecture"
 #endif
 
-#if PY_VERSION_HEX >= 0x02060000 && KXVER >= 3
+#if PY_VERSION_HEX >= 0x02060000
 char *
 k_format(int t)
 {
@@ -2211,21 +3051,21 @@ k_format(int t)
                      (KXVER < 3 && SIZEOF_VOID_P == SIZEOF_INT))
 
 int
-K_buffer_getbuffer(KObject * self, Py_buffer * view, int flags)
+_k_getbuffer(KObject * self, Py_buffer * view, int flags, int raw)
 {
     K x = self->x;
     int itemsize;
+    int t = abs(xt);
 
-    if (!x) {
-        PyErr_SetString(PyExc_ValueError, "Null k object");
-        return -1;
-    }
-
-    itemsize = k_itemsize(x);
-    if (itemsize == 0) {
+    if (!raw && (t >= KS || t == 0)) {
         PyErr_Format(PyExc_BufferError, "k object of type %dh", xt);
         return -1;
     }
+    itemsize = k_itemsize(x);
+    /* The value of itemsize cannot be 0 here.  If raw=0, t is checked to
+       be within [0, KS] in the previous if-statement.  If raw=1, k_typekind(x)
+       has already been checked in K_get_data(). */
+    assert(itemsize > 0);
 
     if (xt > 0) {
         view->ndim = 1;
@@ -2316,18 +3156,24 @@ K_buffer_getbuffer(KObject * self, Py_buffer * view, int flags)
     return 0;           /* 0 - success / -1 - failure */
 }
 
-void
+static int
+K_buffer_getbuffer(KObject * self, Py_buffer * view, int flags)
+{
+    return _k_getbuffer(self, view, flags, 0);
+}
+
+static void
 K_buffer_releasebuffer(KObject * self, Py_buffer * view)
 {
     if (view->ndim > 1) {
         free(view->shape);
         free(view->strides);
     }
-    else if (view->ndim == 1 && !_N_IS_SHAPE) {
-#if PY_MAJOR_VERSION > 2
+#if PY_MAJOR_VERSION > 2 && !_N_IS_SHAPE
+    else if (view->ndim == 1) {
         free(view->shape);
-#endif
     }
+#endif
     return;
 }
 #endif
@@ -2351,6 +3197,87 @@ klen(K x)
     }
     return 1;
 }
+
+static int
+K_bool(KObject *v)
+{
+    K x = v->x;
+    if (xt >= 0) {
+        if (xt < 100)  /* lists */
+            return klen(x) > 0;
+        else if (xt == 101 && xj == 0)
+            return 0;
+        else
+            return 1;
+    }
+    /* scalars */
+    switch (-xt) {
+        case KB:
+        case KG:
+        case KC:
+            return xg != 0;
+        case KJ:
+        case KN:
+            return xj != 0;
+        case KS:
+            /* XXX: Can optimize to x != null_sym */
+            return xs[0] != 0;
+        case KH:
+            return xh != 0;
+        case KI:
+        case KU:
+        case KV:
+        case KT:
+            return xi != 0;
+        case KE:
+            return xe != 0;
+        case KF:
+            return xf != 0;
+    }
+    if (xt < -19) {
+        int res;
+        x = k(0, "value", r1(x), (K)0);
+        if (xt == -KS) {
+            res = xs[0] != 0;
+        }
+        else if (xt == -128) {
+            PyErr_SetString(ErrorObject, xs ? xs : (S) "not set");
+            res = -1;
+        }
+        else {
+            assert(xt == -KI);
+            res = xi != ni;
+        }
+        r0(x);
+        return res;
+    }
+    return 1;
+}
+
+static PyNumberMethods K_as_number = {
+    0,                  /*nb_add*/
+    0,                  /*nb_subtract*/
+    0,                  /*nb_multiply*/
+#if PY_MAJOR_VERSION < 3
+    0,                 /*nb_divide*/
+#endif
+    0,                  /*nb_remainder*/
+    0,                  /*nb_divmod*/
+    0,                  /*nb_power*/
+    0,                  /*nb_negative*/
+    0,                  /*nb_positive*/
+    0,                  /*nb_absolute*/
+    (inquiry)K_bool,    /*nb_bool*/
+    0,                  /*nb_invert*/
+    0,                  /*nb_lshift*/
+    0,                  /*nb_rshift*/
+    0,                  /*nb_and*/
+    0,                  /*nb_xor*/
+    0,                  /*nb_or*/
+    0,                  /*nb_int*/
+    0,                  /*nb_reserved*/
+    0,                  /*nb_float*/
+};
 
 static Py_ssize_t
 K_length(KObject * k)
@@ -2401,31 +3328,94 @@ static PyBufferProcs K_as_buffer = {
     (segcountproc) K_buffer_getsegcount,
     (charbufferproc) K_buffer_getcharbuffer,
 #endif
-#if PY_VERSION_HEX >= 0x02060000 && KXVER >= 3
+#if PY_VERSION_HEX >= 0x02060000
     (getbufferproc) K_buffer_getbuffer,
     (releasebufferproc) K_buffer_releasebuffer,
 #endif
 };
 
+static PyObject *
+K_get_r(KObject *self)
+{
+    K x = self->x;
+    return PyInt_FromLong(xr);
+}
+
+static PyObject *
+K_get_t(KObject *self)
+{
+    K x = self->x;
+    return PyInt_FromLong(xt);
+}
+
+static PyObject *
+K_get_n(KObject *self)
+{
+    K x = self->x;
+    if (xt >= 0 && xt != 98)
+        return PY_INT_From_LongLong(xn);
+    PyErr_Format(PyExc_AttributeError,
+                 "K object of type %dh does not have '_n' attribute", xt);
+    return NULL;
+}
+
+/* Include custom memoryview implementation for Python 2 */
+#include "mv.c"
+
+static PyObject *
+K_get_data(KObject *self)
+{
+    PyMemoryViewObject *mv;
+    Py_buffer view;
+    K x = self->x;
+    char typechar = k_typekind(x);
+    if (typechar == 'X') {
+        PyErr_Format(PyExc_AttributeError,
+                     "K object of type %dh does not have 'data' attribute", xt);
+        return NULL;
+    }
+    if (_k_getbuffer(self, &view, PyBUF_FULL, 1) == -1)
+        return NULL;
+    mv = (PyMemoryViewObject *)PyMemoryView_FromBuffer(&view);
+    if (mv == NULL) {
+         K_buffer_releasebuffer(self, &view);
+         Py_DECREF(self);
+         return NULL;
+    }
+    /* PyMemoryView_FromBuffer sets obj to NULL in both mv and
+       the master buffer, so we have to restore them ourselves. */
+#if PY_MAJOR_VERSION >= 3
+    mv->view.obj = (PyObject *)self;
+    mv->mbuf->master.obj = (PyObject *)self;
+#endif /* PY_MAJOR_VERSION >= 3 */
+    return (PyObject *)mv;
+}
+
 static PyGetSetDef K_getset[] = {
+    {"_r", (getter) K_get_r, NULL,
+     "K object reference count"},
+    {"_t", (getter) K_get_t, NULL,
+     "K object type"},
+    {"_n", (getter) K_get_n, NULL,
+     "K object element count"},
     {"__array_struct__", (getter) K_array_struct_get, NULL,
      "Array protocol: struct"},
     {"__array_typestr__", (getter) K_array_typestr_get, NULL,
      "Array protocol: typestr"},
+    {"data", (getter) K_get_data, NULL,
+     "Return memoryview."},
     {NULL, NULL, NULL, NULL},   /* Sentinel */
 };
 
 static PyObject *k_iter(KObject * o);
-
-static PyObject *
-K_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+#if KXVER > 2
+#  define K_INT kj
+#else
+#  define K_INT ki
+#endif
+ZK py2k(PyObject *obj)
 {
-    K x;
-    PyObject *obj;
-
-    if (!PyArg_ParseTuple(args, "O:K", &obj))
-        return NULL;
-
+    K x = NULL;
     /* check for singletons first */
     if (obj == Py_None)
         x = ktj(101, 0);  /* (::) */
@@ -2433,10 +3423,6 @@ K_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         x = kb(0);
     else if (obj == Py_True)
         x = kb(1);
-    else if (K_Check(obj)) {
-        Py_INCREF(obj);
-        return obj;
-    }
     else if (PY_STR_Check(obj)) {
         S s;
         PY_SET_SN(s, obj);
@@ -2446,38 +3432,150 @@ K_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         x = kf(PyFloat_AS_DOUBLE(obj));
 #if PY_MAJOR_VERSION < 3
     else if (PyInt_CheckExact(obj))
-        x = kj(PyInt_AS_LONG(obj));
+        x = K_INT(PyInt_AS_LONG(obj));
 #endif
     else if (PyLong_CheckExact(obj)) {
         J j = PyLong_AsLongLong(obj);
         if (j == -1 && PyErr_Occurred())
             return NULL;
-        x = kj(j);
+        x = K_INT(j);
     }
-    else if (PyDateTime_Check(obj)) {
-        return K_kpz(type, obj);
-    }
-    else if (PyDelta_Check(obj)) {
-        return K_knz(type, obj);
-    }
-    else if (PyDate_Check(obj)) {
-        return K_kdd(type, (PyDateTime_Date *) obj);
-    }
-    else if (PyTime_Check(obj)) {
-        return K_ktt(type, obj);
-    }
-    else {
-        PyErr_SetString(PyExc_NotImplementedError, "nyi");
-        return NULL;
-    }
-
-    R KObject_FromK(type, x);
+    R x;
 }
 
+/* Returns a new reference or NULL on error */
+static PyObject *
+get_base_object(PyObject *capsule)
+{
+    PyObject *base, *tmp;
+#if PY_MAJOR_VERSION >= 3
+    base = (PyObject *) PyCapsule_GetContext(capsule);
+#else
+    base = (PyObject *) PyCObject_GetDesc(capsule);
+#endif
+    base = PyObject_GetAttrString(base, "base");
+    if (!PyMemoryView_Check(base)) {
+        Py_DECREF(base);
+        Py_RETURN_NONE;
+    }
+    tmp = base;
+    base = PyMemoryView_GET_BASE(base);
+    Py_INCREF(base);
+    Py_DECREF(tmp);
+    return base;
+}
+
+static PyObject *
+K_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    K x;
+    PyObject *obj, *attr;
+
+    if (!PyArg_ParseTuple(args, "O:K", &obj))
+        return NULL;
+    if (K_Check(obj)) {
+        Py_INCREF(obj);
+        return obj;
+    }
+    x = py2k(obj);
+    if (x) {
+        return KObject_FromK(type, x);
+    }
+    if(PyErr_Occurred()) {
+        return NULL;
+    }
+    if (PyDateTime_Check(obj)) {
+        return K_kpz(type, obj);
+    }
+    if (PyDelta_Check(obj)) {
+        return K_knz(type, obj);
+    }
+    if (PyDate_Check(obj)) {
+        return K_kd(type, obj);
+    }
+    if (PyTime_Check(obj)) {
+        return K_kt(type, obj);
+    }
+    attr = PyObject_GetAttrString(obj, "__array_struct__");
+    if (attr == NULL) {
+        if (PyErr_ExceptionMatches(PyExc_AttributeError)) {
+            PyErr_Clear();
+        }
+        else {
+            return NULL;
+        }
+    }
+    else {
+        PyObject *r = NULL, *mask, *base;
+        base = get_base_object(attr);
+        if (base == NULL || K_Check(base)) {
+            Py_DECREF(attr);
+            return base;
+        }
+        else {
+            Py_DECREF(base);
+        }
+        x = _from_array_struct(type, attr);
+        Py_DECREF(attr);
+        if (x == NULL) {
+            if (PyErr_ExceptionMatches(PyExc_NotImplementedError)) {
+                PyErr_Clear();
+            }
+            else {
+                return NULL;
+            }
+            PyErr_Clear();
+            r = PyObject_CallMethod((PyObject *)type, "_from_record_array", "(O)", obj);
+            if (r == NULL) {
+                Py_DECREF(attr);
+                return NULL;
+            }
+        }
+        mask = PyObject_GetAttrString(obj, "mask");
+        if (mask == NULL) {
+            if (PyErr_ExceptionMatches(PyExc_AttributeError)) {
+                PyErr_Clear();
+            }
+            else {
+                return NULL;
+            }
+        }
+        else {
+            PyObject *tmp = r;
+            r = KObject_FromK(type, x);
+            if (r == NULL) {
+                Py_XDECREF(tmp);
+                Py_DECREF(mask);
+                return NULL;
+            }
+            tmp = r;
+            r = PyObject_CallMethod(r, "_set_mask", "(O)", mask);
+            Py_XDECREF(tmp);
+            Py_DECREF(mask);
+            return r;
+        }
+        return x ? KObject_FromK(type, x) : r;
+    }
+
+    return PyObject_CallMethod((PyObject *)type, "_convert", "(O)", obj);;
+}
+
+static PyObject *
+K_descr_get(KObject *self, PyObject *obj, PyTypeObject *type)
+{
+    K x, y;
+    if (obj == NULL || !K_Check(obj)) {
+        Py_INCREF(self);
+        return (PyObject *)self;
+    }
+    x = self->x;
+    y = ((KObject *)obj)->x;
+    return KObject_FromK(type, k(0, "@", r1(x), r1(y), (K)0));
+}
 
 static PyTypeObject K_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
-        XSCAT3("_k", QVER, ".K"),       /*tp_name */
+    "pyq._k.K",         /*tp_name */
     sizeof(KObject),    /*tp_basicsize */
     0,                  /*tp_itemsize */
     /* methods */
@@ -2487,7 +3585,7 @@ static PyTypeObject K_Type = {
     0,                  /*tp_setattr */
     0,                  /*tp_compare */
     (reprfunc) K_repr,  /*tp_repr */
-    0,                  /*tp_as_number */
+    &K_as_number,       /*tp_as_number */
     &K_as_sequence,     /*tp_as_sequence */
     0,                  /*tp_as_mapping */
     0,                  /*tp_hash */
@@ -2497,9 +3595,12 @@ static PyTypeObject K_Type = {
     0,                  /*tp_setattro */
     &K_as_buffer,       /*tp_as_buffer */
     Py_TPFLAGS_DEFAULT
-#if PY_VERSION_HEX >= 0x02070000 && PY_MAJOR_VERSION < 3
+#if PY_MAJOR_VERSION < 3
+#if PY_VERSION_HEX >= 0x02070000
         | Py_TPFLAGS_HAVE_NEWBUFFER
-#endif
+#endif /* PY_VERSION_HEX >= 0x02070000 */
+        |Py_TPFLAGS_CHECKTYPES
+#endif /* PY_MAJOR_VERSION < 3 */
         | Py_TPFLAGS_BASETYPE,  /*tp_flags */
     0,                  /*tp_doc */
     0,                  /*tp_traverse */
@@ -2513,7 +3614,7 @@ static PyTypeObject K_Type = {
     K_getset,           /*tp_getset */
     0,                  /*tp_base */
     0,                  /*tp_dict */
-    0,                  /*tp_descr_get */
+    (descrgetfunc) K_descr_get,                  /*tp_descr_get */
     0,                  /*tp_descr_set */
     0,                  /*tp_dictoffset */
     (initproc) 0,       /*tp_init */
@@ -2567,21 +3668,73 @@ _k_dj(PyObject *self, PyObject *args)
     return PyInt_FromLong(dj(j));
 }
 
+
+PyDoc_STRVAR(_k_okx_doc, "okx(x) -> bool\n\n"
+             "Return True if x is well-formed IPC byte vector.\n");
+static PyObject *
+_k_okx(PyObject *self, KObject *arg)
+{
+    K x;
+    if (!K_Check(arg)) {
+        PyErr_Format(PyExc_TypeError,
+                     "Expected a K object, not %100s", Py_TYPE(arg)->tp_name);
+        return NULL;
+    }
+    x = arg->x;
+    if (xt != KG) {
+        PyErr_Format(PyExc_TypeError,
+                     "Expected a K object of type 4 (bytes), not %dh", xt);
+        return NULL;
+    }
+    return PyBool_FromLong(okx(x));
+}
+
+#if KXVER>=3
+PyDoc_STRVAR(_k_m9_doc, "m9()\n\n"
+             "Free up memory allocated for the thread's pool.\n");
+static PyObject *
+_k_m9(PyObject *self)
+{
+    m9();
+    Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(_k_setm_doc, "setm(f) -> int\n\n"
+             "Set whether interning symbols uses a lock.\n");
+static PyObject *
+_k_setm(PyObject *self, PyObject *arg)
+{
+    Py_ssize_t f;
+
+    f = PyNumber_AsSsize_t(arg, NULL);
+    if (f == -1 && PyErr_Occurred())
+        return NULL;
+    return PyInt_FromLong(setm(f != 0));
+
+}
+#endif /* KXVER>=3 */
+
 /* List of functions defined in the module */
 static PyMethodDef _k_methods[] = {
     {"sd0", (PyCFunction)K_sd0, METH_VARARGS, K_sd0_doc},
     {"sd1", (PyCFunction)K_sd1, METH_VARARGS, K_sd1_doc},
     {"ymd", _k_ymd, METH_VARARGS, _k_ymd_doc},
     {"dj", _k_dj, METH_VARARGS, _k_dj_doc},
+    {"okx", (PyCFunction)_k_okx, METH_O, _k_okx_doc},
+#if KXVER>=3
+    {"m9", (PyCFunction)_k_m9, METH_NOARGS, _k_m9_doc},
+    {"setm", (PyCFunction)_k_setm, METH_O, _k_setm_doc},
+#endif /* KXVER>=3 */
     {NULL, NULL}        /* sentinel */
 };
 
 /*********************** K Object Iterator **************************/
 
 typedef struct {
-    PyObject_HEAD PyTypeObject *ktype;
+    PyObject_HEAD
+    PyTypeObject *ktype;
     K x;
-    I i, n;
+    J i, n;
 } kiterobject;
 
 static PyTypeObject KObjectIter_Type;
@@ -2593,13 +3746,7 @@ k_iter(KObject * obj)
 {
     kiterobject *it;
 
-    K x;
-
-    if (!K_Check(obj)) {
-        PyErr_BadInternalCall();
-        return NULL;
-    }
-    x = obj->x;
+    K x = obj->x;
 
     if (xt < 0) {
         PyErr_Format(PyExc_TypeError, "iteration over a K scalar, t=%d", (int)xt);
@@ -2796,7 +3943,7 @@ getitem(PyTypeObject * ktype, K x, Py_ssize_t i)
     case KJ:
         ret =
             xJ[i] == nj ? Py_INCREF(Py_None),
-            Py_None : PyLong_FromLongLong(xJ[i]);
+            Py_None : PY_INT_From_LongLong(xJ[i]);
         break;
     case KE:
         ret = PyFloat_FromDouble(xE[i]);
@@ -2808,7 +3955,15 @@ getitem(PyTypeObject * ktype, K x, Py_ssize_t i)
         ret = KObject_FromK(ktype, k(0, "@", r1(x), ki(i), (K) 0));
         break;
     default:
-        PyErr_SetString(PyExc_NotImplementedError, "not implemented");
+        if (xt >= 20 && xt < ENUMS_END) {
+            I j = xI[i];
+            K key = k(0, "{value key x}", r1(x), (K)0);
+            ret = PY_STR_InternFromString(j < key->n ? kS(key)[j] : "");
+            r0(key);
+        }
+        else {
+            PyErr_SetString(PyExc_NotImplementedError, "not implemented");
+        }
     }
     return ret;
 }
@@ -2897,7 +4052,7 @@ K_pys(KObject * self)
     case -KI:
         return PyInt_FromLong(xi);
     case -KJ:
-        return PyLong_FromLongLong(xj);
+        return PY_INT_From_LongLong(xj);
     case -KE:
         return PyFloat_FromDouble(xe);
     case -KF:
@@ -2938,7 +4093,7 @@ MOD_INIT(_k)
     k_repr = k(0, "-3!", (K) 0);
     debug = getenv("PYQDBG") != NULL;
     /* Create the module and add the functions */
-    MOD_DEF(m, XSCAT("pyq._k", QVER), module_doc, _k_methods);
+    MOD_DEF(m, "pyq._k", module_doc, _k_methods);
     if (m == NULL)
         return MOD_ERROR_VAL;
 
@@ -2947,6 +4102,8 @@ MOD_INIT(_k)
      * without requiring C++. */
     if (PyType_Ready(&K_Type) < 0)
         return MOD_ERROR_VAL;
+
+    INIT_MV;
 
     /* Add some symbolic constants to the module */
     if (ErrorObject == NULL) {
@@ -2961,6 +4118,9 @@ MOD_INIT(_k)
     PyModule_AddObject(m, "K", (PyObject *)&K_Type);
     /* vector types */
     PyModule_AddIntMacro(m, KB);
+#if KXVER >= 3
+    PyModule_AddIntMacro(m, UU);
+#endif
     PyModule_AddIntMacro(m, KG);
     PyModule_AddIntMacro(m, KH);
     PyModule_AddIntMacro(m, KI);

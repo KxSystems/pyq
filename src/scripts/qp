@@ -1,0 +1,5 @@
+#! /usr/bin/env pyq
+
+from pyq._pt_run import run
+
+run(q_prompt=True)

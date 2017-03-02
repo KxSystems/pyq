@@ -6,14 +6,16 @@ import sys
 
 import pytest
 
-linux_only = pytest.mark.skipif('linux' not in sys.platform.lower(), reason="requires linux")
+linux_only = pytest.mark.skipif('linux' not in sys.platform.lower(),
+                                reason="requires linux")
 
 
 def test_pyq_executable_success():
     version = subprocess.check_output(['pyq', '-V'], stderr=subprocess.STDOUT)
     assert version.startswith(b'Python')
 
-    executable = subprocess.check_output(['pyq', '-c', 'import sys; print(sys.executable)'])
+    executable = subprocess.check_output(
+        ['pyq', '-c', 'import sys; print(sys.executable)'])
     assert executable.strip().endswith(b'pyq')
 
 
@@ -60,6 +62,7 @@ def test_pyq_taskset(c, r, monkeypatch):
 
 def test_q_not_found(tmpdir, monkeypatch):
     monkeypatch.setenv('QHOME', tmpdir)
+    monkeypatch.setenv('HOME', tmpdir.join('empty').ensure(dir=True))
     monkeypatch.setenv("VIRTUAL_ENV", tmpdir)
     monkeypatch.setenv('PATH', tmpdir, prepend=':')
     tmpdir.join('pyq').mksymlinkto(sys.executable)
@@ -84,7 +87,8 @@ def test_q_venv0(tmpdir, monkeypatch, q_arch):
     q_exe = venv.join(q_arch, 'q')
     q_exe.write("#!/usr/bin/env bash\necho 'pass'", ensure=True)
     q_exe.chmod(0o755)
-    p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
     err = p.stderr.readlines()
     assert err == []
     out = p.stdout.readlines()
@@ -94,15 +98,19 @@ def test_q_venv0(tmpdir, monkeypatch, q_arch):
 def test_q_venv1(tmpdir, monkeypatch):
     # QHOME not set, $VIRTUAL_ENV/q present, but no q executable
     monkeypatch.setenv("VIRTUAL_ENV", tmpdir)
+    monkeypatch.setenv("HOME", tmpdir.join("empty").ensure(dir=True))
     monkeypatch.delenv("QHOME")
     monkeypatch.setenv('PATH', tmpdir, prepend=':')
     tmpdir.join('pyq').mksymlinkto(sys.executable)
-    venv = tmpdir.join('q', 'python.q').ensure()
-    p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    qhome = tmpdir.join('q').ensure(dir=True)
+    p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
     err = p.stderr.read()
+    out = p.stdout.read()
     rc = p.wait()
+    assert out == b''
+    assert qhome.dirname.encode() in err
     assert rc != 0
-    assert venv.dirname.encode() in err
 
 
 def test_q_venv2(tmpdir, monkeypatch, q_arch):
@@ -117,7 +125,8 @@ def test_q_venv2(tmpdir, monkeypatch, q_arch):
     q_exe.write("#!/usr/bin/env bash\necho 'pass'", ensure=True)
     q_exe.chmod(0o755)
 
-    p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
     out = p.stdout.readlines()
     err = p.stderr.readlines()
     assert out[0].strip() == b'pass'
@@ -137,7 +146,8 @@ def test_q_venv3(tmpdir, monkeypatch, q_arch):
     q_exe.write("#!/usr/bin/env bash\necho 'pass'", ensure=True)
     q_exe.chmod(0o755)
 
-    p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
     out = p.stdout.readlines()
     err = p.stderr.readlines()
     assert out[0].strip() == b'pass'
@@ -147,3 +157,12 @@ def test_q_venv3(tmpdir, monkeypatch, q_arch):
 def test_pyq_trace():
     output = subprocess.check_output(['pyq', '--pyq-trace', '-c', '0'])
     assert b"pyq trace is on" in output
+
+
+def test_pyq_preload(tmpdir, q):
+    db = tmpdir.join('db')
+    q.x = q.til(3)
+    q.save(db.join('x'))
+    output = subprocess.check_output(
+        ['pyq', str(db), "-c", "from pyq import q; print(q.x)"])
+    assert output == b"0 1 2\n"

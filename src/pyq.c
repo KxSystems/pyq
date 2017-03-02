@@ -194,7 +194,7 @@ find_q(const char* progpath)
             p = strrchr(progpath, '/');
             if (p && (p -= 4) > progpath && !strncmp(p, "/bin/", 5)) {
                 int n = p - progpath;
-                qhome = malloc(n + 3);
+                qhome = calloc(1, n + 3);
                 strncpy(qhome, progpath, n);
                 strcat(qhome, "/q");
                 setenv("QHOME", strdup(qhome), 1);
@@ -212,6 +212,7 @@ find_q(const char* progpath)
                 qhome = malloc(strlen(prefix) + 3);
                 strcpy(qhome, prefix);
                 strcat(qhome, "/q");
+                setenv("QHOME", strdup(qhome), 1);
                 break;
             }
              ++attempt;
@@ -219,6 +220,7 @@ find_q(const char* progpath)
         default:
             return NULL;
     }
+    TRACE("qhome = %s\n", qhome);
     qpath = malloc(strlen(qhome) + strlen(xstr(QARCH)) + 4);
     strcpy(qpath, qhome);
     strcat(qpath, "/" xstr(QARCH) "/q");

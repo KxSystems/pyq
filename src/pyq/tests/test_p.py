@@ -38,7 +38,8 @@ sys.exit(0)
 def test_test_p_exception(tmpdir):
     p = tmpdir.join('test.q')
     p.write("p)1+'a'")
-    p = subprocess.Popen([os.environ['QBIN'], str(p)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen([os.environ['QBIN'], str(p)], stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
     out, err = p.communicate()
     assert out == b''
     traceback = b'''\
@@ -47,4 +48,3 @@ Traceback (most recent call last):
 TypeError: unsupported operand type(s) for +: 'int' and 'str'
 '''
     assert traceback in err
-

@@ -3,46 +3,59 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Introduction
-============
+%%%
+PyQ
+%%%
 
-PyQ provides seamless integration of Python and Q code. It brings Python and Q interpretors in the same
-process and allows code written in either of the languages to operate on the same data. In PyQ, Python and
-Q objects live in the same memory space and share the same data.
+PyQ brings the `Python programming language`_ to the `kdb+ database`_. It allows you to seamlessly integrate
+Python and q code in one application. This is achieved by bringing the Python and q interpreters
+in the same process so that codes written in either of the languages operate on the same data.
+In PyQ, Python and q objects live in the same memory space and share the same data.
+
+.. _Python programming language: https://www.python.org/about
+.. _kdb+ database: https://kx.com
 
 
+Quick start
+-----------
 
-Quickstart
-----------
+.. sidebar:: Install pyq
+
+   Don't have pyq installed?  Run
+
+   .. code-block:: bash
+
+      $ pip install \
+        -i https://pyq.enlnt.com \
+        --no-binary pyq pyq
 
 First, make sure that PyQ is :ref:`installed <install>` and :ref:`up-to-date <update>`.
-
-Start interactive session:
-
-::
+Start an interactive session::
 
     $ pyq
-    >>> from pyq import q
-    >>> from datetime import date
 
-Create an empty table:
+Import the :const:`~pyq.q` object from :mod:`pyq` and the :class:`~datetime.date` class from the standard library
+module :mod:`datetime`:
 
-::
+>>> from pyq import q
+>>> from datetime import date
 
-    >>> q.trade = q('([]date:();sym:();qty:())')
+Drop to the :ref:`q) prompt <q_prompt>` and create an empty ``trade`` table::
 
-Insert sample data:
+    >>> q()  # doctest: +SKIP
+    q)trade:([]date:();sym:();qty:())
 
-::
+Get back to the Python prompt and insert some data into the ``trade`` table::
 
+    q)\
     >>> q.insert('trade', (date(2006,10,6), 'IBM', 200))
     k(',0')
     >>> q.insert('trade', (date(2006,10,6), 'MSFT', 100))
     k(',1')
 
-Display the result:
+(In the following we will skip ``q()`` and ``\`` commands that switch between ``q`` and Python.)
 
-::
+Display the result::
 
     >>> q.trade.show()
     date       sym  qty
@@ -50,51 +63,41 @@ Display the result:
     2006.10.06 IBM  200
     2006.10.06 MSFT 100
 
-Define a parameterized query:
+Define a function in ``q``::
 
-::
+    q)f:{[s;d]select from trade where sym=s,date=d}
 
-    >>> query = q('{[s;d]select from trade where sym=s,date=d}')
+Call the ``q`` function from python and pretty-print the result::
 
-Run a query:
-
-::
-
-    >>> query('IBM', date(2006,10,6))
-    k('+`date`sym`qty!(,2006.10.06;,`IBM;,200)')
-
-Pretty print the result:
-
-::
-
-    >>> query('IBM', date(2006,10,6)).show()
+    >>> x = f('IBM', date(2006,10,6))
+    >>> x.show()
     date       sym qty
     ------------------
     2006.10.06 IBM 200
 
 
+For an enhanced interactive shell, use ``pyq`` to start IPython::
 
+    $ pyq -m IPython
 
-
-Table of Contents
------------------
+See the :ref:`ipython section <ipython>` for details.
 
 ..  toctree::
-    :titlesonly:
+    :hidden:
     :maxdepth: 4
+    :caption: Table of Contents
+    :name: mastertoc
 
-    install
-    update
-    pyq
-    jupyter
-    cli
-    centos32on64
-    CHANGES
-    license
+    whatsnew/4.0
+    install/install
+    User Guide <manual/pyq>
+    reference/pyq-auto
+    whatsnew/changelog
+    License <license/index>
 
-Indices and tables
-==================
+Navigation
+----------
+
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
 

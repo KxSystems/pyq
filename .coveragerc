@@ -1,0 +1,13 @@
+[run]
+omit = */pyq/tests/*
+
+[paths]
+tox =
+    src
+    .tox/*-numpy-*/lib/python*/site-packages
+
+[report]
+exclude_lines =
+    pragma: no cover
+    raise AssertionError
+    raise NotImplementedError

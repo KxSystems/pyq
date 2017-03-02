@@ -40,7 +40,7 @@ except ImportError:
     from platform import uname
 
 
-VERSION = '3.8.4'
+VERSION = '4.0'
 IS_RELEASE = True
 PYQ_SRC_DIR = os.path.join('src', 'pyq')
 VERSION_FILE = os.path.join(PYQ_SRC_DIR, 'version.py')
@@ -50,7 +50,12 @@ BITS = struct.calcsize('P') * 8
 metadata = dict(
     name='pyq',
     packages=['pyq', 'pyq.tests', ],
-    scripts=['src/scripts/pyq-runtests', 'src/scripts/pyq-coverage', ],
+    scripts=['src/scripts/pyq-runtests',
+             'src/scripts/pyq-coverage',
+             'src/scripts/ipyq',
+             'src/scripts/pq',
+             'src/scripts/qp',
+             ],
     url='http://pyq.enlnt.com',
     author='Enlightenment Research, LLC',
     author_email='pyq@enlnt.com',
@@ -70,6 +75,7 @@ metadata = dict(
                  'Programming Language :: Python :: 2.7',
                  'Programming Language :: Python :: 3.4',
                  'Programming Language :: Python :: 3.5',
+                 'Programming Language :: Python :: 3.6',
                  'Programming Language :: Python :: Implementation :: CPython',
                  'Topic :: Database',
                  'Topic :: Software Development :: Libraries :: Python Modules'],
@@ -83,7 +89,7 @@ else:
     def decode(x):
         return x.decode()
 
-k_extra_compile_args = ['-Wpointer-arith']
+k_extra_compile_args = ['-Wpointer-arith', '-Werror', '-fno-strict-aliasing']
 py_extra_compile_args = ['-O0', '-g']
 extra_link_args = []
 libraries = []
@@ -180,7 +186,7 @@ class Executable(object):
 
 metadata.update(
     executables=[Executable('pyq', ['src/pyq.c'])],
-    q_modules=['python'],
+    q_modules=['python', 'pyq-operators'],
     k_modules=['p'],
     ext_modules=[_k, ],
     qext_modules=[py, p, ],
@@ -409,12 +415,10 @@ class build_ext(_build_ext):
     def get_ext_filename(self, ext_name):
         filename = _build_ext.get_ext_filename(self, ext_name)
         so_ext = get_config_var('SO')
-        kxver = self.distribution.kxver
-        return filename[:-len(so_ext)] + kxver.split('.')[0] + so_ext
+        return filename[:-len(so_ext)] + so_ext
 
     def get_export_symbols(self, ext):
-        kxver = self.distribution.kxver.split('.')[-1]
-        initfunc_name = "init" + ext.name.split('.')[-1] + kxver
+        initfunc_name = "init" + ext.name.split('.')[-1]
         if initfunc_name not in ext.export_symbols:
             ext.export_symbols.append(initfunc_name)
         return ext.export_symbols
@@ -768,9 +772,13 @@ class Distribution(_Distribution):
 ###############################################################################
 
 summary, details = __doc__.split('\n\n', 2)
-
-with open('requirements.txt') as reqfile:
-    REQUIREMENTS = reqfile.read().splitlines()
+test_requirements = ['pytest>=2.6.4',
+                     'pytest-pyq',
+                     'pytest-cov>=2.4',
+                     'coverage>=4.2']
+if sys.version_info[0] < 3:
+    test_requirements.append('pathlib2>=2.0')
+ipython_requirements = ['ipython']
 
 setup(version=pyq_version,
       distclass=Distribution,
@@ -778,6 +786,11 @@ setup(version=pyq_version,
       long_description=details,
       download_url="https://github.com/enlnt/pyq/archive/pyq-{version}.tar.gz".format(version=pyq_version),
       package_dir={'': 'src'},
-      install_requires=REQUIREMENTS,
+      extras_require={
+          'test': test_requirements,
+          'ipython': ipython_requirements,
+          'all': test_requirements + ipython_requirements + [
+              'py', 'numpy', 'prompt-toolkit', 'pygments-q'],
+      },
       zip_safe=False,
       **metadata)

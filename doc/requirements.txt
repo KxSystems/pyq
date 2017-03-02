@@ -1,0 +1,6 @@
+
+sphinx
+sphinx_rtd_theme
+sphinxcontrib-spelling
+numpy>=1.11,<1.12
+

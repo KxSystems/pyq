@@ -11,5 +11,5 @@ K1(i){P(xt!=KC||xC[xn-1],krr("type"));
   run=dlsym(h,"PyRun_SimpleString");P((er=dlerror()),krr(er));
   init=dlsym(h,"Py_Initialize");P((er=dlerror()),krr(er));
   fini=dlsym(h,"Py_Finalize");P((er=dlerror()),krr(er));
-  init();R n=k(0,"{.p.e0:x;.z.exit:y}",dl(e,1),dl(f,1),(K)0);}
+  init();R n=k(0,"{.p.e:x;.z.exit:y}",dl(e,1),dl(f,1),(K)0);}
 

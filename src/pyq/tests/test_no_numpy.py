@@ -1,12 +1,18 @@
 import sys
+import pytest
 
 
-def test_no_numpy(monkeypatch):
+@pytest.fixture
+def no_numpy_pyq(monkeypatch):
     monkeypatch.setitem(sys.modules, 'numpy', None)
     pyq_modules = [m for m in sys.modules
-                   if m == 'pyq' or m.startswith('pyq.')]
+                   if m is not None and (m == 'pyq' or m.startswith('pyq.'))]
     for m in pyq_modules:
         monkeypatch.delitem(sys.modules, m)
-    from pyq import K
+    import pyq
+    return pyq
+
+
+def test_no_numpy(no_numpy_pyq):
     # TODO: Figure out how to run all tests that don't require numpy.
-    assert K(0) == 0
+    assert no_numpy_pyq.K(0) == 0

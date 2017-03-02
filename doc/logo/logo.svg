@@ -1,0 +1,42 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" >
+<svg version="1.0"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     viewBox="-1000 -850 2000 2000"
+     preserveAspectRatio="xMidYMid meet">
+    <defs>
+        <g id="Letter-Y">
+            <path d="M0 0
+        l133 -256h-47v-76h178v76h-53l-170 328v271h48v75h-178v-75h47v-271l-179 -328h-43v-76
+        h178v76h-47
+        z"/>
+            <!-- circle cx="0" cy="0" r="20" fill="orange" stroke="none"/>
+            <circle cx="133" cy="-256" r="20" fill="red" stroke="none"/ -->
+        </g>
+        <g id="Letter-q">
+            <path d="M0 0
+        v-341h-186c-17 0 -30 15 -30 33v276c0 17 13 32 30 32h186z
+        M-2 80
+        h-209c-52 0 -95 -40 -95 -88v-324c0 -48 43 -88 95 -88h339v79h-50v596h50v75h-178v-75h48v-175
+        z"/>
+            <!-- circle cx="0" cy="0" r="20" fill="orange" stroke="none"/ -->
+        </g>
+    </defs>
+
+    <circle cx="0" cy="150" r="1000" fill="#1A3A57" stroke="none"/>
+
+    <use xlink:href="#Letter-q"
+         fill="#e1e4e5" stroke="#e1e4e5" stroke-width="20"
+         stroke-linejoin="round"
+         transform="scale(-1, 1) translate(600, 300) rotate(15)"/>
+
+    <use xlink:href="#Letter-Y"
+         fill="#e1e4e5" stroke="#e1e4e5" stroke-width="20"
+         stroke-linejoin="round"/>
+
+    <use xlink:href="#Letter-q"
+         fill="#e1e4e5" stroke="#e1e4e5" stroke-width="20"
+         stroke-linejoin="round"
+         transform="translate(600, 300) rotate(15)"/>
+</svg>

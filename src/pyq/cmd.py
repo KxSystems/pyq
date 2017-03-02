@@ -5,6 +5,11 @@ import cmd as _cmd
 
 from . import q, kerr
 
+try:
+    from . import ptk
+except ImportError:
+    ptk = None
+
 q('.py.pcc:`s#0 5 20f!32 33 31')
 _prompt_color = q('{.py.pcc 100*(%)over system["w"]1 5}')
 _prompt_namespace = q('{?[ns~`.;`;ns:system"d"]}')
@@ -45,3 +50,6 @@ class Cmd(_cmd.Cmd):
                 if v != q('::'):
                     v.show()
             return False
+
+    if ptk:
+        cmdloop = ptk.cmdloop

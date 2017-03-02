@@ -1,198 +1,61 @@
-"""\
-Python for kdb+
-===============
-
-------------
-Introduction
-------------
-
-Kdb+, a high-performance database system comes with a programming language (q)
-that may be unfamiliar to many programmers.  PyQ lets you enjoy the power of
-kdb+ in a comfortable environment provided by a mainstream programming language.
-
-From Python to kdb+
--------------------
-
-Meet ``q`` - your portal to kdb+.  You can pass data from Python to kdb+ by
-assigning to ``q`` attributes.  For example,
-
->>> q.i = 42
->>> q.a = [1, 2, 3]
->>> q.t = ('Python', 3.5)
->>> q.d = {'date': date(2012, 12, 12)}
->>> q.value.each(['i', 'a', 't', 'd']).show()
-42
-1 2 3
-(`Python;3.5)
-(,`date)!,2012.12.12
-
-Note that Python objects are automatically converted to kdb+ form when they are
-assigned in the ``q`` namespace, but when they are retrieved, Python gets a "handle"
-to kdb+ data.
-
-For example, passing an ``int`` to ``q`` results in
-
->>> q.i
-k('42')
-
-If you want a Python integer instead, you have to convert explicitly
-
->>> int(q.i)
-42
-
-This will be covered in more detail in the next section.
-
-You can also create kdb+ objects by calling ``q`` functions that are also
-accessible as ``q`` attributes.  For example,
-
->>> q.til(5)
-k('0 1 2 3 4')
-
-Some q functions don't have names because q uses special characters.
-For example, to generate random data in q you should use the ``?``
-function (operator).  While PyQ does not supply a Python name for ``?``,
-you can easily add it to your own toolkit:
-
->>> rand = q('?')
-
-And use it as you would any other Python function
-
->>> x = rand(10, 2)  # generates 10 random 0's or 1's (coin toss)
-
-From kdb+ to Python
--------------------
-
-In many cases your data is already stored in kdb+ and PyQ philosophy is
-that it should stay there.  Rather than converting kdb+ objects to Python,
-manipulating Python objects and converting them back to kdb+, PyQ lets
-you work directly with kdb+ data as if it was already in Python.
-
-For example, let us retrieve the release date from kdb+:
-
->>> d1 = q('.z.k')
-
-add 30 days to get another date
-
->>> d2 = d1 + 30
-
-and find the difference in whole weeks
-
->>> (d2 - d1) % 7
-k('2')
-"""
-# Module docstring will continue below
-
-from __future__ import division
 from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
+
+import itertools
+from datetime import datetime, date, time
+from collections import Mapping as _Mapping
+
+try:
+    import __builtin__
+except ImportError:
+    import builtins as __builtin__
+import sys
 import os
-QVER = os.environ.get('QVER')
-del os
-PY3K = str is not bytes  # don't want to import sys
-# Starting with version 3.0, q default integer type is 64 bit.  Thus
-# '1' now means '1j' rather than '1i'.  This messes up doctests. To
-# fix this problem, _ij dict is introduced below.  We use the same
-# mechanism to apply Py3K fixes.
-_ij = {'i': 'i', 'j': ''} if QVER[0] >= '3' else {'i': '', 'j': 'j'}
-if PY3K:
-    _ij.update(b='b', L='', div='truediv')
-else:
-    _ij.update( b='', L='L', div='div')
-__doc__ += """
-Note that the result of operations are (handles to) kdb+ objects.  The only exceptions
-to this rule are indexing and iteration over simple kdb+ vectors.  These operations
-produce Python scalars
-
->>> list(q.a)
-[1{L}, 2{L}, 3{L}]
->>> q.a[-1]
-3{L}
-
-In addition to Python operators, one invoke q functions on kdb+ objects directly
-from Python using convenient attribute access / method call syntax.  For example
-
->>> q.i.neg.exp.log.mod(5)
-k('3f')
-
-Note that the above is equivalent to
-
->>> q.mod(q.log(q.exp(q.neg(q.i))), 5)
-k('3f')
-
-but shorter and closer to ``q`` syntax
-
->>> q('(log exp neg i)mod 5')
-k('3f')
-
-The difference being that in q, functions are applied right to left, by in PyQ
-left to right.""".format(**_ij)
 
 try:
     import numpy as _np
 except ImportError:
     _np = None
-else:
-    __doc__ += """
-Finally, if q does not provide the function that you need, you can unleash the
-full power of numpy or scipy on your kdb+ data.
 
->>> import numpy
->>> numpy.log2(q.a)
-array([ 0.       ,  1.       ,  1.5849625])
-
-Note that the result is a numpy array, but you can redirect the output back to
-kdb+
-
->>> b = q.a * 0.0  # create a vector of 0s in kdb+
->>> _ = numpy.log2(q.a, out=numpy.asarray(b))
->>> b              # the result of a numpy function is in kdb+
-k('0 1 1.584963')
-""".format(**_ij)
+from . import _k
 
 try:
     from .version import version as __version__
 except ImportError:
     __version__ = 'unknown'
 
-
-# Q sets QVER environment variable to communicate its version info to
-# python. If it is not set - most likely you are attempting to run
-# _PyQ under regular python.
-if QVER is None:
-    raise NotImplementedError("loading PyQ in stock python is not implemented")
-_mod = '_k' + QVER
-_k = __import__('pyq.' + _mod, level=0)
-_k = getattr(_k, _mod)
-from datetime import datetime, date, time, timedelta
-
-__doc__ += """
-Input/Output
-------------
-
->>> import os
->>> r, w = os.pipe()
->>> h = K(w)(kp("xyz"))
->>> os.read(r, 100)
-{b}'xyz'
->>> os.close(r); os.close(w)
-""".format(**_ij)
 __metaclass__ = type
+
+_QVER = str(_k.K._k(0, '.z.K'))
+# Convenience constants to select code branches according to _KXVER
+_KXVER = int(_QVER[0])
+_KX2 = _KXVER == 2
+_KX3 = _KXVER == 3
+
+_PY3K = sys.version_info > (3,)
+
 kerr = _k.error
 
+# List of q builtin functions that are not defined in .q.
+# NB: This is similar to .Q.res, but excludes non-function constructs
+# such as "do", "if", "select" etc. We also exclude the "exit" function
+# because it is rarely safe to use it to exit from pyq.
+_Q_RES = ['abs', 'acos', 'asin', 'atan', 'avg', 'bin', 'binr', 'cor', 'cos',
+          'cov', 'dev', 'div', 'ema', 'enlist', 'exp', 'getenv', 'in',
+          'insert', 'last', 'like', 'log', 'max', 'min', 'prd', 'reval',
+          'scov', 'sdev', 'setenv', 'sin', 'sqrt', 'ss', 'sum', 'svar', 'tan',
+          'var', 'wavg', 'within', 'wsum', 'xexp']
 
-class K_call_proxy:
-    def __get__(self, obj, objtype):
-        if obj is None:
-            return self
-        if obj.inspect(b't') == 100:
-            return obj._call_lambda
-        return obj._call
+if _KX2:
+    # binr was introduced in kdb+3.0 2012.07.26
+    _Q_RES.remove('binr')
 
 
 class K(_k.K):
-    """a handle to q objects
+    """proxies for kdb+ objects
 
-    >>> k('2005.01.01 2005.12.04')
+    >>> q('2005.01.01 2005.12.04')
     k('2005.01.01 2005.12.04')
 
     Iteration over simple lists produces python objects
@@ -221,81 +84,42 @@ class K(_k.K):
     >>> def f(x, y):
     ...     return x + y
     >>> q('{[f]f(1;2)}', f)
-    k('3')"""
-    if not PY3K:
-        __doc__ += """
+    k('3')
 
     Buffer protocol
 
+    The following session illustrates how buffer protocol implemented by
+    K objects can be used to write data from Python streams directly yo kdb+.
+
+    Create a list of chars in kdb+
+
     >>> x = kp('xxxxxx')
-    >>> import os; r,w = os.pipe()
-    >>> os.write(w, 'abcdef') == os.fdopen(r).readinto(x)
-    True
-    >>> os.close(w); x
-    k('"abcdef"')"""
-    __doc__ += """
 
-    Array protocol
+    Open a pair of file descriptors
 
-    >>> ','.join([k(x).__array_typestr__
-    ...  for x in ('0b;0x00;0h;0i;0j;0e;0.0;" ";`;2000.01m;2000.01.01;'
-    ...            '2000.01.01T00:00:00.000;00:00;00:00:00;00:00:00.000')
-    ...  .split(';')])
-    '<b1,<u1,<i2,<i4,<i8,<f4,<f8,<S1,|O%d,<i4,<i4,<f8,<i4,<i4,<i4'
-    """ % _k.SIZEOF_VOID_P
+    >>> r, w = os.pipe()
 
-    try:
-        import numpy
-    except ImportError:
-        pass
-    else:
-        del numpy
-        if _k.SIZEOF_VOID_P == 4:
-            dtypes = dict(i_dtype='', j_dtype=', dtype=int64')
-        else:
-            dtypes = dict(i_dtype=', dtype=int32', j_dtype='')
-        __doc__ += """
-    Numpy support
+    Write 6 bytes to the write end
 
-    >>> from numpy import asarray, array
-    >>> asarray(k("1010b"))
-    array([ True, False,  True, False], dtype=bool)
+    >>> os.write(w, b'abcdef')
+    6
 
-    >>> asarray(k("0x102030"))
-    array([16, 32, 48], dtype=uint8)
+    Read from the read-end into x
 
-    >>> asarray(k("0 1 2h"))
-    array([0, 1, 2], dtype=int16)
+    >>> f = os.fdopen(r, mode='rb')
+    >>> f.readinto(x)
+    6
 
-    >>> asarray(k("0 1 2i"))
-    array([0, 1, 2]{i_dtype})
+    Now x contains the bytes that were sent through the pipe
 
-    >>> asarray(k("0 1 2j"))
-    array([0, 1, 2]{j_dtype})
+    >>> x
+    k('"abcdef"')
 
-    >>> asarray(k("0 1 2e"))
-    array([ 0.,  1.,  2.], dtype=float32)
+    Close the descriptors and the stream
 
-    >>> asarray(k("0 1 2.0"))
-    array([ 0.,  1.,  2.])
+    >>> os.close(w); f.close()
 
-    Date-time data-types expose their underlying data:
-
-    >>> asarray(k(",2000.01m"))
-    array([0]{i_dtype})
-
-    >>> asarray(k(",2000.01.01"))
-    array([0]{i_dtype})
-
-    >>> asarray(k(",2000.01.01T00:00:00.000"))
-    array([ 0.])
-
-   """.format(**dtypes)
-        del dtypes
-
-    __doc__ += """
     Low level interface
-
 
     The K type provides a set of low level functions that are similar
     to the C API provided by the `k.h header <http://kx.com/q/c/c/k.h>`_.
@@ -304,11 +128,11 @@ class K(_k.K):
 
     Atoms
 
-    >>> K._kb(True), K._kg(5), K._kh(42), K._ki(-3), K._kj(2**40), K._ke(3.5)
-    (k('1b'), k('0x05'), k('42h'), k('-3{i}'), k('1099511627776{j}'), k('3.5e'))
+    >>> K._kb(True), K._kg(5), K._kh(42), K._ki(-3), K._kj(2**40)
+    (k('1b'), k('0x05'), k('42h'), k('-3i'), k('1099511627776'))
 
-    >>> K._kf(1.0), K._kc(b'x'), K._ks('xyz')
-    (k('1f'), k('"x"'), k('`xyz'))
+    >>> K._ke(3.5), K._kf(1.0), K._kc(b'x'), K._ks('xyz')
+    (k('3.5e'), k('1f'), k('"x"'), k('`xyz'))
 
     >>> K._kd(0), K._kz(0.0), K._kt(0)
     (k('2000.01.01'), k('2000.01.01T00:00:00.000'), k('00:00:00.000'))
@@ -326,59 +150,56 @@ class K(_k.K):
     >>> K._ktd(t)
     k('+`a`b!(1 2 3;10 20 30)')
 
-    """.format(**_ij)
+    """
     # Lighten the K objects by preventing the automatic creation of
     # __dict__ and __weakref__ for each instance.
     __slots__ = ()
 
-    def __new__(cls, x):
+    # Helper methods for use in C implementation of __new__
+
+    def _set_mask(self, mask):
+        return q("{?[y;((),x)0N;x]}", self, mask)
+
+    @classmethod
+    def _from_record_array(cls, x):
+        fields = [f for f, t in x.dtype.descr]
+        k = q('!', list(fields), [K(x[f]) for f in fields])
+        if x.ndim:
+            k = k.flip
+        return k
+
+    @classmethod
+    def _from_sequence(cls, x, elm=None):
+        r = cls._ktn(0, 0)
+        g = iter(x)
         try:
-            return _k.K.__new__(cls, x)
-        except NotImplementedError:
-            pass
-        try:
-            array_struct = x.__array_struct__
-        except AttributeError:
-            pass
-        else:
-            try:
-                k = K._from_array_interface(array_struct, x)
-            except NotImplementedError:
-                fields = [f for f, t in x.dtype.descr]
-                k = q('!', list(fields), [K(x[f]) for f in fields])
-                if x.ndim:
-                    k = k.flip
-            try:
-                mask = x.mask
-            except AttributeError:
-                return k
-            else:
-                return q("{?[y;((),x)0N;x]}", k, mask)
-        c = converters[type(x)]
-        return c(x)
+            i = next(g)
+        except StopIteration:
+            return r
+        en = cls._k(0, 'enlist')
+        r._ja(en)
+        if elm is None:
+            elm = cls
+        for i in itertools.chain([i], g):
+            i = elm(i)
+            # Symbols and lists require special treatment
+            if i._t in (-11, 11, 0):
+                i = i.enlist
+            r._ja(i)
+        return r.eval
+
+    @classmethod
+    def _convert(cls, x):
+        for t in type(x).mro():
+            c = converters.get(t)
+            if c is not None:
+                return c(x)
+        return cls._from_sequence(x)
 
     def __reduce_ex__(self, proto):
         x = self._b9(1, self)
         b = memoryview(x).tobytes()
         return (d9, (b,))
-
-    def _call(self, *args):
-        """call the k object
-
-        Arguments are automatically converted to appropriate k objects
-
-        >>> k('+')(date(1999,12,31), 2)
-        k('2000.01.02')
-
-        Strings are converted into symbols, use kp to convert to char
-        vectors
-
-        >>> f = k('::')
-        >>> [f(x) for x in ('abc', kp('abc'))]
-        [k('`abc'), k('"abc"')]
-
-        """
-        return super(K, self).__call__(*map(K, args))
 
     def _call_lambda(self, *args, **kwds):
         """call the k lambda
@@ -390,40 +211,40 @@ class K(_k.K):
         ...
         TypeError: {[a;b]a-b} got multiple values for argument 'a'
         """
-        if not kwds:
-            return self._call(*args)
-        names = self._k(0, '{(value x)1}', self)
+        assert kwds, "empty kwds case is handled in C code"
+        names = self._k(0, '.p.an', self)
         kargs = [nil] * len(names)
-        l = len(args)
-        kargs[:l] = args
-        for i, n in enumerate(names):
-            v = kwds.get(n)
+        n = len(args)
+        kargs[:n] = args
+        for i, name in enumerate(names):
+            v = kwds.get(name)
             if v is not None:
-                if i >= l:
+                if i >= n:
                     kargs[i] = v
                 else:
                     raise TypeError("%s got multiple values for argument '%s'"
-                                    % (self, n))
-        return self._call(*(kargs or ['']))
-
-    __call__ = K_call_proxy()
+                                    % (self, name))
+        return self(*(kargs or ['']))
 
     def __getitem__(self, x):
         """
         >>> k("10 20 30 40 50")[k("1 3")]
         k('20 40')
         >>> k("`a`b`c!1 2 3")['b']
-        k('2')
+        2
         """
         try:
             return _k.K.__getitem__(self, x)
-        except TypeError:
+        except (TypeError, NotImplementedError):
             pass
         try:
             start, stop, step = x.indices(len(self))
         except AttributeError:
             i = K(x)
-            return self._k(0, "@", self, i)
+            if self._t == 99 and i._t < 0:
+                return self.value[self._k(0, "?", self.key, i)]
+            else:
+                return self._k(0, "@", self, i)
 
         if step == 1:
             return self._k(0, "sublist", self._J([start, stop - start]), self)
@@ -438,7 +259,7 @@ class K(_k.K):
         >>> q("([]a:1 2 3; b:10 20 30)").a
         k('1 2 3')
         """
-        t = self.inspect(b't')
+        t = self._t
         if t == 98:
             return self._k(0, '{x`%s}' % a, self)
 
@@ -460,16 +281,20 @@ class K(_k.K):
 
         raise AttributeError(a)
 
+    _fields = b" g@ ghijefgsjiifjiii"
+    if _PY3K:
+        _fields = [bytes([_x]) for _x in _fields]
+
     def __int__(self):
         """converts K scalars to python int
 
         >>> [int(q(x)) for x in '1b 2h 3 4e `5 6.0 2000.01.08'.split()]
         [1, 2, 3, 4, 5, 6, 7]
         """
-        t = self.inspect(b't')
+        t = self._t
         if t >= 0:
             raise TypeError("cannot convert non-scalar to int")
-        return int(self.inspect(fields[-t]))
+        return int(self.inspect(self._fields[-t]))
 
     __long__ = __int__
 
@@ -479,28 +304,32 @@ class K(_k.K):
         >>> [float(q(x)) for x in '1b 2h 3 4e `5 6.0 2000.01.08'.split()]
         [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]
         """
-        t = self.inspect(b't')
+        t = self._t
         if t >= 0:
             raise TypeError("cannot convert non-scalar to float")
-        return float(self.inspect(fields[-t]))
-
-    def __nonzero__(self):
-        t = self.inspect(b't')
-        if t < 0:
-            if t == -11:
-                return bool(str(self))
-            else:
-                return self.inspect(fields[-t]) != 0
-
-        return len(self) > 0
-
-    __bool__ = __nonzero__
+        return float(self.inspect(self._fields[-t]))
 
     def __index__(self):
-        t = self.inspect(b't')
+        t = self._t
         if -5 >= t >= -7:
             return int(self)
-        raise TypeError("Only scalar short/int/long K objects can be converted to an index")
+        raise TypeError("Only scalar short/int/long K objects "
+                        "can be converted to an index")
+
+    # Strictly speaking, this is only needed for Python 3.x, but
+    # there is no harm if this is defined and not used in Python 2.x.
+    def __bytes__(self):
+        t = self._t
+        if -5 >= t >= -7:
+            return bytes(int(self))
+        if 0 < abs(t) < 11:
+            if abs(t) == 2:
+                # A work-around while .data is not implemented for guid type
+                from uuid import UUID
+                x = q('(),', self)  # ensure that x is a list
+                return b''.join(UUID(int=i).bytes for i in x)
+            return bytes(self.data)
+        raise BufferError("k object of type %d" % t)
 
     def __eq__(self, other):
         """
@@ -511,7 +340,7 @@ class K(_k.K):
         """
         try:
             other = K(other)
-        except KeyError:
+        except TypeError:
             return False
         return bool(k('~')(self, other))
 
@@ -531,17 +360,11 @@ class K(_k.K):
         >>> 'abc' not in q('(1;2.0;`abc)')
         False
         """
-        if self.inspect(b't'):
+        if self._t:
             x = q('in', item, self)
         else:
             x = q('{sum x~/:y}', item, self)
         return bool(x)
-
-    def __get__(self, client, cls):
-        """allow K objects use as descriptors"""
-        if client is None or not isinstance(client, _k.K):
-            return self
-        return self._a1(client)
 
     def keys(self):
         """returns q('key', self)
@@ -551,19 +374,10 @@ class K(_k.K):
 
         >>> from collections import OrderedDict
         >>> OrderedDict(q('`a`b!1 2'))
-        OrderedDict([('a', k('1')), ('b', k('2'))])
+        OrderedDict([('a', 1), ('b', 2)])
         >>> d = {}; d.update(q('`a`b!1 2'))
         >>> list(sorted(d.items()))
-        [('a', k('1')), ('b', k('2'))]
-
-        An elegant idiom to unpack q tables
-
-        >>> u = locals().update
-        >>> for r in q('([]a:`x`y`z;b:1 2 3;c:"XYZ")'):
-        ...     u(r); a, b, c
-        (k('`x'), k('1'), k('"X"'))
-        (k('`y'), k('2'), k('"Y"'))
-        (k('`z'), k('3'), k('"Z"'))
+        [('a', 1), ('b', 2)]
         """
         return self._k(0, 'key', self)
 
@@ -604,8 +418,6 @@ class K(_k.K):
 
         """
         if output is None:
-            import sys
-
             output = sys.stdout
 
         if geometry is None:
@@ -616,7 +428,11 @@ class K(_k.K):
         if start < 0:
             start += q.count(self)
 
-        r = self._show(geometry, start)
+        # Make sure nil is not passed to a q function
+        if self._id() != nil._id():
+            r = self._show(geometry, start)
+        else:
+            r = '::\n'
 
         if isinstance(output, type):
             return output(r)
@@ -677,7 +493,8 @@ class K(_k.K):
         """update from self
 
         >>> t = q('([]a:1 2 3; b:10 20 30)')
-        >>> t.update('a*2', where='b > 20').show()  # doctest: +NORMALIZE_WHITESPACE
+        >>> t.update('a*2',
+        ...          where='b > 20').show()  # doctest: +NORMALIZE_WHITESPACE
         a b
         ----
         1 10
@@ -688,7 +505,7 @@ class K(_k.K):
 
     @property
     def ss(self):
-        if self.inspect(b't') == 10:
+        if self._t == 10:
             return q.ss(self)
         return q('`ss$', self)
 
@@ -697,57 +514,114 @@ class K(_k.K):
         def _mask(self):
             return _np.asarray(self.null)
 
+        from ._n import array as __array__
+
+        __array_priority__ = 20
+
     __doc__ += """
-    Q objects can be used in Python arithmetic expressions
+    K objects can be used in Python arithmetic expressions
 
-    >>> x,y,z = map(K._ki, (1,2,3))
-    >>> print(x + y, x * y, z/y, x|y, x&y, abs(-z))  #doctest: +NORMALIZE_WHITESPACE
-    3{i} 2{i} 1.5 2{i} 1{i} 3{i}
+    >>> x, y, z = map(K, (1, 2, 3))
+    >>> print(x + y, x * y,
+    ...       z/y, x|y, x&y, abs(-z))  #doctest: +NORMALIZE_WHITESPACE
+    3 2 1.5 2 1 3
 
-    Mixing Q objects with python numbers is allowed
+    Mixing K objects with python numbers is allowed
 
     >>> 1/q('1 2 4')
     k('1 0.5 0.25')
     >>> q.til(5)**2
     k('0 1 4 9 16f')
-    """.format(**_ij)
+    """
 
     def __format__(self, fmt):
         if fmt:
             return format(self._pys(), fmt)
         return str(self)
 
+    def __sizeof__(self):
+        return object.__sizeof__(self) + int(self._sizeof())
 
-def _genmethods(cls):
+    def __fspath__(self):
+        """Return the file system path representation of the object."""
+        if self._t != -11:  # symbol
+            raise TypeError
+        sym = str(self)
+        if not sym.startswith(':'):
+            raise TypeError
+        return sym[1:]
+
+    def __complex__(self):
+        """Called to implement the built-in function complex()."""
+        if self._t != 99 or self.key != ['re', 'im']:
+            return complex(float(self))
+        return complex(float(self.re), float(self.im))
+
+
+if _PY3K:
+    setattr(K, 'exec', K.exec_)
+
+
+def _q_builtins():
     from keyword import iskeyword
 
-    K._show = q('{` sv .Q.S[y;z;x]}')
+    # Allow _q_builtins() to be called before q is defined
+    def q(x):
+        return K._k(0, x)
 
-    for spec, verb in [('add', '+'), ('sub', '-'), ('rsub', '{y-x}'), ('mul', '*'),
-                       ('pow', 'xexp'), ('rpow', '{y xexp x}'),
-                       ('xor', '^'), ('rxor', '{y^x}'),
-                       ('truediv', '%'), ('rtruediv', '{y%x}'),
-                       ('floordiv', 'div'), ('rfloordiv', '{y div x}'),
-                       ('and', '&'), ('or', '|'),
-                       ('mod', 'mod'), ('rmod', '{y mod x}'), ('invert', 'not'),
-                       ('pos', '{@[flip;x;x]}'), ('neg', '-:'), ('abs', 'abs')]:
-        setattr(cls, '__%s__' % spec, K._k(0, verb))
+    kver = q('.z.K').inspect(b'f')
+    names = _Q_RES + list(q("1_key[.q]except`each`over`scan"))
+    if kver < 3.4:
+        # ema is present since kdb+3.4
+        q(r'.q.ema:{first[y]("f"$1-x)\x*y}')
+    if kver < 3.3:
+        # restricted eval was added in 3.3
+        q(r'.q.reval:eval')
+
+    if kver < 3.0:
+        for new in ['scov', 'svar', 'sdev']:
+            names.remove(new)
+
+    pairs = []
+    for x in names:
+        attr = x
+        if iskeyword(x):
+            attr += '_'
+        pairs.append((attr, q(x)))
+
+    return pairs
+
+
+def _genmethods(cls):
+    q('\l pyq-operators.q')
+    cls._show = q('{` sv .Q.S[y;z;x]}')
+    cls._sizeof = q('.p.sizeof')
+    for spec, verb in [
+        ('add', '+'), ('sub', '-'), ('rsub', '{y-x}'),
+        ('mul', '*'), ('pow', 'xexp'), ('rpow', '{y xexp x}'),
+        ('xor', '^'), ('rxor', '{y^x}'),
+        ('truediv', '%'), ('rtruediv', '{y%x}'),
+        ('floordiv', 'div'), ('rfloordiv', '{y div x}'),
+        ('and', '&'), ('or', '|'),
+        ('mod', 'mod'), ('rmod', '{y mod x}'), ('invert', 'not'),
+        ('pos', '{@[flip;x;x]}'), ('neg', '-:'), ('abs', 'abs'),
+        # x @ y - composition if y is a function, x[y] otherwise.
+        ('matmul', "{$[100>type y;x y;'[x;y]]}"),
+        ('rmatmul', "{$[100>type x;y x;'[y;x]]}"),
+    ]:
+        setattr(cls, '__%s__' % spec, q(verb))
 
     for spec in 'add mul and or'.split():
         setattr(cls, '__r%s__' % spec, getattr(cls, '__%s__' % spec))
 
-    q_builtins = ['avg', 'last', 'sum', 'prd', 'min', 'max', 'exit', 'getenv', 'abs', 'sqrt',
-                  'log', 'exp', 'sin', 'asin', 'cos', 'acos', 'tan', 'atan', 'enlist',
-                  'within', 'like', 'bin', 'ss', 'insert', 'wsum', 'wavg', 'div', 'xexp', 'setenv', 'binr']
-    q_builtins.extend(f for f in K._k(0, '.q') if not hasattr(cls, f))
-    for x in q_builtins:
+    for x, f in _q_builtins():
         if not hasattr(cls, x):
-            setattr(cls, (x + '_' if iskeyword(x) else x), K._k(0, x))
+            setattr(cls, x, f)
 
     def cmp_op(op):
         def dunder(self, other):
             other = K(other)
-            if self.inspect(b't') < 0 and other.inspect(b't') < 0:
+            if self._t < 0 and other._t < 0:
                 return bool(q(op, self, other))
             else:
                 raise NotImplementedError
@@ -757,15 +631,16 @@ def _genmethods(cls):
     for spec, verb in [('gt', '>'), ('lt', '<'), ('ge', '>='), ('le', '<=')]:
         setattr(cls, '__%s__' % spec, cmp_op(verb))
 
+    # Shift operators
+    for x in ['', 'r']:
+        for y in 'lr':
+            op = x + y + 'shift'
+            setattr(cls, '__%s__' % op, q('.p.' + op))
+
 
 def d9(x):
     """like K._d9, but takes python bytes"""
     return K._d9(K._kp(x))
-
-#          01234567890123456789
-fields = b" g@ ghijefgsjiifjiii"
-if PY3K:
-    fields = [bytes([_x]) for _x in fields]
 
 
 def k(m, *args):
@@ -773,10 +648,14 @@ def k(m, *args):
 
 
 class _Q(object):
+    """a portal to kdb+"""
     def __init__(self):
         object.__setattr__(self, '_cmd', None)
+        object.__setattr__(self, '_q_names',
+                           [name for name, _ in _q_builtins()])
 
     def __call__(self, m=None, *args):
+        """Execute q code."""
         try:
             return K._k(0, m, *map(K, args))
         except TypeError:
@@ -787,7 +666,11 @@ class _Q(object):
                 object.__setattr__(self, '_cmd', Cmd())
             self._cmd.cmdloop()
 
-    def __getattr__(self, attr):
+    def __getattribute__(self, attr):
+        try:
+            return object.__getattribute__(self, attr)
+        except AttributeError:
+            pass
         k = K._k
         try:
             return k(0, attr.rstrip('_'))
@@ -802,45 +685,14 @@ class _Q(object):
         k = K._k
         k(0, "delete %s from `." % attr)
 
+    def __dir__(self):
+        return self._q_names + list(self.key('.'))
 
-__doc__ += """
-Q variables can be accessed as attributes of the 'q' object:
 
->>> q.t = q('([]a:1 2i;b:`x`y)')
->>> sum(q.t.a)
-3
->>> del q.t
-"""
 q = _Q()
 nil = q('(value +[;0])1')
 
 show = K.show
-
-datetimetok = K._kzz
-__doc__ += """
-datetimetok converts python datetime to k (DEPRECATED)
-
->>> datetimetok(datetime(2006,5,3,2,43,25,999000))
-k('2006.05.03T02:43:25.999')
-"""
-
-datetok = K._kdd
-__doc__ += """
-datetok converts python date to k (DEPRECATED)
-
->>> datetok(date(2006,5,3))
-k('2006.05.03')
-
-"""
-
-timetok = K._ktt
-__doc__ += """
-timetok converts python time to k (DEPRECATED)
-
->>> timetok(time(12,30,0,999000))
-k('12:30:00.999')
-
-"""
 
 
 def _ni(x):
@@ -851,69 +703,54 @@ def _ni(x):
     return r
 
 
-_X = {K: K._K, str: K._S, int: (K._I if QVER[0] < '3' else K._J),
+_X = {K: K._K, str: K._S, int: (K._I if _QVER[0] < '3' else K._J),
       float: K._F, date: K._D, time: _ni, datetime: _ni, bool: K._B}
 
 
-def listtok(x):
+def _listtok(x):
     if x:
-        return _X[type(x[0])](x)
+        for i in x:
+            if i is not None:
+                break
+        c = _X.get(type(i))
+        if c is not None:
+            try:
+                return c(x)
+            except TypeError:
+                pass
+        return K._from_sequence(x)
     return K._ktn(0, 0)
+
 
 _X[list] = lambda x: K([K(i) for i in x])
 
-__doc__ += """
-listtok converts python list to k
 
->>> listtok([])
-k('()')
+def _tupletok(x):
+    try:
+        fields = x._fields
+    except AttributeError:
+        return K._from_sequence(x)
+    else:
+        return K._xD(K(fields), K._from_sequence(x))
 
-Type is determined by the type of the first element of the list
-
->>> listtok(list("abc"))
-k('`a`b`c')
->>> listtok([1,2,3])
-k('1 2 3')
->>> listtok([0.5,1.0,1.5])
-k('0.5 1 1.5')
-
-All elements must have the same type for conversion
-
->>> listtok([0.5,'a',5])
-Traceback (most recent call last):
-  ...
-TypeError: K._F: 2-nd item is not a float
-
-"""
-
-tupletok = lambda x: K._K(K(i) for i in x)
-
-__doc__ += """
-tupletok converts python tuple to k
-
-Tuples are converted to general lists, strings in tuples are
-converted to char lists.
-
->>> tupletok((kp("insert"), 't', (1, "abc")))
-k('("insert";`t;(1;`abc))')
-"""
 
 kp = K._kp
 
 converters = {
-    list: listtok,
-    tuple: tupletok,
+    list: _listtok,
+    tuple: _tupletok,
     type(lambda: 0): K._func,
-    dict: lambda x: K._xD(K(x.keys()), K(x.values()))
+    type(sum): K._func,
+    dict: lambda x: K._xD(K(x.keys()), K(x.values())),
+    complex: lambda z: K._xD(K._S(['re', 'im']), K._F([z.real, z.imag])),
 }
 
-if PY3K:
+if _PY3K:
     converters[bytes] = K._kp
-    converters[dict] = lambda x: K._xD(K(list(x.keys())), K(list(x.values())))
 else:
     converters[unicode] = K._ks
     _X[unicode] = lambda x: K([i.encode() for i in x])
-    _X[long] = K._J
+    _X[long] = (K._I if _QVER[0] < '3' else K._J)
 try:
     converters[buffer] = K._kp
 except NameError:
@@ -925,27 +762,32 @@ except NameError:
 ###############################################################################
 lazy_converters = {'uuid': [('UUID', lambda u: K._kguid(u.int))],
                    'collections': [('OrderedDict', converters[dict])],
-                   'py._path.local': [('LocalPath', lambda p: q.hsym(p.strpath))]
-}
+                   'py._path.local': [('LocalPath',
+                                       lambda p: q.hsym(p.strpath))],
+                   'pathlib': [('PurePath', lambda p: K(':' + str(p)))],
+                   }
 
-try:
-    import __builtin__
-except ImportError:
-    import builtins as __builtin__
-import sys
+lazy_converters['pathlib2'] = lazy_converters['pathlib']
+
 
 # If module is already loaded, register converters for its classes
 # right away.
-for name, pairs in lazy_converters.items():
-    mod = sys.modules.get(name)
-    if mod is not None:
-        for cname, conv in pairs:
-            converters[getattr(mod, cname)] = conv
+def _pre_register_converters():
+    for name, pairs in lazy_converters.items():
+        mod = sys.modules.get(name)
+        if mod is not None:
+            for cname, conv in pairs:
+                converters[getattr(mod, cname)] = conv
+
+
+_pre_register_converters()
+del _pre_register_converters
+
 # Replace builtin import to add lazy registration logic
 _imp = __builtin__.__import__
 
 
-def __import__(name, globals={}, locals={}, fromlist=[], level=[-1, 0][PY3K],
+def __import__(name, globals={}, locals={}, fromlist=[], level=[-1, 0][_PY3K],
                _imp=_imp, _c=converters, _lc=lazy_converters):
     m = _imp(name, globals, locals, fromlist, level)
     pairs = _lc.get(name)
@@ -957,48 +799,179 @@ def __import__(name, globals={}, locals={}, fromlist=[], level=[-1, 0][PY3K],
 __builtin__.__import__ = __import__
 ###############################################################################
 
-__test__ = {}
-try:
-    from numpy import array
-except ImportError:
-    pass
-else:
-    __test__["array interface (vector)"] = """
-    >>> K._from_array_interface(array([1, 0, 1], bool).__array_struct__)
-    k('101b')
-    >>> K._from_array_interface(array([1, 2, 3], 'h').__array_struct__)
-    k('1 2 3h')
-    >>> K._from_array_interface(array([1, 2, 3], 'i').__array_struct__)
-    k('1 2 3{i}')
-    >>> K._from_array_interface(array([1, 2, 3], 'q').__array_struct__)
-    k('1 2 3{j}')
-    >>> K._from_array_interface(array([1, 2, 3], 'f').__array_struct__)
-    k('1 2 3e')
-    >>> K._from_array_interface(array([1, 2, 3], 'd').__array_struct__)
-    k('1 2 3f')
-    """.format(**_ij)
-    __test__["array interface (scalar)"] = """
-    >>> K._from_array_interface(array(1, bool).__array_struct__)
-    k('1b')
-    >>> K._from_array_interface(array(1, 'h').__array_struct__)
-    k('1h')
-    >>> K._from_array_interface(array(1, 'i').__array_struct__)
-    k('1{i}')
-    >>> K._from_array_interface(array(1, 'q').__array_struct__)
-    k('1{j}')
-    >>> K._from_array_interface(array(1, 'f').__array_struct__)
-    k('1e')
-    >>> K._from_array_interface(array(1, 'd').__array_struct__)
-    k('1f')
-    """.format(**_ij)
-
 _genmethods(K)
-del _genmethods, _ij
+del _genmethods, _imp
+
 
 def versions():
-    stream = sys.stdout if PY3K else sys.stderr
+    stream = sys.stdout if _PY3K else sys.stderr
     print('PyQ', __version__, file=stream)
     if _np is not None:
         print('NumPy', _np.__version__, file=stream)
-    print('KDB+ %s (%s)' % (q('.z.K'), q('.z.k')), file=stream)
+    print('KDB+ %s (%s) %s' % tuple(q('.z.K,.z.k,.z.o')), file=stream)
     print('Python', sys.version, file=stream)
+
+
+###############################################################################
+# Casts and constructors
+###############################################################################
+def _gendescriptors(cls, string_types=(type(b''), type(u''))):
+    cls._Z = NotImplemented
+    if _QVER[0] < '3':
+        cls._UU = cls._kguid = NotImplemented
+    types = [
+        # code, char, name, vector, scalar
+        (1, 'b', 'boolean', cls._B, cls._kb),
+        (2, 'g', 'guid', cls._UU, cls._kguid),
+        (4, 'x', 'byte', cls._G, cls._kg),
+        (5, 'h', 'short', cls._H, cls._kh),
+        (6, 'i', 'int', cls._I, cls._ki),
+        (7, 'j', 'long', cls._J, cls._kj),
+        (8, 'e', 'real', cls._E, cls._ke),
+        (9, 'f', 'float', cls._F, cls._kf),
+        (11, 's', 'symbol', cls._S, cls._ks),
+        (12, 'p', 'timestamp', cls._P, cls._kpz),
+        (13, 'm', 'month', cls._M, cls._km),
+        (14, 'd', 'date', cls._D, cls._kd),
+        (15, 'z', 'datetime', cls._Z, cls._kz),
+        (16, 'n', 'timespan', cls._N, cls._knz),
+        (17, 'u', 'minute', cls._U, cls._ku),
+        (18, 'v', 'second', cls._V, cls._kv),
+        (19, 't', 'time', cls._T, cls._kt),
+    ]
+
+    class Desc:
+        def __init__(self, code, char, name, vector, scalar):
+            self.code = cls._kh(code)
+            self.char = char
+            self.name = name
+            self.vector = vector
+            self.scalar = scalar
+
+        def make_constructor(self):
+            def constructor(x):
+                # If x is already K - check the type and either
+                # pass it through or cast to the type needed.
+                if isinstance(x, K):
+                    if x.type.abs == self.code:
+                        return x
+                    else:
+                        return cls._k(0, '$', self.code, x)
+                if isinstance(x, _Mapping):
+                    return cls._xD(cls(x.keys()), constructor(x.values()))
+                try:
+                    return self.vector(x)
+                except TypeError:
+                    pass
+                try:
+                    return self.scalar(x)
+                except TypeError:
+                    return cls._from_sequence(x, constructor)
+
+            constructor.__name__ = 'K.' + self.name
+            if self.code > 4 and int(self.code) != 11:
+                constructor.inf = q('0W' + self.char)
+                constructor.na = q('0N' + self.char)
+
+            return constructor
+
+        def __get__(self, instance, owner):
+            if instance is None:
+                return self.make_constructor()
+            # Make sure dict keys and table columns have priority over casts
+            name = self.name
+            if instance._t == 98 and name in instance.cols:
+                return instance[name]
+            if instance._t == 99:  # keyed table or dict
+                key = instance.key
+                if key._t == 11 and name in key:
+                    return instance[name]
+                if key._t == 98 and name in instance.cols:
+                    return instance.exec_(name)
+
+            return cls._k(0, '$', self.code, instance)
+
+    for code, char, name, vector, scalar in types:
+        setattr(cls, name, Desc(code, char, name, vector, scalar))
+
+    # Special case: string
+    def make_strings(x):
+        if isinstance(x, string_types):
+            return cls._kp(x)
+        if isinstance(x, _Mapping):
+            return cls._xD(cls(x.keys()), make_strings(x.values()))
+        return cls._from_sequence(x, make_strings)
+
+    class StringDesc:
+        def __get__(self, instance, owner):
+            if instance is None:
+                return make_strings
+            # NB: As a reserved word, "string" cannot be a column name but
+            # can be a key in a dictionary
+            if instance._t == 99:
+                key = instance.key
+                if key._t == 11 and 'string' in key:
+                    return instance['string']
+
+            return cls._k(0, 'string', instance)
+
+    cls.string = StringDesc()
+
+    # Special case: char (like string, but may return a scalar char.)
+    def make_chars(x):
+        if isinstance(x, str):
+            x = x.encode('utf8')
+        if isinstance(x, bytes):
+            if len(x) == 1:
+                return cls._kc(x)
+            else:
+                return cls._kp(x)
+        if isinstance(x, _Mapping):
+            return cls._xD(cls(x.keys()), make_chars(x.values()))
+        if not x:
+            return cls._kp('')
+        return cls._from_sequence(x, make_chars)
+
+    make_chars.inf = q('0Wc')
+    make_chars.na = q('0Nc')
+
+    class CharDesc:
+        def __get__(self, instance, owner):
+            if instance is None:
+                return make_chars
+            # Make sure dict keys and table columns have priority over casts
+            name = 'char'
+            if instance._t == 98 and name in instance.cols:
+                return instance[name]
+            if instance._t == 99:  # keyed table or dict
+                key = instance.key
+                if key._t == 11 and name in key:
+                    return instance[name]
+                if key._t == 98 and name in instance.cols:
+                    return instance.exec_(name)
+
+            return cls._k(0, '`char$', instance)
+
+    cls.char = CharDesc()
+
+
+_gendescriptors(K)
+del _gendescriptors
+
+
+def _genadverbs(cls):
+    adverbs = [
+        'each',   # '
+        'over',   # /
+        'scan',   # \
+        'prior',  # ':
+        'sv',     # /: - each-right
+        'vs',     # \: - each-left
+     ]
+    for i, a in enumerate(adverbs):
+        x = cls._ktj(103, i)
+        setattr(cls, a, x)
+
+
+_genadverbs(K)
+del _genadverbs

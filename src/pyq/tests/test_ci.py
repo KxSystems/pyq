@@ -1,8 +1,8 @@
 import os
 
-from pyq import q
-
 import pytest
+
+from pyq import q
 
 
 def test_inside_ci():
@@ -10,7 +10,5 @@ def test_inside_ci():
     if 'GITLAB_CI' not in os.environ:
         pytest.skip("This test designed for Gitlab CI only.")
 
-    qmin = int(os.environ.get('QMIN', '0'))
-    qver = int(os.environ.get('QVER', '0'))
-
-    assert q(".z.K") == qver + 0.1 * qmin
+    qver, qmin = os.environ.get('KDB_VER', '0.0').split('.')
+    assert q(".z.K") == int(qver) + 0.1 * int(qmin)

@@ -15,17 +15,20 @@ For detailed installation instructions see [INSTALL](doc/install.rst).
 Usage:
 
 ```
-pyq [python options] python-script
+$ pyq [python options] python-script
 ```
 
 Documentation available on [https://pyq.enlnt.com](https://pyq.enlnt.com) or via pydoc:
 
 ```
-pyq -m pydoc pyq
+$ pyq -m pydoc pyq
 ```
 
 Test:
 
+Use [tox](https://tox.readthedocs.io/en/latest/) to run tests.
+
 ```
-pyq-runtests
+$ cd path/to/pyq/source
+$ tox
 ```

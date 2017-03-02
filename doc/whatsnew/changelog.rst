@@ -4,6 +4,144 @@
 Version History
 ===============
 
+`PyQ 4.0 <http://pyq.readthedocs.io/en/pyq-4.0/>`_
+--------------------------------------------------
+
+Released on 2017-03-02
+
+New Features:
+
+  - !365 - #756: Expose okx from k.h in Python.
+  - !376 - #806: Hooked basic prompt toolkit functionality into cmdtloop.
+  - !384 - #809: Implemented the qp script - like pq but start at the q) prompt.
+  - !385 - #806: Add bottom toolbar to q) prompt.
+  - !378 - #809: Implemented ipyq and pq scripts.
+  - !387 - #813: Implemented the @ operator.
+  - !401 - #828: Implemented type-0 list to array conversions.
+  - !402 - #775: Implemented getitem for enumerated lists.
+  - !404 - #833: Implemented `K.___sizeof__()` method.
+  - !359 - #642: Implement typed constructors and casts
+  - !390 - #815: Implemented the data attribute for the K objects in C.
+  - !396 - #829: Implemented basic nd > 1 case: C contiguous and simple type.
+  - !410 - #840: Implemented shift operators.
+  - !420 - #851: Implemented setm() and m9() in _k.
+  - !422 - #852: Implemented conversion from arbitrary sequences to K.
+  - !428 - #835: Implemented `K.__rmatmul__`.
+  - !432 - #856: Implemented file system path protocol for file handles.
+  - !435 - #598: Added support for pathlib2.
+  - !437 - #855: Added support for complex numbers.
+  - !439 - #791: Implemented _n attribute for K objects.
+  - !467 - #873: Implement K.timespan(int) constructor
+
+
+Enhancements:
+
+  - !297 - #752: More datetime64 to q conversions
+  - !314 - #672: Improve calling Python functions from q
+  - !315 - #766: Defined the `__dir__` method for class _Q.
+  - !316 - #767: Make "exec" method callable without trailing _ in PY3K
+  - !330 - #779: Reimplemented new and call in C
+  - !352 - #792: Restore support for KXVER=2.
+  - !354 - #796: Conversion of "small" kdb+ longs will now produce Python ints under Python 2.x.
+  - !355 - #769: Restore array struct
+  - !358 - #798: Revisit array to k conversions.
+  - !375 - #791: K object attributes
+  - !377 - #807: Clean up and reuse the list of q functions between K and q
+  - !379 - #808: Clean up pyq namespace
+  - !380 - #791: Replaced .inspect(b't') with ._t.
+  - !381 - #806: Return to Python prompt when Control-D or Control-C is pressed.
+  - !382 - #659: Get rid of KXVER in the C module name.
+  - !383 - #810: Clean up q namespace
+  - !388 - #779, #798: Removed unused variables.
+  - !389 - #818: Use fully qualified name for the internal K base class.
+  - !391 - #816: temporal data lists to array conversion
+  - !394 - #823: Preload kdb+ database if provided on pyq command line.
+  - !397 - #830: Make sure strings obtained from q symbols are interned.
+  - !398 - #806: Added a simple word completer.
+  - !399 - #819: Make K.string accept unicode in Python 2.x and bytes in Python 3.x.
+  - !400 - #806: Clean python exit on \\
+  - !405 - #836: Reimplemented `K.__bool__` in C.
+  - !406 - #837: Reimplemented `K.__get__` in C.
+  - !408 - #838: Install sphinxcontrib-spelling package in the deploy stage.
+  - !413 - #842: K to bytes conversion
+  - !423 - #852: Added special treatment of symbols in _from_sequence(); allow mixed lists in conversions.
+  - !424 - #852: Fixed the case of empty sequence. Use K._from_sequence as a tuple converter.
+  - !425 - #852: Remove dict workaround
+  - !426 - #853: Make dict[i] consistent with list[i]
+  - !429 - #854: Walk up the mro to discover converters
+  - !430 - #608: Return K from mixed K - numpy array operations.
+  - !431 - #679: Fixed conversion of enumeration scalars into strings.
+  - !442 - #808: pyq globals clean-up
+  - !443 - #858: The "nil" object does not crash show() anymore.
+  - !444 - #817: Clip int(q('0N')) to -0W when building K.long lists.
+  - !445 - #857: Adverbs revisited
+  - !446 - #861: Allow unary and binary ops and projections to be called with keywords.
+  - !447 - #857: Use vs (sv) instead of each_left(right).
+  - !449 - #864: Corrected the date bounds and added a comprehensive test.
+  - !450 - #865: Fixed x.char cast
+  - !455 - #863: Allow out-of-range scalar dates to be converted to ±0Wd.
+  - !460 - #870: K.timestamp bug
+  - !470 - #874: K.boolean redesign
+  - !477 - #875: Make sure bool(enum scalar) works in various exotic scenarios.
+  - !481 - #881: K._ja bug
+  - !483 - #850: Use py2x converters in atom constructors.
+  - !485 - #882: Return 0w on overflow
+  - !486 - #883: Make boolean constructor stricter : Allow only integer-like values in K._kb().
+  - !487 - #884: Detect mappings in typed constructors.
+  - !490 - #841: Fixed mv_release.
+  - !492 - #886: Fix two bugs in pyq executable; improve setup tests
+  - !494 - #891: Fix crash in K._kc()
+
+
+CI and tests improvements:
+
+  - !349, !456, !456, !471, !457, !459, !464 - #695, #793, #867: Improvements in code coverage reporting.
+  - !350 - #794: Run pycodestyle in tox.
+  - !411 - #827: Use Python 3.6 and 2.7.13 in CI.
+  - !415, !451 - #845: Use Docker for CI
+  - !433 - #679: Fixed test on kdb+ 2.x.
+  - !436 - Add numpy 1.12 to the CI tests.
+  - !440 - #803: keywords and descriptions from code.kx.com.
+  - !452 - Add kdb+ 3.5t to the CI tests.
+  - !461 - #866: Added tests and fixed timestamp range.
+  - !475 - Use random CPU and limit one CPU core per job in CI.
+  - !489 - #885: Reformatted code in test files.
+  - !318, !351, !474, !478, !479, !480, !484, !488, !491 - #768: Improve C code test coverage.
+
+
+Documentation:
+
+  - !341 - #789: Updated README: Test section.
+  - !353 - #764: simpler docstrings
+  - !360 - #764: Reorganized documentation. Minor fixes.
+  - !361 - #764: More docs improvements
+  - !362 - #764: docs improvements
+  - !366 - #764: test docs build in tox
+  - !371 - #803: Updated 32-bit Python/PyQ guide to use Python 3.6.
+  - !374 - #804: doc style improvements
+  - !373 - #764 and #777 table to array and sphinx doctest
+  - !392 - #820: What's New in 4.0
+  - !403 - #832: spellcheck docs
+  - !407 - #838: Add doc path to sys.path in conf.py.
+  - !409 - #803 Docs additions
+  - !412 - #803: Make documentation testing a separate stage.
+  - !427 - #803: more docs
+  - !448 - #803: More docs
+  - !469 - #871: More docs
+  - !438 - #854 (#820): Added a what's new entry about named tuples conversion.
+  - !472 - #803: Added adverbs documentation
+  - !493 - #803: Document calling Python from q
+  - !462, !463, !465, !468, !473 - Logo improvements
+
+
+Setup:
+
+  - !337 - #782: Use install extras to install requirements.
+  - !339 - #782: Use extras instead of deps in tox.ini.
+  - !340 - #788: Add ipython extras.
+
+
+
 `PyQ 3.8.4 <http://pyq.readthedocs.io/en/pyq-3.8.4/>`_
 ------------------------------------------------------
 
@@ -153,7 +291,7 @@ Released on 2015-01-15.
 - !240 - #674 Added support for nested tuples.
 - !241 - #696 Implemented slicing of K objects.
 - !242 - #699 int and float of non-scalar will raise TypeError.
-- !243 - #697 Fixed a datatime bug.
+- !243 - #697 Fixed a datetime bug.
 
 
 PyQ 3.6.2
@@ -217,7 +355,7 @@ PyQ 3.5.1
 
 Released on 2014-06-27.
 
-- !177, !178 – #631 pyq is binary executable, not script and can be used in hasbang.
+- !177, !178 – #631 pyq is binary executable, not script and can be used in hashbang.
 - !179 – #633 Added memoryview tests.
 - !181 – #636 Moved extension module into pyq package.
 - !182 – #633 Removed old buffer protocol support.
@@ -233,7 +371,7 @@ Released on 2014-06-20.
 - !165 – #614 Expose jv
 - !166 – #580 Show with output=str will return string
 - !167 – #627 Fixed p language
-- !168 – Fix for pip, pycharm and OS X
+- !168 – Fix for pip, PyCharm and OS X
 - !169 – #629 python.py script was renamed to pyq
 - !170 – #632 jv reference leak
 - !171 – #633 C code review
@@ -277,7 +415,7 @@ Released on 2014-04-11.
 
 - 589: Symbol array roundtripping
 - 592: Properly register py.path.local
-- 594: Support passing additional valuse to select/update/exec methods.
+- 594: Support passing additional values to select/update/exec methods.
 - 595: Implement pytest_pyq plugin
 - 596: Implement python dict converter
 - 601: Add support for ^ (fill) operator
@@ -323,7 +461,7 @@ Released on 2013-12-24.
 
 - Issues fixed: #556, #559, #560, #561, #562, #564, #565, #566, #569, #570, #573
 - NEW: wrapper for python.q to use it under PyCharm
-    Note: You will need to create symlink from python to python.py in order for this to work, ie:
+    Note: You will need to create symlink from python to python.py in order for this to work, i.e.:
     ln -s bin/python.py bin/python
 - Support to use 32-bit Q under 64-bit OS X
 
@@ -374,7 +512,7 @@ Released on 2012-08-09.
 - Use k(0, ..) instead of dot() and aN() to improve compatibility
 - Default to python 2.6
 - Improvements to q script.p
-- NUC: extra info on q errors 
+- NUC: extra info on q errors
 
 
 2007-03-30
@@ -393,3 +531,34 @@ implemented K._ja
 ---
 
 - Implemented iterator protocol.
+
+
+
+.. spelling::
+
+   ENV
+   rtd
+   doctests
+   preserveEnumerations
+   sd
+   unicode
+   getitem
+   soabi
+   enums
+   py
+   Backport
+   uninstalling
+   ja
+   jv
+   taskset
+   hashbang
+   dj
+   ktj
+   falsy
+   roundtripping
+   plugin
+   txt
+   symlink
+   ln
+   guid
+   aN

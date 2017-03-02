@@ -3,7 +3,7 @@ import sys
 import pytest
 
 args = ['--cov-report', 'term-missing', '--cov', 'pyq', '--pyargs', 'pyq']
-if sys.version_info[0] < 3:
-    args.append('--doctest-modules')
+if sys.version_info > (3, ):
+    args.extend(['--doctest-modules', '--doctest-ignore-import-errors'])
 rc = pytest.main(args)
 sys.exit(rc)

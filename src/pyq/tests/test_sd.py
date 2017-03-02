@@ -30,7 +30,8 @@ def test_sd(tmpdir):
     test = tmpdir.join('test_sd.q')
     test.write(TEST_SD)
     with open(os.devnull) as devnull:
-        assert b'X\n' == subprocess.check_output([qbin, str(test)], stdin=devnull)
+        assert b'X\n' == subprocess.check_output([qbin, str(test)],
+                                                 stdin=devnull)
 
 
 def test_callback_error(tmpdir):
