@@ -12,3 +12,11 @@ html/
 *.pyc
 .coverage
 .coverage.*
+
+.vscode/
+.ipynb_checkpoints/
+
+# workaround for #892
+doc/0-9
+doc/data
+doc/xyz

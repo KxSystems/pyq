@@ -114,3 +114,5 @@ conf
 deps
 ini
 sys
+fallback
+intersphinx

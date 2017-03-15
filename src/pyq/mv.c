@@ -74,11 +74,18 @@ static PyObject *
 MemoryView_FromBuffer(Py_buffer *view)
 {
     PyObject *mv;
+#ifdef COUNT_ALLOCS
     PyTypeObject *tmp;
+#endif
     mv = PyMemoryView_FromBuffer(view);
+#ifdef COUNT_ALLOCS
     tmp = mv->ob_type;
+#endif
     mv->ob_type = &MemoryView_Type;
     Py_INCREF(mv->ob_type);
+#ifdef COUNT_ALLOCS
+    Py_DECREF(tmp);
+#endif
     return mv;
 }
 #define PyMemoryView_FromBuffer MemoryView_FromBuffer

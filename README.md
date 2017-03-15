@@ -5,30 +5,35 @@
 
 Quick install:
 
-```
-$ pip install -i https://pypi.enlnt.com -U --no-binary pyq pyq
+```bash
+pip install -i https://pypi.enlnt.com -U --no-binary pyq pyq
 ```
 
-For detailed installation instructions see [INSTALL](doc/install.rst).
+For detailed installation instructions see [installation instructions][1].
 
 
 Usage:
 
-```
-$ pyq [python options] python-script
+```bash
+pyq [python options] python-script
 ```
 
-Documentation available on [https://pyq.enlnt.com](https://pyq.enlnt.com) or via pydoc:
+Documentation available on [https://pyq.enlnt.com][2] or via pydoc:
 
-```
-$ pyq -m pydoc pyq
+```bash
+pyq -m pydoc pyq
 ```
 
 Test:
 
-Use [tox](https://tox.readthedocs.io/en/latest/) to run tests.
+Use [tox][3] to run tests.
 
+```bash
+cd path/to/pyq/source
+tox
 ```
-$ cd path/to/pyq/source
-$ tox
-```
+
+
+[1]: https://pyq.enlnt.com/install/install.html#installation
+[2]: https://pyq.enlnt.com
+[3]: https://tox.readthedocs.io/en/latest

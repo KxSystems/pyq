@@ -14,12 +14,18 @@
 
 import sys
 import os
-__version__ = "4.0"
+
+try:
+    from pyq import __version__
+except ImportError:
+    __version__ = '4.0.1'
+
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('.'))
+from spelling_filters import VersionFilter
 
 
 # -- General configuration ------------------------------------------------
@@ -367,9 +373,10 @@ doctest_global_setup = """\
 from pyq import q, K
 """
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3.5', None),
-    'numpy': ('https://docs.scipy.org/doc/numpy/', None),
+    'python': ('https://docs.python.org/3.6', '_inventory/objects.python-3.6.inv'),
+    'numpy': ('https://docs.scipy.org/doc/numpy/', '_inventory/objects.numpy.inv'),
 }
+intersphinx_timeout = 10
 
 doctest_global_setup = """\
 from pyq import q, K
@@ -379,3 +386,7 @@ from pyq import q, K
 
 spelling_show_suggestions = True
 spelling_word_list_filename = 'words.txt'
+
+VersionFilter.version = release
+
+spelling_filters = [VersionFilter]

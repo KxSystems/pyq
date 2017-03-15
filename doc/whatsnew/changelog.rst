@@ -4,6 +4,25 @@
 Version History
 ===============
 
+`PyQ 4.0.1 <http://pyq.readthedocs.io/en/pyq-4.0.1/>`_
+------------------------------------------------------
+
+Released on 2017-03-15
+
+Enhancements:
+
+  - !509 - #903: Fixed a reference leak in debug build and a gcc 4.8.5 compiler warning.
+  - !505 - #901: Provide a fallback for systems that lack CPU_COUNT, e.g. RHEL 5.
+  - !502 - #899: Corrected integer types on 32-bit systems and added explicit casts when necessary.
+
+
+Documentation:
+
+  - !511 - Use locally stored intersphinx inventory.
+  - !506 - #902 Updated README.
+
+
+
 `PyQ 4.0 <http://pyq.readthedocs.io/en/pyq-4.0/>`_
 --------------------------------------------------
 
