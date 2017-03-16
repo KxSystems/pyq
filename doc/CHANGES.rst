@@ -4,6 +4,15 @@
 Version History
 ===============
 
+`PyQ 3.8.5 <http://pyq.readthedocs.io/en/pyq-3.8.5/>`_
+------------------------------------------------------
+
+Released on 2017-03-16
+
+- !517 - #901: Provide a fallback for systems that lack CPU_COUNT.
+
+
+
 `PyQ 3.8.4 <http://pyq.readthedocs.io/en/pyq-3.8.4/>`_
 ------------------------------------------------------
 

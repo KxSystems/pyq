@@ -117,6 +117,19 @@ parse_cpus(char *cpus)
     return 0;
 }
 
+/* CPU_COUNT is not defined by older versions of glibc */
+#ifndef CPU_COUNT
+static int CPU_COUNT(cpu_set_t *set) {
+  int i, count = 0;
+  for (i = 0; i < CPU_SETSIZE; i++) {
+    if (CPU_ISSET(i, set)) {
+      count++;
+    }
+  }
+  return count;
+}
+#endif /* !CPU_COUNT */
+
 static void
 print_cpus(void)
 {
