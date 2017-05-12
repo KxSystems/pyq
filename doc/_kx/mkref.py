@@ -10,7 +10,7 @@ Q_FUNC_DOC = """\
 
    {short}{doc}
 
-   See also `{qname} on code.kx.com <http://code.kx.com/wiki/Reference/{qname}>`_.
+   See also `{qname} on code.kx.com <{url}>`_.
 
 
 """
@@ -22,7 +22,7 @@ K_METH_DOC = """\
    {short}
 
    For details, see :func:`q.{name} <pyq.q.{name}>` and `{qname} on code.kx.com
-   <http://code.kx.com/wiki/Reference/{qname}>`_.
+   <{url}>`_.
 
 
 """
@@ -42,7 +42,7 @@ script_dir = py.path.local(__file__).dirpath()
 ref_dir = script_dir / '..' / 'reference'
 q_func_rst = ref_dir / 'q-funcs.rst'
 k_meth_rst = ref_dir / 'K-meths.rst'
-code_dump = script_dir / 'code.dump'
+code_dump = script_dir / 'code.kx.dump'
 kx_docs = code_dump.load()
 
 #  Fix links
@@ -54,8 +54,8 @@ with q_func_rst.open('w') as f, k_meth_rst.open('w') as g:
         qname = fixes.get(name, qname)
         desc = kx_docs.get(qname)
         if isinstance(desc, tuple):
-            short = desc[1]
+            _, short, url = desc
         else:
             short = 'The %s function.' % qname
-        f.write(Q_FUNC_DOC.format(name=name, short=short, qname=qname, doc=DOC[name]))
-        g.write(K_METH_DOC.format(name=name, short=short, qname=qname))
+        f.write(Q_FUNC_DOC.format(name=name, short=short, qname=qname, url=url, doc=DOC[name]))
+        g.write(K_METH_DOC.format(name=name, short=short, qname=qname, url=url))

@@ -4,6 +4,26 @@
 Version History
 ===============
 
+`PyQ 4.0.2 <http://pyq.readthedocs.io/en/pyq-4.0.2/>`_
+------------------------------------------------------
+
+Released on 2017-05-12
+
+Enhancements:
+
+  - !523 - #909: Support installing PyQ on Ubuntu 16.04.
+  - !528 - #911: qp and pq: set console size in q when running ptpython scripts.
+  - !535 - #910: qp: exit from q) prompt on Ctrl-D.
+  - !536 - #912: qp: report error and exit if pre-loading fails.
+
+
+Documentation:
+
+  - !537 - #909: Added a guide on installing PyQ on Ubuntu.
+  - !533 - #914: Use new kx.code.com.
+
+
+
 `PyQ 4.0.1 <http://pyq.readthedocs.io/en/pyq-4.0.1/>`_
 ------------------------------------------------------
 

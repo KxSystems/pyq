@@ -120,3 +120,5 @@ Install PyQ:
 .. include:: update.rst
 
 .. include:: centos32on64.rst
+
+.. include:: ubuntu.rst

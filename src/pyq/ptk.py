@@ -93,9 +93,7 @@ def cmdloop(self, intro=None):
                       history=history, style=style, true_color=True,
                       on_exit='return-none', on_abort='return-none',
                       completer=QCompleter())
-        if line is None:
-            stop = True
-        elif line.strip() == r'\\':
+        if line is None or line.strip() == r'\\':
             raise SystemExit
         else:
             line = self.precmd(line)

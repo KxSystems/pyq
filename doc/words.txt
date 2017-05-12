@@ -116,3 +116,14 @@ ini
 sys
 fallback
 intersphinx
+equi
+filename
+maxima
+metadata
+minima
+mmu
+ujf
+Ubuntu
+ptpython
+Ctrl
+pre

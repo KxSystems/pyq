@@ -40,7 +40,7 @@ except ImportError:
     from platform import uname
 
 
-VERSION = '4.0.1'
+VERSION = '4.0.2'
 IS_RELEASE = True
 PYQ_SRC_DIR = os.path.join('src', 'pyq')
 VERSION_FILE = os.path.join(PYQ_SRC_DIR, 'version.py')
@@ -350,7 +350,7 @@ class build_qk(Command):
 
         self.q_module_rules.append((None, 'PYTHON:', 'PYTHON: "%s"\n' % python_path))
 
-        if platform == 'Darwin' or sys.version_info[0] >= 3:  # Issue #559
+        if platform == 'Darwin':  # Issue #559
             if virtual_env:
                 if sys.version_info[0] < 3:
                     lib_string = 'lib:"%s\\000"\n' % os.path.join(virtual_env, '.Python')

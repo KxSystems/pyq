@@ -1,12 +1,12 @@
 # Grab function and description from code.kx.com which still uses mediawiki
 # Requires Python 3.6+
 
-from time import sleep
 from pickle import dump
+from urllib.parse import urljoin
 
 import py
 import requests
-
+from bs4 import BeautifulSoup as bs
 
 KWDS = ['abs', 'acos', 'aj', 'aj0', 'all', 'and', 'any', 'asc', 'asin', 'asof',
         'atan', 'attr', 'avg', 'avgs', 'bin', 'binr', 'ceiling', 'cols', 'cor', 'cos',
@@ -27,35 +27,34 @@ KWDS = ['abs', 'acos', 'aj', 'aj0', 'all', 'and', 'any', 'asc', 'asin', 'asof',
         'update', 'upper', 'upsert', 'value', 'var', 'view', 'views', 'vs', 'wavg',
         'where', 'while', 'within', 'wj', 'wj1', 'wsum', 'ww', 'xasc', 'xbar', 'xcol',
         'xcols', 'xdesc', 'xexp', 'xgroup', 'xkey', 'xlog', 'xprev', 'xrank']
-URL_PATTERN = "http://code.kx.com/wiki/Reference/{}?action=raw"
+
 HEADERS = {
     # Let's brake their statistics :)
-    'User-Agent': 'Mozilla/4.0 (compatible; MSIE 4.0; Windows NT)'
+    'User-Agent': 'Mozilla/2.0 (compatible; MSIE 3.0; Windows 3.1)'
 }
 
-OUT = {}
+CARD = 'http://code.kx.com/q/ref/card/'
 
-for kwd in KWDS:
-    url = URL_PATTERN.format(kwd)
-    r = requests.get(url, headers=HEADERS)
-    if r.status_code == requests.codes.ok:
-        line = r.text.splitlines()[0]
-        try:
-            _, func, desc = line.replace('}', '').split('|')
-        except ValueError as e:
-            print(f"{kwd}: Error {e} - {line}")
-            OUT[kwd] = line
-        else:
-            OUT[kwd] = (func, desc)
-            print(f"{kwd}: {func}|{desc}")
-    else:
-        print(f"{kwd}: Error {r.status_code} downloading from {url}.")
-        OUT[kwd] = r.status_code
+out = {}
+r = requests.get(CARD, headers=HEADERS)
+if r.status_code == requests.codes.ok:
+    soup = bs(r.text, 'html.parser')
+    for div in soup.find_all('div', {'class': 'md-content'}):
+        for link in div.find_all('a'):
+            key = link.text.strip().split()[0]
+            if 'class' not in link.attrs:
+                if key in KWDS:
+                    href = urljoin(CARD, link.attrs['href'])
+                    title = link.attrs['title'].strip() if 'title' in link.attrs else key
+                    # strip unicode characters
+                    title = title.encode('ascii', 'ignore').decode().strip()
+                    out[key] = (key, title, href)
+    print("Missing:", ', '.join(k for k in KWDS if k not in out))
+    filename = py.path.local('code.kx.dump')
+    with filename.open('wb') as f:
+        dump(out, f)
 
-    sleep(0.5)  # Let's not DDoS them
+    print(f"Saved into {filename}.")
 
-filename = py.path.local(__file__).new(ext='dump')
-with filename.open('wb') as f:
-    dump(OUT, f)
-
-print(f"Saved into {filename}.")
+else:
+    print(f"ERROR {r.status_code} downloading page from {CARD}.")

@@ -1,6 +1,6 @@
 .. py:function:: q.abs
 
-   absolute value function
+   absolute value
    The abs function computes the absolute value of its argument. Null is returned if the argument is null.
 
    >>> q.abs([-1, 0, 1, None])
@@ -8,1201 +8,1182 @@
 
 
 
-   See also `abs on code.kx.com <http://code.kx.com/wiki/Reference/abs>`_.
+   See also `abs on code.kx.com <http://code.kx.com/q/ref/arith-integer/#abs>`_.
 
 
 .. py:function:: q.acos
 
-   arc cosine function
+   arc cosine
 
-   See also `acos on code.kx.com <http://code.kx.com/wiki/Reference/acos>`_.
+   See also `acos on code.kx.com <http://code.kx.com/q/ref/trig/#acos>`_.
 
 
 .. py:function:: q.aj
 
-   asof join function
+   as-of join
 
-   See also `aj on code.kx.com <http://code.kx.com/wiki/Reference/aj>`_.
+   See also `aj on code.kx.com <http://code.kx.com/q/ref/joins/#aj-aj0-asof-join>`_.
 
 
 .. py:function:: q.aj0
 
-   asof join function
+   as-of join
 
-   See also `aj on code.kx.com <http://code.kx.com/wiki/Reference/aj>`_.
+   See also `aj on code.kx.com <http://code.kx.com/q/ref/joins/#aj-aj0-asof-join>`_.
 
 
 .. py:function:: q.all
 
-   all function
+   all nonzero
 
-   See also `all on code.kx.com <http://code.kx.com/wiki/Reference/all>`_.
+   See also `all on code.kx.com <http://code.kx.com/q/ref/logic/#all>`_.
 
 
 .. py:function:: q.and_
 
-   and verb
+   and
 
-   See also `and on code.kx.com <http://code.kx.com/wiki/Reference/and>`_.
+   See also `and on code.kx.com <http://code.kx.com/q/ref/logic/#and-minimum>`_.
 
 
 .. py:function:: q.any
 
-   any function
+   any item is non-zero
 
-   See also `any on code.kx.com <http://code.kx.com/wiki/Reference/any>`_.
+   See also `any on code.kx.com <http://code.kx.com/q/ref/logic/#any>`_.
 
 
 .. py:function:: q.asc
 
-   ascending function
+   ascending sort
 
-   See also `asc on code.kx.com <http://code.kx.com/wiki/Reference/asc>`_.
+   See also `asc on code.kx.com <http://code.kx.com/q/ref/sort/#asc>`_.
 
 
 .. py:function:: q.asin
 
-   arc sine function
+   arc sine
 
-   See also `asin on code.kx.com <http://code.kx.com/wiki/Reference/asin>`_.
+   See also `asin on code.kx.com <http://code.kx.com/q/ref/trig/#asin>`_.
 
 
 .. py:function:: q.asof
 
-   asof verb
+   as-of operator
 
-   See also `asof on code.kx.com <http://code.kx.com/wiki/Reference/asof>`_.
+   See also `asof on code.kx.com <http://code.kx.com/q/ref/joins/#asof>`_.
 
 
 .. py:function:: q.atan
 
-   arc tangent function
+   arc tangent
 
-   See also `atan on code.kx.com <http://code.kx.com/wiki/Reference/atan>`_.
+   See also `atan on code.kx.com <http://code.kx.com/q/ref/trig/#atan>`_.
 
 
 .. py:function:: q.attr
 
-   attributes function
+   attributes
 
-   See also `attr on code.kx.com <http://code.kx.com/wiki/Reference/attr>`_.
+   See also `attr on code.kx.com <http://code.kx.com/q/ref/metadata/#attr>`_.
 
 
 .. py:function:: q.avg
 
-   average function
+   arithmetic mean
 
-   See also `avg on code.kx.com <http://code.kx.com/wiki/Reference/avg>`_.
+   See also `avg on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#avg-average>`_.
 
 
 .. py:function:: q.avgs
 
-   running averages function
+   running averages
 
-   See also `avgs on code.kx.com <http://code.kx.com/wiki/Reference/avgs>`_.
+   See also `avgs on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#avgs-averages>`_.
 
 
 .. py:function:: q.bin
 
-   binary search verb
+   binary search
 
-   See also `bin on code.kx.com <http://code.kx.com/wiki/Reference/bin>`_.
+   See also `bin on code.kx.com <http://code.kx.com/q/ref/search/#bin-binr>`_.
 
 
 .. py:function:: q.binr
 
-   binary search verb
+   binary search
 
-   See also `bin on code.kx.com <http://code.kx.com/wiki/Reference/bin>`_.
+   See also `bin on code.kx.com <http://code.kx.com/q/ref/search/#bin-binr>`_.
 
 
 .. py:function:: q.ceiling
 
-   ceiling function
+   lowest integer above
 
-   See also `ceiling on code.kx.com <http://code.kx.com/wiki/Reference/ceiling>`_.
+   See also `ceiling on code.kx.com <http://code.kx.com/q/ref/arith-integer/#ceiling>`_.
 
 
 .. py:function:: q.cols
 
-   columns function
+   column names of a table
 
-   See also `cols on code.kx.com <http://code.kx.com/wiki/Reference/cols>`_.
+   See also `cols on code.kx.com <http://code.kx.com/q/ref/metadata/#cols>`_.
 
 
 .. py:function:: q.cor
 
-   correlation verb
+   correlation
 
-   See also `cor on code.kx.com <http://code.kx.com/wiki/Reference/cor>`_.
+   See also `cor on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#cor-correlation>`_.
 
 
 .. py:function:: q.cos
 
-   cosine function
+   cosine
 
-   See also `cos on code.kx.com <http://code.kx.com/wiki/Reference/cos>`_.
+   See also `cos on code.kx.com <http://code.kx.com/q/ref/trig/#cos>`_.
 
 
 .. py:function:: q.count
 
-   count function
+   number of items
 
-   See also `count on code.kx.com <http://code.kx.com/wiki/Reference/count>`_.
+   See also `count on code.kx.com <http://code.kx.com/q/ref/lists/#count>`_.
 
 
 .. py:function:: q.cov
 
-   covariance verb
+   statistical covariance
 
-   See also `cov on code.kx.com <http://code.kx.com/wiki/Reference/cov>`_.
+   See also `cov on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#cov-covariance>`_.
 
 
 .. py:function:: q.cross
 
-   cross product verb
+   cross product
 
-   See also `cross on code.kx.com <http://code.kx.com/wiki/Reference/cross>`_.
+   See also `cross on code.kx.com <http://code.kx.com/q/ref/lists/#cross>`_.
 
 
 .. py:function:: q.csv
 
-   csv global
+   comma delimiter
 
-   See also `csv on code.kx.com <http://code.kx.com/wiki/Reference/csv>`_.
+   See also `csv on code.kx.com <http://code.kx.com/q/ref/filewords/#csv>`_.
 
 
 .. py:function:: q.cut
 
-   cut verb
+   cut
 
-   See also `cut on code.kx.com <http://code.kx.com/wiki/Reference/cut>`_.
+   See also `cut on code.kx.com <http://code.kx.com/q/ref/lists/#_-cut>`_.
 
 
 .. py:function:: q.deltas
 
-   deltas function
+   differences between consecutive pairs
 
-   See also `deltas on code.kx.com <http://code.kx.com/wiki/Reference/deltas>`_.
+   See also `deltas on code.kx.com <http://code.kx.com/q/ref/arith-integer/#deltas>`_.
 
 
 .. py:function:: q.desc
 
-   descending sort function
+   descending sort
 
-   See also `desc on code.kx.com <http://code.kx.com/wiki/Reference/desc>`_.
+   See also `desc on code.kx.com <http://code.kx.com/q/ref/sort/#desc>`_.
 
 
 .. py:function:: q.dev
 
-   standard deviation function
+   standard deviation
 
-   See also `dev on code.kx.com <http://code.kx.com/wiki/Reference/dev>`_.
+   See also `dev on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#dev-standard-deviation>`_.
 
 
 .. py:function:: q.differ
 
-   differ function
+   flag differences in consecutive pairs
 
-   See also `differ on code.kx.com <http://code.kx.com/wiki/Reference/differ>`_.
+   See also `differ on code.kx.com <http://code.kx.com/q/ref/comparison/#differ>`_.
 
 
 .. py:function:: q.distinct
 
-   distinct function
+   unique items
 
-   See also `distinct on code.kx.com <http://code.kx.com/wiki/Reference/distinct>`_.
+   See also `distinct on code.kx.com <http://code.kx.com/q/ref/search/#distinct>`_.
 
 
 .. py:function:: q.div
 
-   integer division verb
+   integer division
 
-   See also `div on code.kx.com <http://code.kx.com/wiki/Reference/div>`_.
+   See also `div on code.kx.com <http://code.kx.com/q/ref/arith-integer/#div>`_.
 
 
 .. py:function:: q.dsave
 
-   dsave function
+   save global tables to disk
 
-   See also `dsave on code.kx.com <http://code.kx.com/wiki/Reference/dsave>`_.
-
-
-.. py:function:: q.each
-
-   each adverb
-
-   See also `each on code.kx.com <http://code.kx.com/wiki/Reference/each>`_.
+   See also `dsave on code.kx.com <http://code.kx.com/q/ref/filewords/#dsave>`_.
 
 
 .. py:function:: q.ej
 
-   equijoin verb
+   equi-join
 
-   See also `ej on code.kx.com <http://code.kx.com/wiki/Reference/ej>`_.
-
-
-.. py:function:: q.ema
-
-   exponentially weighted moving average verb
-
-   See also `ema on code.kx.com <http://code.kx.com/wiki/Reference/ema>`_.
+   See also `ej on code.kx.com <http://code.kx.com/q/ref/joins/#ej-equi-join>`_.
 
 
 .. py:function:: q.ema
 
-   exponentially weighted moving average verb
+   exponentially-weighted moving average
 
-   See also `ema on code.kx.com <http://code.kx.com/wiki/Reference/ema>`_.
+   See also `ema on code.kx.com <http://code.kx.com/q/ref/stats-moving/#ema>`_.
+
+
+.. py:function:: q.ema
+
+   exponentially-weighted moving average
+
+   See also `ema on code.kx.com <http://code.kx.com/q/ref/stats-moving/#ema>`_.
 
 
 .. py:function:: q.enlist
 
-   enlist function
+   arguments as a list
 
-   See also `enlist on code.kx.com <http://code.kx.com/wiki/Reference/enlist>`_.
+   See also `enlist on code.kx.com <http://code.kx.com/q/ref/lists/#enlist>`_.
 
 
 .. py:function:: q.eval
 
-   eval function
+   evaluate a parse tree
 
-   See also `eval on code.kx.com <http://code.kx.com/wiki/Reference/eval>`_.
+   See also `eval on code.kx.com <http://code.kx.com/q/ref/parsetrees/#eval>`_.
 
 
 .. py:function:: q.except_
 
-   except verb
+   left argument without items in right argument
 
-   See also `except on code.kx.com <http://code.kx.com/wiki/Reference/except>`_.
+   See also `except on code.kx.com <http://code.kx.com/q/ref/select/#except>`_.
 
 
 .. py:function:: q.exp
 
-   exp function
+   power of e
 
-   See also `exp on code.kx.com <http://code.kx.com/wiki/Reference/exp>`_.
+   See also `exp on code.kx.com <http://code.kx.com/q/ref/arith-float/#exp>`_.
 
 
 .. py:function:: q.fby
 
    filter-by
 
-   See also `fby on code.kx.com <http://code.kx.com/wiki/Reference/fby>`_.
+   See also `fby on code.kx.com <http://code.kx.com/q/ref/qsql/#fby>`_.
 
 
 .. py:function:: q.fills
 
-   fills function
+   forward-fill nulls
 
-   See also `fills on code.kx.com <http://code.kx.com/wiki/Reference/fills>`_.
+   See also `fills on code.kx.com <http://code.kx.com/q/ref/lists/#fills>`_.
 
 
 .. py:function:: q.first
 
-   first function
+   first item
 
-   See also `first on code.kx.com <http://code.kx.com/wiki/Reference/first>`_.
+   See also `first on code.kx.com <http://code.kx.com/q/ref/select/#first>`_.
 
 
 .. py:function:: q.fkeys
 
-   fkeys function
+   foreign-key columns mapped to their tables
 
-   See also `fkeys on code.kx.com <http://code.kx.com/wiki/Reference/fkeys>`_.
+   See also `fkeys on code.kx.com <http://code.kx.com/q/ref/metadata/#fkeys>`_.
 
 
 .. py:function:: q.flip
 
-   flip function
+   transpose
 
-   See also `flip on code.kx.com <http://code.kx.com/wiki/Reference/flip>`_.
+   See also `flip on code.kx.com <http://code.kx.com/q/ref/lists/#flip>`_.
 
 
 .. py:function:: q.floor
 
-   floor function
+   greatest integer less than argument
 
-   See also `floor on code.kx.com <http://code.kx.com/wiki/Reference/floor>`_.
+   See also `floor on code.kx.com <http://code.kx.com/q/ref/arith-integer/#floor>`_.
 
 
 .. py:function:: q.get
 
-   get function
+   get
 
-   See also `get on code.kx.com <http://code.kx.com/wiki/Reference/get>`_.
+   See also `get on code.kx.com <http://code.kx.com/q/ref/dotz/#zpg-get>`_.
 
 
 .. py:function:: q.getenv
 
-   getenv function
+   value of an environment variable
 
-   See also `getenv on code.kx.com <http://code.kx.com/wiki/Reference/getenv>`_.
+   See also `getenv on code.kx.com <http://code.kx.com/q/ref/os/#getenv>`_.
 
 
 .. py:function:: q.group
 
-   group function
+   dictionary of distinct items
 
-   See also `group on code.kx.com <http://code.kx.com/wiki/Reference/group>`_.
+   See also `group on code.kx.com <http://code.kx.com/q/ref/dictsandtables/#group>`_.
 
 
 .. py:function:: q.gtime
 
-   gtime function
+   UTC timestamp
 
-   See also `gtime on code.kx.com <http://code.kx.com/wiki/Reference/gtime>`_.
+   See also `gtime on code.kx.com <http://code.kx.com/q/ref/os/#gtime>`_.
 
 
 .. py:function:: q.hclose
 
-   hclose function
+   close a file or process
 
-   See also `hclose on code.kx.com <http://code.kx.com/wiki/Reference/hclose>`_.
+   See also `hclose on code.kx.com <http://code.kx.com/q/ref/filewords/#hclose>`_.
 
 
 .. py:function:: q.hcount
 
-   hcount function
+   size of a file
 
-   See also `hcount on code.kx.com <http://code.kx.com/wiki/Reference/hcount>`_.
+   See also `hcount on code.kx.com <http://code.kx.com/q/ref/filewords/#hcount>`_.
 
 
 .. py:function:: q.hdel
 
-   hdel function
+   delete a file
 
-   See also `hdel on code.kx.com <http://code.kx.com/wiki/Reference/hdel>`_.
+   See also `hdel on code.kx.com <http://code.kx.com/q/ref/filewords/#hdel>`_.
 
 
 .. py:function:: q.hopen
 
-   hopen function
+   open a file
 
-   See also `hopen on code.kx.com <http://code.kx.com/wiki/Reference/hopen>`_.
+   See also `hopen on code.kx.com <http://code.kx.com/q/ref/filewords/#hopen>`_.
 
 
 .. py:function:: q.hsym
 
-   hsym function
+   convert symbol to filename or IP address
 
-   See also `hsym on code.kx.com <http://code.kx.com/wiki/Reference/hsym>`_.
+   See also `hsym on code.kx.com <http://code.kx.com/q/ref/filewords/#hsym>`_.
 
 
 .. py:function:: q.iasc
 
-   ascending function
+   indices of ascending sort
 
-   See also `iasc on code.kx.com <http://code.kx.com/wiki/Reference/iasc>`_.
+   See also `iasc on code.kx.com <http://code.kx.com/q/ref/sort/#iasc>`_.
 
 
 .. py:function:: q.idesc
 
-   descending function
+   indices of descending sort
 
-   See also `idesc on code.kx.com <http://code.kx.com/wiki/Reference/idesc>`_.
+   See also `idesc on code.kx.com <http://code.kx.com/q/ref/sort/#idesc>`_.
 
 
 .. py:function:: q.ij
 
-   inner join verb
+   inner join
 
-   See also `ij on code.kx.com <http://code.kx.com/wiki/Reference/ij>`_.
+   See also `ij on code.kx.com <http://code.kx.com/q/ref/joins/#ij-inner-join>`_.
 
 
 .. py:function:: q.ijf
 
    The ijf function.
 
-   See also `ijf on code.kx.com <http://code.kx.com/wiki/Reference/ijf>`_.
+   See also `ijf on code.kx.com <http://code.kx.com/q/ref/joins/#ij-inner-join>`_.
 
 
 .. py:function:: q.in_
 
-   membership verb
+   membership
 
-   See also `in on code.kx.com <http://code.kx.com/wiki/Reference/in>`_.
+   See also `in on code.kx.com <http://code.kx.com/q/ref/search/#in>`_.
 
 
 .. py:function:: q.insert
 
-   insert verb
+   append records to a table
 
-   See also `insert on code.kx.com <http://code.kx.com/wiki/Reference/insert>`_.
+   See also `insert on code.kx.com <http://code.kx.com/q/ref/qsql/#insert>`_.
 
 
 .. py:function:: q.inter
 
-   intersect verb
+   items common to both arguments
 
-   See also `inter on code.kx.com <http://code.kx.com/wiki/Reference/inter>`_.
+   See also `inter on code.kx.com <http://code.kx.com/q/ref/select/#inter>`_.
 
 
 .. py:function:: q.inv
 
-   inverse function
+   matrix inverse
 
-   See also `inv on code.kx.com <http://code.kx.com/wiki/Reference/inv>`_.
+   See also `inv on code.kx.com <http://code.kx.com/q/ref/matrixes/#inv>`_.
 
 
 .. py:function:: q.key
 
-   key function
+   key
 
-   See also `key on code.kx.com <http://code.kx.com/wiki/Reference/key>`_.
+   See also `key on code.kx.com <http://code.kx.com/q/ref/dictsandtables/#key>`_.
 
 
 .. py:function:: q.keys
 
-   keys function
+   names of a table's columns
 
-   See also `keys on code.kx.com <http://code.kx.com/wiki/Reference/keys>`_.
+   See also `keys on code.kx.com <http://code.kx.com/q/ref/metadata/#keys>`_.
 
 
 .. py:function:: q.last
 
-   last function
+   last item
 
-   See also `last on code.kx.com <http://code.kx.com/wiki/Reference/last>`_.
+   See also `last on code.kx.com <http://code.kx.com/q/ref/select/#last>`_.
 
 
 .. py:function:: q.like
 
-   pattern matching verb
+   pattern matching
 
-   See also `like on code.kx.com <http://code.kx.com/wiki/Reference/like>`_.
+   See also `like on code.kx.com <http://code.kx.com/q/ref/strings/#like>`_.
 
 
 .. py:function:: q.lj
 
-   left join verb
+   left join
 
-   See also `lj on code.kx.com <http://code.kx.com/wiki/Reference/lj>`_.
+   See also `lj on code.kx.com <http://code.kx.com/q/ref/joins/#lj-ljf-left-join>`_.
 
 
 .. py:function:: q.ljf
 
-   The ljf function.
+   left join
 
-   See also `ljf on code.kx.com <http://code.kx.com/wiki/Reference/ljf>`_.
+   See also `ljf on code.kx.com <http://code.kx.com/q/ref/joins/#lj-ljf-left-join>`_.
 
 
 .. py:function:: q.load
 
-   load function
+   load binary data
 
-   See also `load on code.kx.com <http://code.kx.com/wiki/Reference/load>`_.
+   See also `load on code.kx.com <http://code.kx.com/q/ref/filewords/#load>`_.
 
 
 .. py:function:: q.log
 
-   log function
+   natural logarithm
 
-   See also `log on code.kx.com <http://code.kx.com/wiki/Reference/log>`_.
+   See also `log on code.kx.com <http://code.kx.com/q/ref/arith-float/#log>`_.
 
 
 .. py:function:: q.lower
 
-   lowercase function
+   lower case
 
-   See also `lower on code.kx.com <http://code.kx.com/wiki/Reference/lower>`_.
+   See also `lower on code.kx.com <http://code.kx.com/q/ref/strings/#lower>`_.
 
 
 .. py:function:: q.lsq
 
-   least squares verb
+   least squares  matrix divide
 
-   See also `lsq on code.kx.com <http://code.kx.com/wiki/Reference/lsq>`_.
+   See also `lsq on code.kx.com <http://code.kx.com/q/ref/matrixes/#lsq>`_.
 
 
 .. py:function:: q.ltime
 
-   ltime function
+   local timestamp
 
-   See also `ltime on code.kx.com <http://code.kx.com/wiki/Reference/ltime>`_.
+   See also `ltime on code.kx.com <http://code.kx.com/q/ref/os/#ltime>`_.
 
 
 .. py:function:: q.ltrim
 
-   left trim function
+   function remove leading spaces
 
-   See also `ltrim on code.kx.com <http://code.kx.com/wiki/Reference/ltrim>`_.
+   See also `ltrim on code.kx.com <http://code.kx.com/q/ref/strings/#ltrim>`_.
 
 
 .. py:function:: q.mavg
 
-   moving average verb
+   moving average
 
-   See also `mavg on code.kx.com <http://code.kx.com/wiki/Reference/mavg>`_.
+   See also `mavg on code.kx.com <http://code.kx.com/q/ref/stats-moving/#mavg>`_.
 
 
 .. py:function:: q.max
 
-   maximum function
+   maximum
 
-   See also `max on code.kx.com <http://code.kx.com/wiki/Reference/max>`_.
+   See also `max on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#max-maximum>`_.
 
 
 .. py:function:: q.maxs
 
-   maximums function
+   maxima of preceding items
 
-   See also `maxs on code.kx.com <http://code.kx.com/wiki/Reference/maxs>`_.
+   See also `maxs on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#maxs-maximums>`_.
 
 
 .. py:function:: q.mcount
 
-   moving count verb
+   moving count
 
-   See also `mcount on code.kx.com <http://code.kx.com/wiki/Reference/mcount>`_.
+   See also `mcount on code.kx.com <http://code.kx.com/q/ref/stats-moving/#mcount>`_.
 
 
 .. py:function:: q.md5
 
-   md5 function
+   MD5 hash
 
-   See also `md5 on code.kx.com <http://code.kx.com/wiki/Reference/md5>`_.
+   See also `md5 on code.kx.com <http://code.kx.com/q/ref/strings/#md5>`_.
 
 
 .. py:function:: q.mdev
 
-   moving deviation verb
+   moving deviation
 
-   See also `mdev on code.kx.com <http://code.kx.com/wiki/Reference/mdev>`_.
+   See also `mdev on code.kx.com <http://code.kx.com/q/ref/stats-moving/#mdev>`_.
 
 
 .. py:function:: q.med
 
-   median function
+   median
 
-   See also `med on code.kx.com <http://code.kx.com/wiki/Reference/med>`_.
+   See also `med on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#med-median>`_.
 
 
 .. py:function:: q.meta
 
-   meta data function
+   metadata of a table
 
-   See also `meta on code.kx.com <http://code.kx.com/wiki/Reference/meta>`_.
+   See also `meta on code.kx.com <http://code.kx.com/q/ref/metadata/#meta>`_.
 
 
 .. py:function:: q.min
 
-   minimum function
+   minimum
 
-   See also `min on code.kx.com <http://code.kx.com/wiki/Reference/min>`_.
+   See also `min on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#min-minimum>`_.
 
 
 .. py:function:: q.mins
 
-   minimums function
+   minimum of preceding items
 
-   See also `mins on code.kx.com <http://code.kx.com/wiki/Reference/mins>`_.
+   See also `mins on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#mins-minimums>`_.
 
 
 .. py:function:: q.mmax
 
-   moving maximum verb
+   moving maxima
 
-   See also `mmax on code.kx.com <http://code.kx.com/wiki/Reference/mmax>`_.
+   See also `mmax on code.kx.com <http://code.kx.com/q/ref/stats-moving/#mmax>`_.
 
 
 .. py:function:: q.mmin
 
-   moving minimum verb
+   moving minima
 
-   See also `mmin on code.kx.com <http://code.kx.com/wiki/Reference/mmin>`_.
+   See also `mmin on code.kx.com <http://code.kx.com/q/ref/stats-moving/#mmin>`_.
 
 
 .. py:function:: q.mmu
 
-   matrix multiplication verb
+   mmu
 
-   See also `mmu on code.kx.com <http://code.kx.com/wiki/Reference/mmu>`_.
+   See also `mmu on code.kx.com <http://code.kx.com/q/ref/matrixes/#mmu>`_.
 
 
 .. py:function:: q.mod
 
-   modulus verb
+   remainder
 
-   See also `mod on code.kx.com <http://code.kx.com/wiki/Reference/mod>`_.
+   See also `mod on code.kx.com <http://code.kx.com/q/ref/arith-integer/#mod>`_.
 
 
 .. py:function:: q.msum
 
-   moving sum verb
+   moving sum
 
-   See also `msum on code.kx.com <http://code.kx.com/wiki/Reference/msum>`_.
+   See also `msum on code.kx.com <http://code.kx.com/q/ref/stats-moving/#msum>`_.
 
 
 .. py:function:: q.neg
 
-   negative function
+   negate
 
-   See also `neg on code.kx.com <http://code.kx.com/wiki/Reference/neg>`_.
+   See also `neg on code.kx.com <http://code.kx.com/q/ref/arith-integer/#neg>`_.
 
 
 .. py:function:: q.next
 
-   next function
+   next items
 
-   See also `next on code.kx.com <http://code.kx.com/wiki/Reference/next>`_.
+   See also `next on code.kx.com <http://code.kx.com/q/ref/select/#next>`_.
 
 
 .. py:function:: q.not_
 
-   logical not function
+   not
 
-   See also `not on code.kx.com <http://code.kx.com/wiki/Reference/not>`_.
+   See also `not on code.kx.com <http://code.kx.com/q/ref/comparison/#six-comparison-operators>`_.
 
 
 .. py:function:: q.null
 
-   null function
+   null
 
-   See also `null on code.kx.com <http://code.kx.com/wiki/Reference/null>`_.
+   See also `null on code.kx.com <http://code.kx.com/q/ref/unclassified/#null>`_.
 
 
 .. py:function:: q.or_
 
-   or verb
+   or
 
-   See also `or on code.kx.com <http://code.kx.com/wiki/Reference/or>`_.
-
-
-.. py:function:: q.over
-
-   over adverb
-
-   See also `over on code.kx.com <http://code.kx.com/wiki/Reference/over>`_.
+   See also `or on code.kx.com <http://code.kx.com/q/ref/logic/#or-maximum>`_.
 
 
 .. py:function:: q.parse
 
-   parse function
+   parse a string
 
-   See also `parse on code.kx.com <http://code.kx.com/wiki/Reference/parse>`_.
+   See also `parse on code.kx.com <http://code.kx.com/q/ref/parsetrees/#parse>`_.
 
 
 .. py:function:: q.peach
 
-   parallel each adverb
+   peach
 
-   See also `peach on code.kx.com <http://code.kx.com/wiki/Reference/peach>`_.
+   See also `peach on code.kx.com <http://code.kx.com/q/ref/dotz/#zpd-peach-handles>`_.
 
 
 .. py:function:: q.pj
 
-   plus join verb
+   plus join
 
-   See also `pj on code.kx.com <http://code.kx.com/wiki/Reference/pj>`_.
+   See also `pj on code.kx.com <http://code.kx.com/q/ref/joins/#pj-plus-join>`_.
 
 
 .. py:function:: q.prd
 
-   product function
+   product
 
-   See also `prd on code.kx.com <http://code.kx.com/wiki/Reference/prd>`_.
+   See also `prd on code.kx.com <http://code.kx.com/q/ref/arith-float/#prd>`_.
 
 
 .. py:function:: q.prds
 
-   cumulative product function
+   cumulative products
 
-   See also `prds on code.kx.com <http://code.kx.com/wiki/Reference/prds>`_.
+   See also `prds on code.kx.com <http://code.kx.com/q/ref/arith-float/#prds>`_.
 
 
 .. py:function:: q.prev
 
-   prev function
+   previous items
 
-   See also `prev on code.kx.com <http://code.kx.com/wiki/Reference/prev>`_.
+   See also `prev on code.kx.com <http://code.kx.com/q/ref/select/#prev>`_.
 
 
 .. py:function:: q.prior
 
-   prior function
+   prior
 
-   See also `prior on code.kx.com <http://code.kx.com/wiki/Reference/prior>`_.
+   See also `prior on code.kx.com <http://code.kx.com/q/ref/control/#prior>`_.
 
 
 .. py:function:: q.rand
 
-   random function
+   random number
 
-   See also `rand on code.kx.com <http://code.kx.com/wiki/Reference/rand>`_.
+   See also `rand on code.kx.com <http://code.kx.com/q/ref/random/#rand>`_.
 
 
 .. py:function:: q.rank
 
-   rank function
+   grade up
 
-   See also `rank on code.kx.com <http://code.kx.com/wiki/Reference/rank>`_.
+   See also `rank on code.kx.com <http://code.kx.com/q/ref/sort/#rank>`_.
 
 
 .. py:function:: q.ratios
 
-   ratios function
+   ratios of consecutive pairs
 
-   See also `ratios on code.kx.com <http://code.kx.com/wiki/Reference/ratios>`_.
+   See also `ratios on code.kx.com <http://code.kx.com/q/ref/arith-float/#ratios>`_.
 
 
 .. py:function:: q.raze
 
-   raze function
+   join items
 
-   See also `raze on code.kx.com <http://code.kx.com/wiki/Reference/raze>`_.
+   See also `raze on code.kx.com <http://code.kx.com/q/ref/lists/#raze>`_.
 
 
 .. py:function:: q.read0
 
-   file read function
+   read file as lines
 
-   See also `read0 on code.kx.com <http://code.kx.com/wiki/Reference/read0>`_.
+   See also `read0 on code.kx.com <http://code.kx.com/q/ref/filewords/#read0>`_.
 
 
 .. py:function:: q.read1
 
-   file read function
+   read file as bytes
 
-   See also `read1 on code.kx.com <http://code.kx.com/wiki/Reference/read1>`_.
+   See also `read1 on code.kx.com <http://code.kx.com/q/ref/filewords/#read1>`_.
 
 
 .. py:function:: q.reciprocal
 
-   reciprocal function
+   reciprocal of a number
 
-   See also `reciprocal on code.kx.com <http://code.kx.com/wiki/Reference/reciprocal>`_.
-
-
-.. py:function:: q.reval
-
-   reval function
-
-   See also `reval on code.kx.com <http://code.kx.com/wiki/Reference/reval>`_.
+   See also `reciprocal on code.kx.com <http://code.kx.com/q/ref/arith-float/#reciprocal>`_.
 
 
 .. py:function:: q.reval
 
-   reval function
+   variation of eval
 
-   See also `reval on code.kx.com <http://code.kx.com/wiki/Reference/reval>`_.
+   See also `reval on code.kx.com <http://code.kx.com/q/ref/parsetrees/#reval>`_.
 
 
 .. py:function:: q.reverse
 
-   reverse function
+   reverse the order of items
 
-   See also `reverse on code.kx.com <http://code.kx.com/wiki/Reference/reverse>`_.
+   See also `reverse on code.kx.com <http://code.kx.com/q/ref/lists/#reverse>`_.
 
 
 .. py:function:: q.rload
 
-   rload function
+   load a splayed table
 
-   See also `rload on code.kx.com <http://code.kx.com/wiki/Reference/rload>`_.
+   See also `rload on code.kx.com <http://code.kx.com/q/ref/filewords/#rload>`_.
 
 
 .. py:function:: q.rotate
 
-   rotate verb
+   rotate items
 
-   See also `rotate on code.kx.com <http://code.kx.com/wiki/Reference/rotate>`_.
+   See also `rotate on code.kx.com <http://code.kx.com/q/ref/lists/#rotate>`_.
 
 
 .. py:function:: q.rsave
 
-   rsave function
+   rsave
 
-   See also `rsave on code.kx.com <http://code.kx.com/wiki/Reference/rsave>`_.
+   See also `rsave on code.kx.com <http://code.kx.com/q/ref/filewords/#rsave>`_.
 
 
 .. py:function:: q.rtrim
 
-   right trim function
+   remove trailing spaces
 
-   See also `rtrim on code.kx.com <http://code.kx.com/wiki/Reference/rtrim>`_.
+   See also `rtrim on code.kx.com <http://code.kx.com/q/ref/strings/#rtrim>`_.
 
 
 .. py:function:: q.save
 
-   save function
+   save global data to file
 
-   See also `save on code.kx.com <http://code.kx.com/wiki/Reference/save>`_.
-
-
-.. py:function:: q.scan
-
-   scan adverb
-
-   See also `scan on code.kx.com <http://code.kx.com/wiki/Reference/scan>`_.
+   See also `save on code.kx.com <http://code.kx.com/q/ref/filewords/#save>`_.
 
 
 .. py:function:: q.scov
 
-   statistical covariance verb
+   statistical covariance
 
-   See also `scov on code.kx.com <http://code.kx.com/wiki/Reference/scov>`_.
+   See also `scov on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#scov-statistical-covariance>`_.
 
 
 .. py:function:: q.scov
 
-   statistical covariance verb
+   statistical covariance
 
-   See also `scov on code.kx.com <http://code.kx.com/wiki/Reference/scov>`_.
-
-
-.. py:function:: q.sdev
-
-   statistical standard deviation function
-
-   See also `sdev on code.kx.com <http://code.kx.com/wiki/Reference/sdev>`_.
+   See also `scov on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#scov-statistical-covariance>`_.
 
 
 .. py:function:: q.sdev
 
-   statistical standard deviation function
+   statistical standard deviation
 
-   See also `sdev on code.kx.com <http://code.kx.com/wiki/Reference/sdev>`_.
+   See also `sdev on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#sdev-statistical-standard-deviation>`_.
+
+
+.. py:function:: q.sdev
+
+   statistical standard deviation
+
+   See also `sdev on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#sdev-statistical-standard-deviation>`_.
 
 
 .. py:function:: q.set
 
-   set verb
+   set
 
-   See also `set on code.kx.com <http://code.kx.com/wiki/Reference/set>`_.
+   See also `set on code.kx.com <http://code.kx.com/q/ref/dotz/#zps-set>`_.
 
 
 .. py:function:: q.setenv
 
-   setenv verb
+   set an environment variable
 
-   See also `setenv on code.kx.com <http://code.kx.com/wiki/Reference/setenv>`_.
+   See also `setenv on code.kx.com <http://code.kx.com/q/ref/os/#setenv>`_.
 
 
 .. py:function:: q.show
 
-   show function
+   format to the console
 
-   See also `show on code.kx.com <http://code.kx.com/wiki/Reference/show>`_.
+   See also `show on code.kx.com <http://code.kx.com/q/ref/devtools/#show>`_.
 
 
 .. py:function:: q.signum
 
-   signum function
+   sign of its argument/s
 
-   See also `signum on code.kx.com <http://code.kx.com/wiki/Reference/signum>`_.
+   See also `signum on code.kx.com <http://code.kx.com/q/ref/arith-integer/#signum>`_.
 
 
 .. py:function:: q.sin
 
-   sine function
+   sine
 
-   See also `sin on code.kx.com <http://code.kx.com/wiki/Reference/sin>`_.
+   See also `sin on code.kx.com <http://code.kx.com/q/ref/trig/#sin>`_.
 
 
 .. py:function:: q.sqrt
 
-   square root function
+   square root
 
-   See also `sqrt on code.kx.com <http://code.kx.com/wiki/Reference/sqrt>`_.
+   See also `sqrt on code.kx.com <http://code.kx.com/q/ref/arith-float/#sqrt>`_.
 
 
 .. py:function:: q.ss
 
-   string search function
+   string search
 
-   See also `ss on code.kx.com <http://code.kx.com/wiki/Reference/ss>`_.
+   See also `ss on code.kx.com <http://code.kx.com/q/ref/strings/#ss>`_.
 
 
 .. py:function:: q.ssr
 
-   string search replace function
+   string search and replace
 
-   See also `ssr on code.kx.com <http://code.kx.com/wiki/Reference/ssr>`_.
+   See also `ssr on code.kx.com <http://code.kx.com/q/ref/strings/#ssr>`_.
 
 
 .. py:function:: q.string
 
-   string function
+   cast to string
 
-   See also `string on code.kx.com <http://code.kx.com/wiki/Reference/string>`_.
+   See also `string on code.kx.com <http://code.kx.com/q/ref/casting/#string>`_.
 
 
 .. py:function:: q.sublist
 
-   sublist verb
+   sublist of a list
 
-   See also `sublist on code.kx.com <http://code.kx.com/wiki/Reference/sublist>`_.
+   See also `sublist on code.kx.com <http://code.kx.com/q/ref/select/#sublist>`_.
 
 
 .. py:function:: q.sum
 
-   sum function
+   sum of a list
 
-   See also `sum on code.kx.com <http://code.kx.com/wiki/Reference/sum>`_.
+   See also `sum on code.kx.com <http://code.kx.com/q/ref/arith-integer/#sum>`_.
 
 
 .. py:function:: q.sums
 
-   cumulative sum function
+   cumulative sums of a list
 
-   See also `sums on code.kx.com <http://code.kx.com/wiki/Reference/sums>`_.
+   See also `sums on code.kx.com <http://code.kx.com/q/ref/arith-integer/#sums>`_.
 
 
 .. py:function:: q.sv
 
-   scalar from vector verb
+   consolidate
 
-   See also `sv on code.kx.com <http://code.kx.com/wiki/Reference/sv>`_.
-
-
-.. py:function:: q.svar
-
-   statistical variance function
-
-   See also `svar on code.kx.com <http://code.kx.com/wiki/Reference/svar>`_.
+   See also `sv on code.kx.com <http://code.kx.com/q/ref/lists/#sv>`_.
 
 
 .. py:function:: q.svar
 
-   statistical variance function
+   statistical variance
 
-   See also `svar on code.kx.com <http://code.kx.com/wiki/Reference/svar>`_.
+   See also `svar on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#svar-statistical-variance>`_.
+
+
+.. py:function:: q.svar
+
+   statistical variance
+
+   See also `svar on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#svar-statistical-variance>`_.
 
 
 .. py:function:: q.system
 
-   system command function
+   system
 
-   See also `system on code.kx.com <http://code.kx.com/wiki/Reference/system>`_.
+   See also `system on code.kx.com <http://code.kx.com/q/ref/syscmds>`_.
 
 
 .. py:function:: q.tables
 
-   tables function
+   sorted list of tables
 
-   See also `tables on code.kx.com <http://code.kx.com/wiki/Reference/tables>`_.
+   See also `tables on code.kx.com <http://code.kx.com/q/ref/metadata/#tables>`_.
 
 
 .. py:function:: q.tan
 
-   tangent function
+   tangent
 
-   See also `tan on code.kx.com <http://code.kx.com/wiki/Reference/tan>`_.
+   See also `tan on code.kx.com <http://code.kx.com/q/ref/trig/#tan>`_.
 
 
 .. py:function:: q.til
 
-   til function
+   integers up to x
 
-   See also `til on code.kx.com <http://code.kx.com/wiki/Reference/til>`_.
+   See also `til on code.kx.com <http://code.kx.com/q/ref/arith-integer/#til>`_.
 
 
 .. py:function:: q.trim
 
-   trim function
+   remove leading and trailing spaces
 
-   See also `trim on code.kx.com <http://code.kx.com/wiki/Reference/trim>`_.
+   See also `trim on code.kx.com <http://code.kx.com/q/ref/strings/#trim>`_.
 
 
 .. py:function:: q.type
 
-   type function
+   data type
 
-   See also `type on code.kx.com <http://code.kx.com/wiki/Reference/type>`_.
+   See also `type on code.kx.com <http://code.kx.com/q/ref/metadata/#type>`_.
 
 
 .. py:function:: q.uj
 
-   union join verb
+   union join
 
-   See also `uj on code.kx.com <http://code.kx.com/wiki/Reference/uj>`_.
+   See also `uj on code.kx.com <http://code.kx.com/q/ref/joins/#uj-union-join>`_.
+
+
+.. py:function:: q.ujf
+
+   The ujf function.
+
+   See also `ujf on code.kx.com <http://code.kx.com/q/ref/joins/#uj-union-join>`_.
 
 
 .. py:function:: q.ungroup
 
-   ungroup function
+   flattened table
 
-   See also `ungroup on code.kx.com <http://code.kx.com/wiki/Reference/ungroup>`_.
+   See also `ungroup on code.kx.com <http://code.kx.com/q/ref/dictsandtables/#ungroup>`_.
 
 
 .. py:function:: q.union
 
-   union verb
+   distinct items of combination of two lists
 
-   See also `union on code.kx.com <http://code.kx.com/wiki/Reference/union>`_.
+   See also `union on code.kx.com <http://code.kx.com/q/ref/select/#union>`_.
 
 
 .. py:function:: q.upper
 
-   uppercase function
+   upper-case
 
-   See also `upper on code.kx.com <http://code.kx.com/wiki/Reference/upper>`_.
+   See also `upper on code.kx.com <http://code.kx.com/q/ref/strings/#upper>`_.
 
 
 .. py:function:: q.upsert
 
-   upsert verb
+   add table records
 
-   See also `upsert on code.kx.com <http://code.kx.com/wiki/Reference/upsert>`_.
+   See also `upsert on code.kx.com <http://code.kx.com/q/ref/qsql/#upsert>`_.
 
 
 .. py:function:: q.value
 
-   value function
+   value
 
-   See also `value on code.kx.com <http://code.kx.com/wiki/Reference/value>`_.
+   See also `value on code.kx.com <http://code.kx.com/q/ref/dotz/#zvs-value-set>`_.
 
 
 .. py:function:: q.var
 
-   variance function
+   variance
 
-   See also `var on code.kx.com <http://code.kx.com/wiki/Reference/var>`_.
+   See also `var on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#var-variance>`_.
 
 
 .. py:function:: q.view
 
-   view function
+   definition of a dependency
 
-   See also `view on code.kx.com <http://code.kx.com/wiki/Reference/view>`_.
+   See also `view on code.kx.com <http://code.kx.com/q/ref/metadata/#view>`_.
 
 
 .. py:function:: q.views
 
-   views function
+   list of defined views
 
-   See also `views on code.kx.com <http://code.kx.com/wiki/Reference/views>`_.
+   See also `views on code.kx.com <http://code.kx.com/q/ref/environment/#views>`_.
 
 
 .. py:function:: q.vs
 
-   vector from scalar verb
+   split
 
-   See also `vs on code.kx.com <http://code.kx.com/wiki/Reference/vs>`_.
+   See also `vs on code.kx.com <http://code.kx.com/q/ref/lists/#vs>`_.
 
 
 .. py:function:: q.wavg
 
-   weighted average verb
+   weighted average
 
-   See also `wavg on code.kx.com <http://code.kx.com/wiki/Reference/wavg>`_.
+   See also `wavg on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#wavg-weighted-average>`_.
 
 
 .. py:function:: q.where
 
-   where function
+   replicated items
 
-   See also `where on code.kx.com <http://code.kx.com/wiki/Reference/where>`_.
+   See also `where on code.kx.com <http://code.kx.com/q/ref/select/#where>`_.
 
 
 .. py:function:: q.within
 
-   within verb
+   flag items within range
 
-   See also `within on code.kx.com <http://code.kx.com/wiki/Reference/within>`_.
+   See also `within on code.kx.com <http://code.kx.com/q/ref/search/#within>`_.
 
 
 .. py:function:: q.wj
 
-   window join function
+   window join
 
-   See also `wj on code.kx.com <http://code.kx.com/wiki/Reference/wj>`_.
+   See also `wj on code.kx.com <http://code.kx.com/q/ref/joins/#wj-wj1-window-join>`_.
 
 
 .. py:function:: q.wj1
 
-   The wj1 function.
+   window join
 
-   See also `wj1 on code.kx.com <http://code.kx.com/wiki/Reference/wj1>`_.
+   See also `wj1 on code.kx.com <http://code.kx.com/q/ref/joins/#wj-wj1-window-join>`_.
 
 
 .. py:function:: q.wsum
 
-   weighted sum verb
+   weighted sum
 
-   See also `wsum on code.kx.com <http://code.kx.com/wiki/Reference/wsum>`_.
+   See also `wsum on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#wsum-weighted-sum>`_.
 
 
 .. py:function:: q.ww
 
    The ww function.
 
-   See also `ww on code.kx.com <http://code.kx.com/wiki/Reference/ww>`_.
+   See also `ww on code.kx.com <http://code.kx.com/q/ref/stats-aggregates/#wsum-weighted-sum>`_.
 
 
 .. py:function:: q.xasc
 
-   ascending sort verb
+   table sorted ascending by columns
 
-   See also `xasc on code.kx.com <http://code.kx.com/wiki/Reference/xasc>`_.
+   See also `xasc on code.kx.com <http://code.kx.com/q/ref/dictsandtables/#xasc>`_.
 
 
 .. py:function:: q.xbar
 
-   interval bar verb
+   interval bar
 
-   See also `xbar on code.kx.com <http://code.kx.com/wiki/Reference/xbar>`_.
+   See also `xbar on code.kx.com <http://code.kx.com/q/ref/arith-integer/#xbar>`_.
 
 
 .. py:function:: q.xcol
 
-   rename columns verb
+   rename table columns
 
-   See also `xcol on code.kx.com <http://code.kx.com/wiki/Reference/xcol>`_.
+   See also `xcol on code.kx.com <http://code.kx.com/q/ref/dictsandtables/#xcol>`_.
 
 
 .. py:function:: q.xcols
 
-   reorder columns verb
+   re-order table columns
 
-   See also `xcols on code.kx.com <http://code.kx.com/wiki/Reference/xcols>`_.
+   See also `xcols on code.kx.com <http://code.kx.com/q/ref/dictsandtables/#xcols>`_.
 
 
 .. py:function:: q.xdesc
 
-   descending sort verb
+   table sorted descending by columns
 
-   See also `xdesc on code.kx.com <http://code.kx.com/wiki/Reference/xdesc>`_.
+   See also `xdesc on code.kx.com <http://code.kx.com/q/ref/dictsandtables/#xdesc>`_.
 
 
 .. py:function:: q.xexp
 
-   power verb
+   raised to a power
 
-   See also `xexp on code.kx.com <http://code.kx.com/wiki/Reference/xexp>`_.
+   See also `xexp on code.kx.com <http://code.kx.com/q/ref/arith-float/#xexp>`_.
 
 
 .. py:function:: q.xgroup
 
-   grouping verb
+   table grouped by keys
 
-   See also `xgroup on code.kx.com <http://code.kx.com/wiki/Reference/xgroup>`_.
+   See also `xgroup on code.kx.com <http://code.kx.com/q/ref/dictsandtables/#xgroup>`_.
 
 
 .. py:function:: q.xkey
 
-   set primary key verb
+   set primary keys of a table
 
-   See also `xkey on code.kx.com <http://code.kx.com/wiki/Reference/xkey>`_.
+   See also `xkey on code.kx.com <http://code.kx.com/q/ref/dictsandtables/#xkey>`_.
 
 
 .. py:function:: q.xlog
 
-   base-x log verb
+   base-x logarithm
 
-   See also `xlog on code.kx.com <http://code.kx.com/wiki/Reference/xlog>`_.
+   See also `xlog on code.kx.com <http://code.kx.com/q/ref/arith-float/#xlog>`_.
 
 
 .. py:function:: q.xprev
 
-   previous verb
+   previous items
 
-   See also `xprev on code.kx.com <http://code.kx.com/wiki/Reference/xprev>`_.
+   See also `xprev on code.kx.com <http://code.kx.com/q/ref/select/#xprev>`_.
 
 
 .. py:function:: q.xrank
 
-   buckets verb
+   items assigned to buckets
 
-   See also `xrank on code.kx.com <http://code.kx.com/wiki/Reference/xrank>`_.
+   See also `xrank on code.kx.com <http://code.kx.com/q/ref/sort/#xrank>`_.
+
+
