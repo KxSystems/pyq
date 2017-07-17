@@ -67,7 +67,7 @@ and called in q scripts.
 Exporting Python functions to q
 -------------------------------
 
-As we've seen in the previous section, calling python by evaluating "p)"
+As we have seen in the previous section, calling python by evaluating "p)"
 expressions has several limitations.  For tighter integration between q and
 Python, pyq supports exporting Python functions to q.  Once exported, python
 functions appear in q as monadic functions that take a single argument that

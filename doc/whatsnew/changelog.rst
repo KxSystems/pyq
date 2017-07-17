@@ -4,6 +4,22 @@
 Version History
 ===============
 
+`PyQ 4.0.3 <http://pyq.readthedocs.io/en/pyq-4.0.3/>`_
+------------------------------------------------------
+
+Released on 2017-07-17
+
+Bug fixes:
+
+    - !551 - BUG  #922: Allow large (> 2**31) integers in K._ktn().
+    - !546 - BUG #923 Fixed conversion of mixed lists.
+
+Documentation:
+
+    - !547 - DOC: Minor documentation corrections
+
+
+
 `PyQ 4.0.2 <http://pyq.readthedocs.io/en/pyq-4.0.2/>`_
 ------------------------------------------------------
 
@@ -178,6 +194,15 @@ Setup:
   - !337 - #782: Use install extras to install requirements.
   - !339 - #782: Use extras instead of deps in tox.ini.
   - !340 - #788: Add ipython extras.
+
+
+
+`PyQ 3.8.5 <http://pyq.readthedocs.io/en/pyq-3.8.5/>`_
+------------------------------------------------------
+
+Released on 2017-03-16
+
+- !517 - #901: Provide a fallback for systems that lack CPU_COUNT.
 
 
 

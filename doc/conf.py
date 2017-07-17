@@ -18,7 +18,7 @@ import os
 try:
     from pyq import __version__
 except ImportError:
-    __version__ = '4.0.2'
+    __version__ = '4.0.3'
 
 
 # If extensions (or modules to document with autodoc) are in another directory,

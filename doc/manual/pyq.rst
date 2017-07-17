@@ -745,7 +745,7 @@ Typed constructors are discussed in the next section.
 Constructors and casts
 ----------------------
 
-As we've seen in the previous chapter, it is often not necessary to construct :class:`~pyq.K`
+As we have seen in the previous chapter, it is often not necessary to construct :class:`~pyq.K`
 objects explicitly because they are automatically created whenever a Python object is passed
 to a q function.  This is done by passing the Python object to the default :class:`~pyq.K`
 constructor.
@@ -1248,7 +1248,7 @@ the Fibonacci sequence
 k('0 1 1 2 3 5 8 13 21 34 55')
 
 and the ratios of consecutive Fibonacci numbers form the sequence of Golden Ratio
-convergents that we've seen before:
+convergents that we have seen before:
 
 >>> q.ratios(_)
 k('0 0w 1 2 1.5 1.666667 1.6 1.625 1.615385 1.619048 1.617647')
@@ -1257,7 +1257,7 @@ k('0 0w 1 2 1.5 1.666667 1.6 1.625 1.615385 1.619048 1.617647')
 Each previous
 ^^^^^^^^^^^^^
 
-In the previous section we've seen a function :func:`~pyq.K.ratios` that takes
+In the previous section we have seen a function :func:`~pyq.K.ratios` that takes
 a vector and produces the ratios of the adjacent elements.  A similar function
 called :func:`~pyq.K.deltas` produces the differences between the adjacent
 elements:

@@ -127,3 +127,4 @@ Ubuntu
 ptpython
 Ctrl
 pre
+ktn

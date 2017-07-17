@@ -29,7 +29,7 @@ def q(*args):
 
 
 q("\\e 0")  # disable q's debug on error
-KXVER = int(q('.Q.k').inspect(b'f'))
+KXVER = q('.Q.k').inspect(b'f')
 if KXVER >= 3:
     kguid = _k.K._kguid
     UU = _k.K._UU

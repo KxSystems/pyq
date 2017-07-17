@@ -40,7 +40,7 @@ We are going to install Python 3.6 into ``/opt/python3.6.i686``:
     $ sudo make install
     $ unset CFLAGS LDFLAGS
 
-Let's confirm we've got 32-bit Python on our 64-bit system:
+Let's confirm we have a 32-bit Python on our 64-bit system:
 
 .. code-block:: bash
 
@@ -73,7 +73,7 @@ Create a virtual environment:
     $ /opt/python3.6.i686/bin/python3.6 ${HOME}/Build/virtualenv-15.1.0/virtualenv.py \
       ${HOME}/Work/pyq3
 
-Enter the virtual environment we've just created, confirm we've got 32-bit Python in it:
+Enter the virtual environment that we created, confirm that we have a 32-bit Python there:
 
 .. code-block:: bash
 

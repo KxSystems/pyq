@@ -2389,10 +2389,15 @@ PyDoc_STRVAR(K_ktn_doc, "returns a K list");
 static PyObject *
 K_ktn(PyTypeObject * type, PyObject *args)
 {
-    I t, n;
     K x;
-
+    I t;
+#if KXVER < 3
+    I n;
     if (!PyArg_ParseTuple(args, "ii:K._ktn", &t, &n)) {
+#else
+    J n;
+    if (!PyArg_ParseTuple(args, "iL:K._ktn", &t, &n)) {
+#endif
         return NULL;
     }
     x = ktn(t, n);

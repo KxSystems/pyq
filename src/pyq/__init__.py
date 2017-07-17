@@ -716,7 +716,7 @@ def _listtok(x):
         if c is not None:
             try:
                 return c(x)
-            except TypeError:
+            except (TypeError, ValueError):
                 pass
         return K._from_sequence(x)
     return K._ktn(0, 0)

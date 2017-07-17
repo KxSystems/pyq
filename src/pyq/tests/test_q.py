@@ -1145,3 +1145,8 @@ def test_typed_from_mapping(q):
     x = OrderedDict([('a', "x"), ('b', "y")])
     assert K.string(x) == q('`a`b!(enlist"x";enlist"y")')
     assert K.char(x) == q('`a`b!"xy"')
+
+
+def test_issue_923(q):
+    assert K([0.0, '', 0]) == q('(0f;`;0)')
+    assert K([0, '', 0.0]) == q('(0;`;0f)')
