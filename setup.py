@@ -748,7 +748,6 @@ class Distribution(_Distribution):
             o = 'v' if uname()[-1] == 'i86pc' else 's'
         elif platform == 'Darwin':
             o = 'm'
-            bits = 32
         elif platform == 'Windows':
             o = 'w'
             bits = 32  # FIXME: We test with 32-bit kdb+ on Windows, so forcing 32-bit version.
