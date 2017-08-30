@@ -1,7 +1,11 @@
+from __future__ import absolute_import
 import subprocess
 import os
 import pytest
 from pyq import _k
+import platform
+
+WIN = platform.system() == "Windows"
 
 TEST_SD = """\
 p)import os
@@ -25,6 +29,7 @@ p)os.write(w, b'X')
 """
 
 
+@pytest.mark.skipif(WIN, reason="This test hangs on Windows.")
 def test_sd(tmpdir):
     qbin = os.environ['QBIN']
     test = tmpdir.join('test_sd.q')
@@ -34,6 +39,7 @@ def test_sd(tmpdir):
                                                  stdin=devnull)
 
 
+@pytest.mark.skipif(WIN, reason="This test hangs on Windows.")
 def test_callback_error(tmpdir):
     qbin = os.environ['QBIN']
     test = tmpdir.join('test_sd.q')

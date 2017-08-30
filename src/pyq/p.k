@@ -1,20 +1,16 @@
+\l pyq-config.q
 \d .p
-PYVER:"2.7"
-SOEXT:".so\000"
-PSO:`p
-lib:"libpython",PYVER,SOEXT
-PYTHON:"python.py"
-
-(PSO 2:(`i;1))lib
+q)(`p 2:(`p_init;1))python_dll
 / We use function composition to suppress back-traces
 / from lambda.  Note that parentheses are required.
 e:('[e;],[;"\000"])
 \d .
 p)import sys, os
 p)from pyq import q
-p)sys.executable = str(q(".p.PYTHON"))
-p)script = str(q(".z.f"))
-p)sys.argv = [script] + [str(a) for a in  q(".z.x")]
-p)sys.modules['__main__'].__file__ = script
-p)sys.path.insert(0, os.path.dirname(script))
+p)sys.executable = str(q(".p.pyq_executable"))
+p)script = q("{$[x~`python.q;`;x]}.z.f")
+p)if script:
+    sys.argv = [str(script)] + [str(a) for a in q(".z.x")]
+    sys.modules['__main__'].__file__ = str(script)
+    sys.path.insert(0, os.path.dirname(str(script)))
 p)del sys, os, script

@@ -2,18 +2,18 @@ from __future__ import absolute_import
 
 import pytest
 import sys
+import os
 import unittest
 from datetime import datetime, date, time, timedelta
 import math
 import struct
-from pyq import _k
+from pyq import _k, Q_VERSION, _PY3K
 
 if sys.maxsize == 2147483647:  # 32-bit platform
     K_INT_CODE, K_LONG_CODE = "lq"
 else:
     K_INT_CODE, K_LONG_CODE = "il"
 
-PY3K = sys.hexversion >= 0x3000000
 
 # extract _k.K class methods
 for m in ('func k knk ktd err dot a1'
@@ -29,8 +29,8 @@ def q(*args):
 
 
 q("\\e 0")  # disable q's debug on error
-KXVER = q('.Q.k').inspect(b'f')
-if KXVER >= 3:
+
+if Q_VERSION >= 3:
     kguid = _k.K._kguid
     UU = _k.K._UU
 
@@ -241,7 +241,7 @@ class IterTestCase(K_TestCase):
         for x, y in zip(t, d):
             self.assert_k_is(x, y)
 
-    if KXVER >= 3:
+    if Q_VERSION >= 3:
         def test_guid(self):
             s = '0x16151413121110090807060504030201'
             x = int(s, 16)
@@ -284,7 +284,7 @@ class StrTestCase(K_TestCase):
     def test_misc(self):
         self.assertEqual(str(kb(1)), '1b')
         self.assertEqual(str(kh(1)), '1h')
-        if KXVER >= 3:
+        if Q_VERSION >= 3:
             self.assertEqual(str(ki(1)), '1i')
             self.assertEqual(str(kj(1)), '1')
         else:
@@ -305,7 +305,7 @@ class ReprTestCase(unittest.TestCase):
     def test_misc(self):
         self.assertEqual(repr(kb(1)), "k('1b')")
         self.assertEqual(repr(kh(1)), "k('1h')")
-        if KXVER >= 3:
+        if Q_VERSION >= 3:
             self.assertEqual(repr(ki(1)), "k('1i')")
             self.assertEqual(repr(kj(1)), "k('1')")
         else:
@@ -461,7 +461,7 @@ class ArrayStructTestCase(unittest.TestCase):
     def test_type(self):
         for x in [q('1 2 3'), q('1')]:
             s = x.__array_struct__
-            if PY3K:
+            if _PY3K:
                 self.assertEqual(type(s).__name__, 'PyCapsule')
             else:
                 self.assertEqual(type(s).__name__, 'PyCObject')
@@ -627,6 +627,11 @@ def test_sequence_mixed_type_errors(f, x):
 def test_errors_ktd():
     with pytest.raises(TypeError):
         ktd(None)
+    x = ki(0)
+    with pytest.raises(_k.error):
+        ktd(x)
+    # Check that ktd does not leak refs of failure.
+    assert x._r == 0
 
 
 def test_errors_ka():
@@ -694,7 +699,7 @@ def test_errors_J():
 @pytest.mark.parametrize('f', [
     ka, kg, kh, ki, kj, ke, kf, kc, ks, km, kd, kz, ku, kv, kt, kp,
     kzz, knz, kpz, b9, d9, xD, xT, kzz,
-] + ([kguid] if KXVER >= 3 else []))
+] + ([kguid] if Q_VERSION >= 3 else []))
 def test_misc_conversion_errors(f):
     with pytest.raises(TypeError):
         f([])
@@ -832,7 +837,7 @@ def test_buffer_protocol(tmpdir, x, y):
     with p.open('wb') as f:
         f.write(x)
     with p.open() as f:
-        if PY3K:
+        if _PY3K:
             f = f.buffer
         f.readinto(y)
 
@@ -843,7 +848,7 @@ def test_charbuffer(tmpdir):
     x = q('"abc"')
     p = tmpdir.join('x')
     with p.open('w') as f:
-        if PY3K:
+        if _PY3K:
             f = f.buffer
         f.write(x)
 
@@ -854,7 +859,7 @@ def test_charbuffer_error(tmpdir):
     x = q('1 2 3j')
     p = tmpdir.join('x')
     with p.open('w') as f:
-        if PY3K:
+        if _PY3K:
             f = f.buffer
             f.write(x)
             f.close()
@@ -959,7 +964,7 @@ def test_issue_796():
     assert type(x[0]) is int
 
 
-@pytest.mark.skipif('PY3K')
+@pytest.mark.skipif('_PY3K')
 def test_issue_796_long():
     maxint = sys.maxint
     if maxint == 2 ** 31 - 1:
@@ -1114,7 +1119,7 @@ def test_time_list():
     assert eq(x, q('0N 01:02:03.004'))
 
 
-@pytest.mark.skipif("KXVER < 3")
+@pytest.mark.skipif("Q_VERSION < 3")
 def test_guid_list():
     x = UU([])
     assert x._t == _k.UU
@@ -1174,7 +1179,7 @@ def test_enum_getitem():
     assert x[1] == ''
 
 
-@pytest.mark.skipif("KXVER < 3")
+@pytest.mark.skipif("Q_VERSION < 3")
 def test_setm():
     assert _k.setm(1) == 0
     assert _k.setm(0) == 1
@@ -1183,7 +1188,7 @@ def test_setm():
         _k.setm('')
 
 
-@pytest.mark.skipif("KXVER < 3")
+@pytest.mark.skipif("Q_VERSION < 3")
 def test_m9():
     # For now just check that m9() exists.
     # Note that m9() can only be called from
@@ -1287,8 +1292,9 @@ def test_n_attribute_error():
 
 @pytest.mark.parametrize('x,m,r', [
     ('1j', 't', -7),
-    # pytest.mark.skipif("KXVER < 3", ('1', 'a', 3)),  -- unpredictable values
-    pytest.mark.skipif("KXVER < 3", ('1', 'm', 0)),
+    # pytest.mark.skipif("Q_VERSION < 3", ('1', 'a', 3)),
+    # -- unpredictable values
+    pytest.mark.skipif("Q_VERSION < 3", ('1', 'm', 0)),
     ('"x"', 'c', b'x'),
     ('enlist 0x42', 'G', 0x42),
     ('enlist 42h', 'H', 42),
@@ -1330,8 +1336,13 @@ def test_str_error():
 
 def test_call_kw_error():
     f = q('::')
-    with pytest.raises(AttributeError):
-        f(x=None)
+    with pytest.raises(TypeError):
+        f(a=None)
+    f = q('{[a;b]a-b}')
+    with pytest.raises(TypeError):
+        f(1, a=2)
+    with pytest.raises(TypeError):
+        f(1, 2, z=3)
 
 
 def test_data_attr_errors():
@@ -1413,3 +1424,30 @@ def test_kc():
         kc('ab')
     with pytest.raises(TypeError):
         kc(b'ab')
+
+
+@pytest.mark.skipif("Q_VERSION < 3.5")
+def test_trp():
+    f = q('{x+y}')
+    args = q('(1;`)')
+    with pytest.raises(_k.error) as info:
+        f._trp(args)
+    a = info.value.args
+    assert a[0] == 'type'
+    bt = q('sublist', q('0 1'), a[1])
+    sbt = q('.Q.sbt', bt)
+    assert str(sbt) == (
+        '  [3]  {x+y}\n'
+        '         ^\n').replace('\n', os.linesep)
+
+
+def test_callargs():
+    f = q('{x+y}')
+    assert f._callargs(1, y=2) == (1, 2)
+
+
+@pytest.mark.parametrize('x', ['0Wt', '-0Wt'])
+def test_inf_time_pys(x):
+    x = q(x)
+    with pytest.raises(OverflowError):
+        x._pys()

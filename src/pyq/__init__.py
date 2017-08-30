@@ -18,7 +18,7 @@ try:
 except ImportError:
     _np = None
 
-from . import _k
+from ._k import K as _K, error as kerr, Q_VERSION, Q_DATE, Q_OS
 
 try:
     from .version import version as __version__
@@ -27,32 +27,27 @@ except ImportError:
 
 __metaclass__ = type
 
-_QVER = str(_k.K._k(0, '.z.K'))
-# Convenience constants to select code branches according to _KXVER
-_KXVER = int(_QVER[0])
-_KX2 = _KXVER == 2
-_KX3 = _KXVER == 3
+# Convenience constant to select code branches according to Q_VERSION
+_KX3 = Q_VERSION >= 3
 
-_PY3K = sys.version_info > (3,)
-
-kerr = _k.error
+_PY3K = sys.hexversion >= 0x3000000
 
 # List of q builtin functions that are not defined in .q.
 # NB: This is similar to .Q.res, but excludes non-function constructs
 # such as "do", "if", "select" etc. We also exclude the "exit" function
 # because it is rarely safe to use it to exit from pyq.
-_Q_RES = ['abs', 'acos', 'asin', 'atan', 'avg', 'bin', 'binr', 'cor', 'cos',
+_Q_RES = ['abs', 'acos', 'asin', 'atan', 'avg', 'bin',  'cor', 'cos',
           'cov', 'dev', 'div', 'ema', 'enlist', 'exp', 'getenv', 'in',
           'insert', 'last', 'like', 'log', 'max', 'min', 'prd', 'reval',
-          'scov', 'sdev', 'setenv', 'sin', 'sqrt', 'ss', 'sum', 'svar', 'tan',
-          'var', 'wavg', 'within', 'wsum', 'xexp']
+          'scov', 'sdev', 'setenv', 'sin', 'sqrt', 'ss', 'sum', 'svar',
+          'tan', 'var', 'wavg', 'within', 'wsum', 'xexp']
 
-if _KX2:
+if _KX3 and Q_DATE >= date(2012, 7, 26):
     # binr was introduced in kdb+3.0 2012.07.26
-    _Q_RES.remove('binr')
+    _Q_RES.append('binr')
 
 
-class K(_k.K):
+class K(_K):
     """proxies for kdb+ objects
 
     >>> q('2005.01.01 2005.12.04')
@@ -176,7 +171,7 @@ class K(_k.K):
             i = next(g)
         except StopIteration:
             return r
-        en = cls._k(0, 'enlist')
+        en = _K_k(0, 'enlist')
         r._ja(en)
         if elm is None:
             elm = cls
@@ -201,31 +196,6 @@ class K(_k.K):
         b = memoryview(x).tobytes()
         return (d9, (b,))
 
-    def _call_lambda(self, *args, **kwds):
-        """call the k lambda
-
-        >>> f = q('{[a;b]a-b}')
-        >>> assert f(1,2) == f(1)(2) == f(b=2)(1) == f(b=2,a=1)
-        >>> f(1,a=2)
-        Traceback (most recent call last):
-        ...
-        TypeError: {[a;b]a-b} got multiple values for argument 'a'
-        """
-        assert kwds, "empty kwds case is handled in C code"
-        names = self._k(0, '.p.an', self)
-        kargs = [nil] * len(names)
-        n = len(args)
-        kargs[:n] = args
-        for i, name in enumerate(names):
-            v = kwds.get(name)
-            if v is not None:
-                if i >= n:
-                    kargs[i] = v
-                else:
-                    raise TypeError("%s got multiple values for argument '%s'"
-                                    % (self, name))
-        return self(*(kargs or ['']))
-
     def __getitem__(self, x):
         """
         >>> k("10 20 30 40 50")[k("1 3")]
@@ -234,7 +204,7 @@ class K(_k.K):
         2
         """
         try:
-            return _k.K.__getitem__(self, x)
+            return _K.__getitem__(self, x)
         except (TypeError, NotImplementedError):
             pass
         try:
@@ -276,7 +246,7 @@ class K(_k.K):
         if 12 <= abs(t) < 20:
             try:
                 return self._k(0, "`%s$" % a, self)
-            except _k.error:
+            except kerr:
                 pass
 
         raise AttributeError(a)
@@ -649,6 +619,7 @@ def k(m, *args):
 
 class _Q(object):
     """a portal to kdb+"""
+
     def __init__(self):
         object.__setattr__(self, '_cmd', None)
         object.__setattr__(self, '_q_names',
@@ -703,7 +674,7 @@ def _ni(x):
     return r
 
 
-_X = {K: K._K, str: K._S, int: (K._I if _QVER[0] < '3' else K._J),
+_X = {K: K._K, str: K._S, int: (K._J if _KX3 else K._I),
       float: K._F, date: K._D, time: _ni, datetime: _ni, bool: K._B}
 
 
@@ -750,7 +721,7 @@ if _PY3K:
 else:
     converters[unicode] = K._ks
     _X[unicode] = lambda x: K([i.encode() for i in x])
-    _X[long] = (K._I if _QVER[0] < '3' else K._J)
+    _X[long] = (K._J if _KX3 else K._I)
 try:
     converters[buffer] = K._kp
 except NameError:
@@ -817,7 +788,7 @@ def versions():
 ###############################################################################
 def _gendescriptors(cls, string_types=(type(b''), type(u''))):
     cls._Z = NotImplemented
-    if _QVER[0] < '3':
+    if Q_VERSION < 3:
         cls._UU = cls._kguid = NotImplemented
     types = [
         # code, char, name, vector, scalar
@@ -975,3 +946,53 @@ def _genadverbs(cls):
 
 _genadverbs(K)
 del _genadverbs
+
+
+# Traceback support
+_K_k = K._k
+_K_call = K.__call__
+
+
+def _set_excepthook(origexcepthook):
+    def excepthook(exctype, value, traceback):
+        origexcepthook(exctype, value, traceback)
+        a = value.args
+        if exctype is kerr and len(a) > 1:
+            sbt = _K_k(0, '.Q.sbt', a[1])
+            print("kdb+ backtrace:\n%s" % sbt,
+                  file=sys.stderr, end='')
+
+    sys.excepthook = excepthook
+
+
+_val = q.value
+_enl = q.enlist
+
+
+def _trp_k(cls_, h, m, *args):
+    if h != 0:
+        return cls_._k(h, m, args)
+    f = cls_._trp(_val, K._knk(1, kp(m)))
+    if args:
+        return cls_._trp(f, K(args))
+    else:
+        return f
+
+
+def _trp_call(*args, **kwds):
+    f = args[0]
+    args = args[1:]
+    if f.type < 100:
+        return _K_call(f, *args, **kwds)
+    if kwds:
+        args = f._callargs(*args, **kwds)
+    if not args:
+        args = [None]
+    args = K._knk(len(args), *map(K, args))
+    return f._trp(args)
+
+
+if 'PYQ_BACKTRACE' in os.environ and q('.z.K >= 3.5'):
+    _set_excepthook(sys.excepthook)
+    K._k = classmethod(_trp_k)
+    K.__call__ = _trp_call

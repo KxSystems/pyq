@@ -3,8 +3,12 @@ from __future__ import unicode_literals
 
 import subprocess
 import sys
+import platform
 
 import pytest
+
+pytestmark = pytest.mark.skipif(platform.system() == "Windows",
+                                reason="pyq.exe is not implemented")
 
 linux_only = pytest.mark.skipif('linux' not in sys.platform.lower(),
                                 reason="requires linux")
@@ -166,3 +170,10 @@ def test_pyq_preload(tmpdir, q):
     output = subprocess.check_output(
         ['pyq', str(db), "-c", "from pyq import q; print(q.x)"])
     assert output == b"0 1 2\n"
+
+
+def test_p__file__0(tmpdir):
+    p = tmpdir.join('test.py')
+    p.write("print(__file__)")
+    out = subprocess.check_output(['pyq', str(p)])
+    assert out.strip().endswith(str(p).encode())

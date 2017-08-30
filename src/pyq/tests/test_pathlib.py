@@ -1,4 +1,6 @@
+from __future__ import absolute_import
 import pytest
+import os
 
 try:
     import pathlib
@@ -15,8 +17,8 @@ pytestmark = pytest.mark.skipif(pathlib is None,
 
 @pytest.mark.parametrize('x', [
     'a',
-    'a/b',
-    '/a/b/c',
+    os.path.join('a', 'b'),
+    os.path.join('a', 'b', 'c'),
 ])
 def test_convert_path(x):
     p = pathlib.Path(x)

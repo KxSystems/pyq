@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import pytest
 from pyq import q
 
@@ -57,24 +58,13 @@ def test_array(q):
     assert x.d == a['d']
 
 
-@pytest.mark.skipif("q('.z.K') < 3.4")
-@pytest.mark.parametrize('shape', [
-    (1,),
-    (2, 3),
-    (1, 2, 3),
-])
-def test_k0a(q, shape):
-    size = numpy.prod(shape)
-    x = 1.0 + q.til(size)
-    z = q('#', list(shape), x)
-    a = numpy.empty(shape)
-    _n.k0a(a, z)
-    while z._t == 0:
-        z = z.raze
-    assert z == a.flatten()
-
-
 def test_symbol_enum_mix(q):
     x = q('(`sym?`a`b;`x`y)')
     a = _n.array(x)
     assert a.tolist() == [['a', 'b'], ['x', 'y']]
+
+
+def test_issue_615(q):
+    x = q('0#`')
+    a = _n.array(x)
+    assert a.dtype == numpy.dtype('O')

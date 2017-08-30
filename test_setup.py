@@ -20,3 +20,12 @@ def test_version():
 def test_build():
     rc = subprocess.call([python, 'setup.py', 'build'])
     assert rc == 0
+
+def test_config(tmpdir):
+    dest = tmpdir.join('setup.cfg')
+    rc = subprocess.call([python, 'setup.py', 'config',
+                          '--python-dll', 'faked',
+                          '--dest', dest.strpath,
+                          '--write'])
+    assert rc == 0
+    assert dest.read().startswith('[config]')

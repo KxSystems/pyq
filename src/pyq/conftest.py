@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 
 import pytest
@@ -41,7 +42,7 @@ def kdb_server(q, tmpdir):
     script.write("""\
 p:1024;while[0~@[system;"p ",string p;0];p+:1];-1 string p;
 """)
-    with open('/dev/null') as devnull:
+    with open(os.devnull) as devnull:
         process = subprocess.Popen([prog, script.strpath],
                                    stdout=subprocess.PIPE,
                                    stdin=devnull)

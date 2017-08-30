@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from __future__ import unicode_literals
 from ..magic import q as qmag, logical_lines
 

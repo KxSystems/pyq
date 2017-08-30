@@ -1,5 +1,11 @@
+from __future__ import absolute_import
 import os
+import sys
 import subprocess
+import platform
+import pytest
+
+WIN = platform.system() == "Windows"
 
 TEST_P = """\
 import sys
@@ -35,6 +41,7 @@ sys.exit(0)
     assert b'ok' in out
 
 
+@pytest.mark.skipif(WIN, reason="This test hangs on Windows.")
 def test_test_p_exception(tmpdir):
     p = tmpdir.join('test.q')
     p.write("p)1+'a'")
@@ -48,3 +55,10 @@ Traceback (most recent call last):
 TypeError: unsupported operand type(s) for +: 'int' and 'str'
 '''
     assert traceback in err
+
+
+def test_p__file__qbin(tmpdir):
+    p = tmpdir.join('test.p')
+    p.write("import sys\nprint(__file__)\nsys.exit(0)")
+    out = subprocess.check_output([os.environ['QBIN'], str(p)])
+    assert out.strip().endswith(str(p).encode())

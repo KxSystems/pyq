@@ -10,7 +10,7 @@ import pytest
 
 import pyq
 from pyq import *
-from pyq import _PY3K, _QVER
+from pyq import _PY3K, Q_VERSION
 from .test_k import K_INT_CODE, K_LONG_CODE
 
 pytestmark = pytest.mark.skipif(numpy is None, reason="numpy is not installed")
@@ -150,7 +150,7 @@ def test_splayed_char(tmpdir):
     assert a.tolist() == [b'a', b'b', b'c']
 
 
-@pytest.mark.skipif("pyq._QVER[0] < '3'")
+@pytest.mark.skipif("pyq.Q_VERSION < 3")
 def test_symbol_list():
     x = K(['a'])
     a = numpy.array(x)
@@ -460,3 +460,10 @@ def test_strided_nd():
 def test_0d_str():
     a = numpy.array('x', 'O')
     assert K(a) == 'x'
+
+
+def test_call_python(q):
+    def f():
+        return numpy.array([1.0, 2.0])
+    q.f = f
+    assert q("f()") == [1.0, 2.0]
