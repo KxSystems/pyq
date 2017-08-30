@@ -11,11 +11,10 @@ from datetime import timedelta
 import os
 
 from pyq import *
-from pyq import _KXVER, _PY3K, _QVER
+from pyq import Q_VERSION, _PY3K
+
 
 q("\\e 0")  # disable q's debug on error
-KXVER = int(q('.Q.k'))
-PY3K = str is not bytes
 
 
 class TestPickle(unittest.TestCase):
@@ -43,7 +42,7 @@ class TestBuiltinConversions(unittest.TestCase):
         self.assertEqual(K(1), q("1"))
         self.assertRaises(OverflowError, K, 2 ** 100)
 
-    @unittest.skipIf(PY3K, "long and int are unified in Py3K")
+    @unittest.skipIf(_PY3K, "long and int are unified in Py3K")
     def test_long(self):
         self.assertEqual(K(1), q("1"))
         self.assertRaises(OverflowError, K, 2 ** 100)
@@ -109,15 +108,15 @@ class CallTestCase(unittest.TestCase):
         try:
             q("{'`test}", 0)
         except kerr as e:
-            self.assertEqual(str(e), 'test')
+            self.assertEqual(e.args[0], 'test')
         q("f:{'`test}")
         try:
             q("{f[x]}")(42)
         except kerr as e:
-            self.assertEqual(str(e), 'test')
+            self.assertEqual(e.args[0], 'test')
 
 
-if KXVER >= 3:
+if Q_VERSION >= 3:
     class TestGUID(unittest.TestCase):
         def test_conversion(self):
             from uuid import UUID
@@ -319,15 +318,15 @@ def test_convertion_to_bool_scalar(t, f):
 
 def test_show_str():
     x = K(1)
-    assert x.show(0, (1, 2), output=str) == '1\n'
-    assert x.show(output=str) == '1\n'
+    assert x.show(0, (1, 2), output=str) == '1' + os.linesep
+    assert x.show(output=str) == '1' + os.linesep
 
 
 def test_show_capture(capsys):
     x = K(1)
     x.show(0, (1, 2))
     out, _ = capsys.readouterr()
-    assert out == '1\n'
+    assert out == '1' + os.linesep
 
 
 def test_show_start():
@@ -340,7 +339,7 @@ x
 7
 8
 9
-"""
+""".replace('\n', os.linesep)
 
 
 @pytest.mark.parametrize('x,fmt,r', [
@@ -367,6 +366,7 @@ def test_format(x, fmt, r):
 @pytest.mark.parametrize('x, r', [
     ('2001.01.01', date(2001, 1, 1)),
     ('2001.01m', date(2001, 1, 1)),
+    ('1900.12m', date(1900, 12, 1)),
     ('20t', time(20, 0)),
     ('20:01', time(20, 1)),
     ('20:01:01', time(20, 1, 1)),
@@ -390,7 +390,7 @@ def test_index_bad():
 
 
 def test_coverters_buffer0():
-    if PY3K:
+    if _PY3K:
         assert K(b'abc') == k('"abc"')
     else:
         assert K(buffer('abc')) == k('"abc"')
@@ -458,7 +458,7 @@ def test_nested_list_conversion():
     assert K(x) == q("(1 2 3;`a`b;(1 1; 2 2))")
 
 
-if not PY3K:
+if not _PY3K:
     def test_getitem_long():
         x = q('1 2 3f')
         assert isinstance(x[long(1)], float)
@@ -553,7 +553,7 @@ def test_issue_715():
     assert t[2].value == [2]
 
 
-@pytest.mark.skipif(PY3K, reason="No 'long' type in Python 3.x")
+@pytest.mark.skipif(_PY3K, reason="No 'long' type in Python 3.x")
 def test_list_of_long():
     x = eval("[1L, 2L]")
     assert K(x) == [1, 2]
@@ -569,7 +569,7 @@ def test_q_dir(q):
     assert 'foo' in dir(q)
 
 
-@pytest.mark.skipif(not PY3K, reason="exec is a keyword in Python <3")
+@pytest.mark.skipif(not _PY3K, reason="exec is a keyword in Python <3")
 def test_plain_exec():
     t = q('([]a:1 2)')
     assert eval('t.exec("a")') == [1, 2]
@@ -577,6 +577,10 @@ def test_plain_exec():
 
 def python_function(x, y):
     return x + y
+
+
+def python_date():
+    return date(2000, 1, 1)
 
 
 def python_error():
@@ -588,6 +592,8 @@ def test_call_python_function_success(q):
     assert q('f(1;2)') == 3
     q.g = math.log
     assert q('g enlist 1') == 0.0
+    q.d = python_date
+    assert q('d()') == q('2000.01.01')
 
 
 def test_call_python_function_error(q):
@@ -608,7 +614,7 @@ def test_call_python_function_error(q):
 
 def test_versions(capsys):
     versions()
-    out = capsys.readouterr()[not PY3K]
+    out = capsys.readouterr()[not _PY3K]
     assert 'PyQ' in out
 
 
@@ -616,7 +622,7 @@ def test_attr_complete():
     # Test that q and K have all expected attributes
     all_names = q('distinct .Q.res,1_key`.q')
     not_expected = {'if', 'do', 'while', 'from', 'delete', 'exit'}
-    if not PY3K:
+    if not _PY3K:
         not_expected.add('exec')
     for name in all_names:
         if name not in not_expected:
@@ -721,7 +727,7 @@ def test_special_values(q, char, name):
 
 @pytest.mark.parametrize('type_name', [
     'boolean',
-    pytest.mark.skipif("_KXVER < 3", 'guid'),
+    pytest.mark.skipif("Q_VERSION < 3", 'guid'),
     'short',
     'int',
     'long',
@@ -747,7 +753,7 @@ def test_empty_list(type_name):
 
 @pytest.mark.parametrize('type_name', [
     # 'boolean',
-    # pytest.mark.skipif("_KXVER < 3", 'guid'),
+    # pytest.mark.skipif("Q_VERSION < 3", 'guid'),
     'short',
     'int',
     'long',
@@ -840,7 +846,7 @@ BASE_SIZE = object.__sizeof__(K([]))
 
 @pytest.mark.parametrize('x, n', [
     ('0b', 9),
-    pytest.mark.skipif("_KXVER < 3", ('0Ng', 24)),
+    pytest.mark.skipif("Q_VERSION < 3", ('0Ng', 24)),
     ('0x0', 9),
     ('0h', 10),
     ('0i', 12),
@@ -853,7 +859,7 @@ def test_scalar_sizeof(q, x, n):
     assert BASE_SIZE + n == x.__sizeof__()
 
 
-@pytest.mark.skipif("_KXVER < 3")
+@pytest.mark.skipif("Q_VERSION < 3")
 @pytest.mark.parametrize('x, n32, n64', [
     ('1 2!3 4', 88, 96),
     ('([]a:1 2)', 116, 136),
@@ -876,7 +882,7 @@ def test_misc_sizeof(q, x, n32, n64):
     # Atoms
     ('0b', b'\0'),
     ('1b', b'\1'),
-    pytest.mark.skipif("_KXVER < 3 or not _PY3K", ('0Ng', 16 * b'\0')),
+    pytest.mark.skipif("Q_VERSION < 3 or not _PY3K", ('0Ng', 16 * b'\0')),
     ('0x42', b'\x42'),
     ('0h', b''),
     ('0i', b''),
@@ -895,7 +901,8 @@ def test_misc_sizeof(q, x, n32, n64):
     # Lists
     ('2#0b', 2 * b'\0'),
     ('2#1b', 2 * b'\1'),
-    pytest.mark.skipif("_KXVER < 3 or not _PY3K", ('2#0Ng', 2 * 16 * b'\0')),
+    pytest.mark.skipif("Q_VERSION < 3 or not _PY3K",
+                       ('2#0Ng', 2 * 16 * b'\0')),
     ('2#0x42', 2 * b'\x42'),
     ('2#0h', 2 * 2 * b'\0'),
     ('2#0i', 2 * 4 * b'\0'),
@@ -993,7 +1000,7 @@ def test_str_enum(q):
     b = q("`xxx?`x`y")
     assert str(b.last) == 'y'
     del q.sym
-    assert str(a.first) == '0' if KXVER < 3 else '0i'
+    assert str(a.first) == '0' if Q_VERSION < 3 else '0i'
     q.sym = ['a']
     assert str(a.last) == ''
 
@@ -1039,6 +1046,8 @@ def test_call_with_keywords():
     f_each = each(f=f)
     g_each = f_each(x=1, y=2)
     assert g_each(z=[10, 20]) == [10, 20]
+    f = q('{[a;b]a-b}')
+    assert f(1, 2) == f(1)(2) == f(b=2)(1) == f(b=2, a=1)
 
 
 def test_char_cast():
@@ -1150,3 +1159,40 @@ def test_typed_from_mapping(q):
 def test_issue_923(q):
     assert K([0.0, '', 0]) == q('(0f;`;0)')
     assert K([0, '', 0.0]) == q('(0;`;0f)')
+
+
+@pytest.mark.skipif("Q_VERSION < 3.5")
+def test_trp_k():
+    from pyq import _trp_k
+    with pytest.raises(kerr) as info:
+        _trp_k(K, 0, "{x+y}", K(0), K(''))
+    assert info.value.args[0] == 'type'
+    assert info.value.args[1].type == K.short(0)
+
+
+@pytest.mark.skipif("Q_VERSION < 3.5")
+def test_trp_call():
+    from pyq import _trp_call
+    f = q('{x+y}')
+    with pytest.raises(kerr) as info:
+        _trp_call(f, 0, '')
+    assert info.value.args[0] == 'type'
+    assert info.value.args[1].type == K.short(0)
+
+
+@pytest.mark.parametrize("x, sp", [
+    (nil, True),
+    ([nil], True),
+    ([1, nil], True),
+    ([1, nil, 2], True),
+    ([1, 2], False),
+    ([], False),
+    (0, False)
+])
+def test_sp(x, sp):
+    if isinstance(x, list):
+        x = K._knk(len(x), *[K(a) for a in x])
+    else:
+        x = K(x)
+
+    assert x._sp() == sp

@@ -628,6 +628,7 @@ take a :class:`pathlib.Path` object
 k('`:data')
 >>> q.load(data_path)
 k('`data')
+>>> data_path.unlink()
 
 It is not necessary to assign data to a global variable before saving it to a
 file.  We can save our 10 integers directly to a file using the
@@ -640,6 +641,8 @@ and read it back using the :func:`pyq.q.set <q.get>` function
 
 >>> q.get(_)
 k('0 1 2 3 4 5 6 7 8 9')
+
+>>> pathlib.Path('0-9').unlink()
 
 ---------
 K objects

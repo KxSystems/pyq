@@ -128,3 +128,10 @@ ptpython
 Ctrl
 pre
 ktn
+Homebrew
+backtrace
+ci
+ktd
+Gitlab
+Centos
+ubuntu

@@ -6,7 +6,7 @@ import struct
 import pytest
 
 from pyq import *
-from pyq import _PY3K, _QVER
+from pyq import _PY3K, Q_VERSION
 from .test_k import K_INT_CODE, K_LONG_CODE
 
 
@@ -36,7 +36,7 @@ def test_format(t, r):
 
 @pytest.mark.parametrize(('t', 'size'), [
     ('b', 1),
-    pytest.mark.skipif("1 or _QVER[0] < '3'", ('g', 16)),  # TODO
+    pytest.mark.skipif("1 or Q_VERSION < 3", ('g', 16)),  # TODO
     ('x', 1),
     ('h', 2),
     ('i', 4),
@@ -133,7 +133,7 @@ def test_memoryview_enum(q):
 @pytest.mark.parametrize('t', [
     'b',
     # XXX: GUID support is not implemented.
-    # pytest.mark.skipif("_QVER[0] < '3'", 'g'),
+    # pytest.mark.skipif("Q_VERSION < 3", 'g'),
     'x',
     'h',
     'i',
@@ -185,7 +185,7 @@ def test_data_attr_eq_memoryview(t):
     ('00:00:00', K_INT_CODE, 4, 0),
     ('00:00:00.000', K_INT_CODE, 4, 0),
     pytest.mark.skipif("'not implemented'", ('0Ng', "16B", 16, 0)),
-    # TODO: _KXVER >= 3
+    # TODO: Q_VERSION >= 3
 ])
 def test_simple_view(x, f, s, u):
     m = q(x).data

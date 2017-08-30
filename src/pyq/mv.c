@@ -36,7 +36,7 @@ static PyBufferProcs mv_as_buffer = {
 };
 
 static PyTypeObject MemoryView_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyVarObject_HEAD_INIT(DEFERRED_ADDRESS(&PyType_Type), 0)
     "pyq._k._MemoryView",
     sizeof(PyMemoryViewObject),
     0,
@@ -68,8 +68,10 @@ static PyTypeObject MemoryView_Type = {
     0,                                        /* tp_getset */
     DEFERRED_ADDRESS(&PyMemoryView_Type),     /* tp_base */
 };
-#define INIT_MV MemoryView_Type.tp_base = &PyMemoryView_Type; \
-                PyType_Ready(&MemoryView_Type)
+#define INIT_MV \
+    MemoryView_Type.ob_type = &PyType_Type;       \
+    MemoryView_Type.tp_base = &PyMemoryView_Type; \
+    PyType_Ready(&MemoryView_Type)
 static PyObject *
 MemoryView_FromBuffer(Py_buffer *view)
 {

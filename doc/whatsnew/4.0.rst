@@ -2,8 +2,8 @@
 What's New in PyQ 4.0
 *********************
 
-:Release: |release|
-:Date: |today|
+:Release: 4.0
+:Date: 2017-03-02
 
 .. testsetup:: *
 
@@ -215,6 +215,7 @@ are expected
 k('`:xyz')
 >>> q.get(path)
 k('42')
+>>> path.unlink()
 
 Named tuples
 ------------

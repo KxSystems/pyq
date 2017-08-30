@@ -1,6 +1,11 @@
+from __future__ import absolute_import
 import pytest
 
-from pyq import K, kerr
+from pyq import K, kerr, Q_OS
+# See #942
+from pyq.conftest import kdb_server
+
+WIN = Q_OS.startswith('w')
 
 
 def test_connection(q, kdb_server):
@@ -18,4 +23,8 @@ def test_closed_connection(kdb_server):
     cmd = K.string("exit 0")
     with pytest.raises(kerr) as info:
         kdb_server(cmd)
-    assert info.value.args[0] == 'close'
+    msg = info.value.args[0]
+    if WIN:
+        assert msg.startswith('rcv.')
+    else:
+        assert msg == 'close'

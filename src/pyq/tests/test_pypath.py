@@ -4,4 +4,5 @@ import py
 
 
 def test_pypath():
-    assert q('::', py.path.local('/abc/def')) == q("`:/abc/def")
+    p = py.path.local('/abc/def')
+    assert q('::', p) == ':' + p.strpath

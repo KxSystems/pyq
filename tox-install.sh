@@ -23,10 +23,9 @@ then
 elif [ -f "${QZIP}" ]; then
     QHOME=${VIRTUAL_ENV}/q
     unzip -q "${QZIP}" -d "${QHOME}"
-elif [ -f "${HOME}/Downloads/macosx.zip" ]; then
+elif [ -f "${HOME}/Downloads/m32.zip" ]; then
     QHOME=${VIRTUAL_ENV}/q
-    unzip -q -n "${HOME}/Downloads/macosx.zip" -d "${VIRTUAL_ENV}"
-    rm "${VIRTUAL_ENV}/q/q.q"
+    unzip -q -n "${HOME}/Downloads/m32.zip" -d "${VIRTUAL_ENV}/q"
 else
     echo "Could not find q in ${qhome}, exiting"
     exit -1

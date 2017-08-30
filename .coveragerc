@@ -5,6 +5,7 @@ omit = */pyq/tests/*
 tox =
     src
     .tox/*-numpy-*/lib/python*/site-packages
+    .tox/*-backtrace/lib/python*/site-packages
 
 [report]
 exclude_lines =

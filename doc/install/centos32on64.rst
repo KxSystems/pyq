@@ -84,7 +84,7 @@ Enter the virtual environment that we created, confirm that we have a 32-bit Pyt
 5. Download the 32-bit Linux x86 version of kdb+ from kx.com
 ............................................................
 
-Download `kdb+ by following this link <http://kx.com/software-download.php>`_.
+Download `kdb+ by following this link <https://kx.com/download/>`_.
 
 Save downloaded file as  `${HOME}/Work/linux-x86.zip`.
 

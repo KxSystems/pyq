@@ -1,0 +1,95 @@
+*********************
+What's New in PyQ 4.1
+*********************
+
+:Release: |release|
+:Date: |today|
+
+.. testsetup:: *
+
+   import numpy
+
+Summary -- Release highlights
+=============================
+
+  * Improved calling Python functions from q.
+    - Objects of any type supported by K() can be returned.
+    - Python functions can be called from multiple q threads.
+  * Calls from Python to q will now release GIL allowing concurrent
+    execution of q code from multiple threads.
+  * Added a backtrace mode (requires kdb+ 3.5 or later) in which q
+    stack trace is printed on q errors.
+  * Experimental Windows support.
+  * Performance improvements.
+
+
+Return arbitrary objects from Python functions called from q
+------------------------------------------------------------
+
+When a Python function is called from q, the returned Python
+objects are now automatically converted to q.  Any type accepted
+by the K() constructor can be successfully converted.  For example,
+the ``numpy.eye`` function returns a 2-D array with ones on the
+diagonal and zeros elsewhere.  It can be called from q as follows:
+
+::
+
+    q)p)import numpy
+    q)p)q.eye = numpy.eye
+    q)eye 3 4 1
+    0 1 0 0
+    0 0 1 0
+    0 0 0 1
+
+
+Calling Python from ``peach``
+-----------------------------
+
+Python functions can now be safely called from multiple q threads.
+For example, the following session illustrates how ``peach`` distributes
+work between four threads:
+
+::
+
+    $ q -s 4
+    q)p)import threading
+    q)p)q.tid = threading.get_ident
+    q){group (distinct x)?x} {tid()} peach til 19
+    0| 0 4 8 12 16
+    1| 1 5 9 13 17
+    2| 2 6 10 14 18
+    3| 3 7 11 15
+
+
+Backtrace mode
+--------------
+
+.. note::
+
+    Backtrace mode is available when PyQ is running under kdb+ version 3.5
+    or later.
+
+To activate the backtrace mode, set the environment variable ``PYQ_BACKTRACE``.
+
+For example::
+
+    $ PYQ_BACKTRACE=yes pyq
+    >>> q('f:{g[]};g:{1+`};f[]')
+    Traceback (most recent call last):
+      ..
+    _k.error: ('type', k('((({1+`};2);("..g";"";-1;"{1+`}");2;5);(({g[]};2);("..f";"";-1;"{g[]}");1;4);..'))
+    kdb+ backtrace:
+      [5]  g:{1+`}
+               ^
+      [4]  f:{g[]}
+              ^
+      [3]  f:{g[]};g:{1+`};f[]
+                           ^
+      ..
+
+
+Experimental Windows support
+----------------------------
+
+PyQ can now be compiled under Windows.  We tested Python 3.6 build using VS 2015 and 2017
+and 32-bit kdb+ 3.5. Details will be provided at `Github <https://github.com/enlnt/pyq/issues/1>`_.

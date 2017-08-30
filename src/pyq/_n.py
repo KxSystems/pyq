@@ -138,24 +138,10 @@ def k2a(a, x):
         a[:] = func(a.view(dtype='i8'), scale)
 
 
-def k0a(a, x):
-    """Populate array a with data from x"""
-    from . import q, K
-    if a.ndim < 2:
-        k2a(a, x)
-    else:
-        # A 2d view into a that flattens all but last axis
-        v = a.reshape((-1, a.shape[-1]))
-        for i, w in enumerate(v):
-            s = K.long(a.shape[:-1])
-            xi = q('.', x, s.vs(i))
-            k2a(w, xi)
-
-
 def array(self, dtype=None):
     t = self._t
     # timestamp (12) through last enum (76)
-    if 12 <= t < 77:
+    if 11 <= t < 77:
         dtype = dtypeof(self)
         a = numpy.empty(len(self), dtype)
         k2a(a, self)

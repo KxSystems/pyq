@@ -4,6 +4,66 @@
 Version History
 ===============
 
+`PyQ 4.1.0 <http://pyq.readthedocs.io/en/pyq-4.1.0/>`_
+------------------------------------------------------
+
+Released on 2017-08-30
+
+New features
+
+    - !519 - #889: Multi-threading support.
+    - !542 - #917: traceback support.
+    - Experimental Windows support
+        - !507 - #900: Windows support.
+        - !508 - #900: Windows support py36.
+        - !527 - #900: Fixed a few tests that failed under Windows.
+        - !562 - BLD #934 windows ci.
+        - !564 - TST #900 Fix/skip tests that fail on Windows.
+
+
+Enhancements
+
+    - !503, !568 - #659: New setup.py
+    - !560 - ENH #933 Use dot(K, K) for kdb+ versions >= 3.5
+    - !558 - #880 Fix ktd bug
+    - !552 - TST #920 Test ±0Wt conversions to Python.
+    - !550 - ENH #925 Define Q_VERSION and similar constants in _k.c.
+    - !549 - ENH #925: Define QVER once, use everywhere.
+    - !548 - ENH #924 Allow returning arbitrary objects from python calls.
+    - !545 - ENH #921 Handle passing keyword arguments to functions in C.
+    - !544 - #919: Remove x2l objects
+    - !520 - #615: BUG: Empty symbol list converts to float array.
+
+
+Kx
+
+    - !539, !569 - Updated k.h.
+    - !566 - #937 Add Apache 2.0 license for kx owned components.
+
+
+Documentation
+
+    - !510 - Use locally stored intersphinx inventory.
+    - !515 - #895: PyQ 4.0 presentation
+    - !532 - #914: Use new kx.code.com
+    - !553 - DOC #805 Updated the description in the README file.
+    - !554 - DOC #805 Added links to long description.
+    - !557 - DOC #929 Add macOS installation instructions
+    - !572 - DOC #890 What's new in 4.1.
+
+
+CI
+
+    - !513 - #904 Add Centos 7 x64 docker image to CI runs
+    - !559 - BLD #935 Change default kdb+ version to 3.5.
+    - !561 - TST #930 Test 64-bit installation on macOS.
+    - !565 - BLD #938 Blacklist pytest 3.2.0, due to a bug.
+    - !570 - BLD Closes #940 Test using Python 2.7, 3.5 and 3.6; numpy 1.12 and 1.13.
+    - !571 - BLD #867 Add setup option when we remove setuptools.
+    - !531 - #909 Added ubuntu job to CI in develop branch
+
+
+
 `PyQ 4.0.3 <http://pyq.readthedocs.io/en/pyq-4.0.3/>`_
 ------------------------------------------------------
 

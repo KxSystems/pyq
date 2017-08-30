@@ -91,6 +91,7 @@ See the :ref:`ipython section <ipython>` for details.
     :name: mastertoc
 
     whatsnew/4.0
+    whatsnew/4.1
     install/install
     User Guide <manual/pyq>
     reference/pyq-auto
