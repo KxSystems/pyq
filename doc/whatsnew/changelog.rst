@@ -4,6 +4,27 @@
 Version History
 ===============
 
+`PyQ 4.1.1 <http://pyq.readthedocs.io/en/pyq-4.1.1/>`_
+------------------------------------------------------
+
+Released on 2017-09-21
+
+Bug fixes and enhancements
+
+    - !579 - BUG #948 Fixed compile errors on Windows with kdb+ version < 3.5.
+    - !577 - BUG #946 Fixed compilation errors for Python 2.7 on Windows.
+    - !582 - ENH #950 Explain how to properly start PyQ when launching from stock Python.
+
+Documentation
+
+    - !583 - DOC #951 Updated links to the new kx.com website.
+
+CI
+
+    - !584 - TST #952 Attempt to fix failing tests on Windows.
+
+
+
 `PyQ 4.1.0 <http://pyq.readthedocs.io/en/pyq-4.1.0/>`_
 ------------------------------------------------------
 

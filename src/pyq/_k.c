@@ -53,6 +53,9 @@ static char __version__[] = "$Revision: 10002$";
 #include "kx/k.h"
 #include <math.h>
 #if defined (WIN32) || defined(_WIN32)
+#ifndef isnan
+    #define isnan _isnan
+#endif
 #ifndef isfinite 
     #define isfinite _finite
 #endif
@@ -148,7 +151,7 @@ PY_STR_AsStringAndSize(PyObject *obj, char **pstr, Py_ssize_t *psize)
 /* these should be in k.h */
 #if KXVER >= 3 && KXVER2 >= 5
 K ee(K);
-#else
+#elif !defined (WIN32) && !defined(_WIN32)
 V clr(V);
 K1(ee)
 {
@@ -357,9 +360,9 @@ K_trp(KObject * self, KObject *args)
         }
         else {
             K x0, x1;
+            PyObject *exc_value, *message, *traceback;
             x0 = kK(xk)[0];
             x1 = kK(xk)[1];
-            PyObject *exc_value, *message, *traceback;
             message = PY_STR_FromStringAndSize((S)kG(x0), (Py_ssize_t)x0->n);
             traceback = KObject_FromK(Py_TYPE(self), r1(x1));
             r0(x);
@@ -1366,7 +1369,11 @@ K_ktd(PyTypeObject * type, PyObject *args)
        since 2011-01-27, ktd always decrements ref count of input.
        <http://code.kx.com/q/interfaces/c-client-for-q/#creating-dictionaries-and-tables>
     */
+#if defined (WIN32) || defined(_WIN32)
+    return KObject_FromK(type, k(0, "0!", r1(x), (K)0));
+#else
     return KObject_FromK(type, ee(ktd(r1(x))));
+#endif
 }
 
 PyDoc_STRVAR(K_err_doc, "sets a K error\n\n>>> K.err('test')\n");

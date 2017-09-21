@@ -29,7 +29,7 @@ Windows is not supported yet.
 Required Software
 .................
 
-* `kdb+ 2.8 <https://kx.com/purchasesoftware.php>`_ or later;
+* `kdb+ 2.8 <https://kx.com/discover/>`_ or later;
 * Python 2.7, or 3.5 or later;
 * GNU make, gcc or clang.
 
@@ -88,7 +88,7 @@ Create a new virtualenv and activate it:
     $ virtualenv path/to/virtualenv
     $ source path/to/virtualenv/bin/activate
 
-Download `kdb+ <https://kx.com/purchasesoftware.php>`_ and save into your ``~/Downloads`` folder. Extract it into virtualenv:
+Download `kdb+ <https://kx.com/download/>`_ and save into your ``~/Downloads`` folder. Extract it into virtualenv:
 
 ::
 

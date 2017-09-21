@@ -21,7 +21,9 @@ sys.exit(0)
 def test_test_p0(tmpdir):
     test_p = tmpdir.join('test.p')
     test_p.write(TEST_P)
-    out = subprocess.check_output([os.environ['QBIN'], str(test_p)])
+    with open(os.devnull) as null:
+        out = subprocess.check_output([os.environ['QBIN'], str(test_p)],
+                                      stdin=null)
     assert b'ok' in out
 
 
@@ -60,5 +62,7 @@ TypeError: unsupported operand type(s) for +: 'int' and 'str'
 def test_p__file__qbin(tmpdir):
     p = tmpdir.join('test.p')
     p.write("import sys\nprint(__file__)\nsys.exit(0)")
-    out = subprocess.check_output([os.environ['QBIN'], str(p)])
+    with open(os.devnull) as null:
+        out = subprocess.check_output([os.environ['QBIN'], str(p)],
+                                      stdin=null)
     assert out.strip().endswith(str(p).encode())

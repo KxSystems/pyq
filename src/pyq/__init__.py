@@ -18,7 +18,18 @@ try:
 except ImportError:
     _np = None
 
-from ._k import K as _K, error as kerr, Q_VERSION, Q_DATE, Q_OS
+try:
+    from ._k import K as _K, error as kerr, Q_VERSION, Q_DATE, Q_OS
+except ImportError:
+    if 'python' in os.path.basename(sys.executable).lower():
+        import platform
+        message = "Importing pyq from stock python is not supported. "
+        if platform.system() == 'Windows':
+            message += "Run path\\to\\q.exe python.q."
+        else:
+            message += "Use pyq executable."
+        raise ImportError(message)
+    raise
 
 try:
     from .version import version as __version__

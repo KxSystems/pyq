@@ -118,7 +118,7 @@ py(K f, K x)
     free(wargv_copy);
     free(wargv);
 #else
-    r = Py_Main((size_t)argc, argv);
+    r = Py_Main((int)argc, argv);
 #endif
     free(argv);
     free(buf);

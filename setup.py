@@ -38,7 +38,7 @@ if WINDOWS:
 else:
     from distutils.core import Command, Distribution, Extension, setup
 
-VERSION = '4.1.0'
+VERSION = '4.1.1'
 IS_RELEASE = True
 VERSION_FILE = 'src/pyq/version.py'
 VERSION_PY = """\

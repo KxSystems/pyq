@@ -13,3 +13,4 @@ include src/pyq/pyq-operators.q
 include src/pyq.c
 include doc/*.rst
 include src/pyq/kx/*
+include src/pyq/kx/*/*
