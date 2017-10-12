@@ -102,7 +102,7 @@ Install PyQ (note, PyQ 3.8.2 or newer required):
 
 .. code-block:: bash
 
-    (pyq3) $ pip install -i https://pyq.enlnt.com --no-binary pyq pyq>=3.8.2
+    (pyq3) $ pip install pyq>=3.8.2
 
 
 6. Use PyQ

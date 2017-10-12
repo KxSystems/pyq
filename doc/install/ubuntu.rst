@@ -25,7 +25,7 @@ Install PyQ:
 
 .. code-block:: bash
 
-    (py2) $ pip install -i https://pyq.enlnt.com --no-binary pyq pyq
+    (py2) $ pip install pyq
 
 
 Python 3
@@ -50,5 +50,5 @@ Install PyQ:
 
 .. code-block:: bash
 
-    (py3) $ pip3 install -i https://pyq.enlnt.com --no-binary pyq pyq
+    (py3) $ pip3 install pyq
 

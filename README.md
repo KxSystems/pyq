@@ -13,7 +13,7 @@ data.
 ## Installation
 
 ```bash
-pip install -i https://pypi.enlnt.com -U --no-binary pyq pyq
+pip install pyq
 ```
 
 For detailed installation instructions see [installation instructions][1].

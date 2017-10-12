@@ -35,7 +35,7 @@ def run(q_prompt=False):
             q(r'\l %s' % sys.argv[1])
         except kerr as e:
             print(e)
-            exit(1)
+            raise SystemExit(1)
         else:
             del sys.argv[1]
     if q_prompt:

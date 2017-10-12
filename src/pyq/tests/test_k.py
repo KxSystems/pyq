@@ -1170,8 +1170,9 @@ def test_k_bool_of_enum():
 
 def test_enum_getitem():
     q("sym:`a`b`c")
-    x = q('`sym$`a`b')
+    x = q('`sym$`a`')
     assert x[0] == 'a'
+    assert x[1] == ''
     with pytest.raises(IndexError):
         x[2]
     # Test short enum domain vector

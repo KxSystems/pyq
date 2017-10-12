@@ -310,13 +310,13 @@ k('0 1 3 6 10 15 21 28 36 45')
 
    * - q
      - Return
-   * - :func:`pyq.q.sums`
+   * - :func:`~pyq.q.sums`
      - the cumulative sums of the elements
-   * - :func:`pyq.q.prds`
+   * - :func:`~pyq.q.prds`
      - the cumulative products of the elements
-   * - :func:`pyq.q.maxs`
+   * - :func:`~pyq.q.maxs`
      - the maximums of the prefixes of the argument
-   * - :func:`pyq.q.mins`
+   * - :func:`~pyq.q.mins`
      -  the minimums of the prefixes of the argument
 
 
@@ -329,7 +329,7 @@ functionality:
 
 Passing :func:`operator.mul`, :func:`max` or :func:`min` as the second
 optional argument to :func:`itertools.accumulate`, one can get
-analogues of :func:`pyq.q.prds`, :func:`pyq.q.maxs` and :func:`pyq.q.mins`.
+analogues of :func:`~pyq.q.prds`, :func:`~pyq.q.maxs` and :func:`~pyq.q.mins`.
 
 
 Sliding window statistics

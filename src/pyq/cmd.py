@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import cmd as _cmd
 
-from . import q, kerr
+from . import q, kerr, Q_OS
 
 try:
     from . import ptk
@@ -13,16 +13,22 @@ except ImportError:
 q('.py.pcc:`s#0 5 20f!32 33 31')
 _prompt_color = q('{.py.pcc 100*(%)over system["w"]1 5}')
 _prompt_namespace = q('{?[ns~`.;`;ns:system"d"]}')
+if Q_OS.startswith('w'):
+    def _colorize(_, prompt):
+        return prompt
+else:
+    def _colorize(code, prompt):
+        return "\001\033[%d;1m\002%s\001\033[0m\002" % (code, prompt)
 
 
-class Cmd(_cmd.Cmd):
+class Cmd(_cmd.Cmd, object):
     _prompt = 'q{ns})'
 
     @property
     def prompt(self):
         code = _prompt_color()
         prompt = self._prompt.format(ns=_prompt_namespace())
-        return "\001\033[%d;1m\002%s\001\033[0m\002" % (code, prompt)
+        return _colorize(code, prompt)
 
     def precmd(self, line):
         if line.startswith('help'):

@@ -27,9 +27,7 @@ Quick start
 
    .. code-block:: bash
 
-      $ pip install \
-        -i https://pyq.enlnt.com \
-        --no-binary pyq pyq
+      $ pip install pyq
 
 First, make sure that PyQ is :ref:`installed <install>` and :ref:`up-to-date <update>`.
 Start an interactive session::
@@ -71,7 +69,7 @@ Define a function in ``q``::
 
 Call the ``q`` function from python and pretty-print the result::
 
-    >>> x = f('IBM', date(2006,10,6))
+    >>> x = q.f('IBM', date(2006,10,6))
     >>> x.show()
     date       sym qty
     ------------------

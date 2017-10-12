@@ -38,7 +38,7 @@ if WINDOWS:
 else:
     from distutils.core import Command, Distribution, Extension, setup
 
-VERSION = '4.1.1'
+VERSION = '4.1.2'
 IS_RELEASE = True
 VERSION_FILE = 'src/pyq/version.py'
 VERSION_PY = """\
@@ -84,6 +84,11 @@ METADATA = dict(
              'src/scripts/pq',
              'src/scripts/qp',
              ],
+    data_files=[
+        ('q', ['src/pyq/p.k',
+               'src/pyq/pyq-operators.q',
+               'src/pyq/python.q']),
+    ],
     url='http://pyq.enlnt.com',
     author='Enlightenment Research, LLC',
     author_email='pyq@enlnt.com',
@@ -106,9 +111,21 @@ METADATA = dict(
                  'Programming Language :: Python :: 3.6',
                  'Programming Language :: Python :: Implementation :: CPython',
                  'Topic :: Database',
-                 'Topic :: Software Development :: Libraries'
+                 'Topic :: Software Development :: Libraries' +
                  ' :: Python Modules'],
 )
+
+
+def add_data_file(data_files, target, source):
+    """Add an entry to data_files"""
+    for t, f in data_files:
+        if t == target:
+            break
+    else:
+        data_files.append((target, []))
+        f = data_files[-1][1]
+    if source not in f:
+        f.append(source)
 
 
 def get_version():
@@ -330,6 +347,7 @@ class BuildQLib(Command):
         pyq_config_file = os.path.join(self.build_lib, 'pyq-config.q')
         with open(pyq_config_file, 'w') as f:
             f.write(PYQ_CONFIG.format(**vars(self)))
+        add_data_file(self.distribution.data_files, 'q', pyq_config_file)
 
 
 class BuildQExt(Command):
@@ -418,6 +436,8 @@ class BuildQExt(Command):
 
             compiler.link_shared_object(objects, ext_path,
                                         extra_postargs=extra_args)
+            add_data_file(self.distribution.data_files,
+                          os.path.join('q', self.q_arch), ext_path)
 
 
 class BuildPyExt(build_ext):

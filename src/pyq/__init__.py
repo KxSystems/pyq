@@ -737,13 +737,12 @@ try:
     converters[buffer] = K._kp
 except NameError:
     buffer = str
-    pass
+
 
 ###############################################################################
 # Lazy addition of converters
 ###############################################################################
 lazy_converters = {'uuid': [('UUID', lambda u: K._kguid(u.int))],
-                   'collections': [('OrderedDict', converters[dict])],
                    'py._path.local': [('LocalPath',
                                        lambda p: q.hsym(p.strpath))],
                    'pathlib': [('PurePath', lambda p: K(':' + str(p)))],

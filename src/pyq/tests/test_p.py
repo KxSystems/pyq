@@ -23,7 +23,7 @@ def test_test_p0(tmpdir):
     test_p.write(TEST_P)
     with open(os.devnull) as null:
         out = subprocess.check_output([os.environ['QBIN'], str(test_p)],
-                                      stdin=null)
+                                      stderr=subprocess.PIPE, stdin=null)
     assert b'ok' in out
 
 
@@ -64,5 +64,5 @@ def test_p__file__qbin(tmpdir):
     p.write("import sys\nprint(__file__)\nsys.exit(0)")
     with open(os.devnull) as null:
         out = subprocess.check_output([os.environ['QBIN'], str(p)],
-                                      stdin=null)
+                                      stderr=subprocess.PIPE, stdin=null)
     assert out.strip().endswith(str(p).encode())

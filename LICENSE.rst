@@ -1,1 +1,1 @@
-doc/license.rst
+doc/license/license.rst

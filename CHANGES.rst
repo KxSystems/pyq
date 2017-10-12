@@ -1,1 +1,1 @@
-doc/CHANGES.rst
+doc/whatsnew/changelog.rst

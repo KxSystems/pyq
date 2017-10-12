@@ -9,7 +9,7 @@ To install the latest version, run the following command
 
 ::
 
-    $ pip install -i https://pyq.enlnt.com --no-binary pyq pyq
+    $ pip install pyq
 
 .. _pre:
 
@@ -40,13 +40,13 @@ Use following pip command to install the latest version of PyQ into your environ
 
 ::
 
-    $ pip install -i https://pyq.enlnt.com --no-binary pyq pyq
+    $ pip install pyq
 
 To install another version, specify which version you would like to install:
 
 ::
 
-    $ pip install -i https://pyq.enlnt.com --no-binary pyq pyq==3.8
+    $ pip install pyq==4.1.2
 
 
 Installing from source code
@@ -112,7 +112,7 @@ Install PyQ:
 
 ::
 
-    $ pip install -i https://pyq.enlnt.com --no-binary pyq pyq
+    $ pip install pyq
 
 
 .. _update:
@@ -124,3 +124,5 @@ Install PyQ:
 .. include:: ubuntu.rst
 
 .. include:: macos.rst
+
+.. include:: windows.rst

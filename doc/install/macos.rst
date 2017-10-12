@@ -29,7 +29,7 @@ Install kdb+ and PyQ:
 .. code-block:: bash
 
     (pyq2) $ unzip ${HOME}/Downloads/macosx.zip -d ${VIRTUAL_ENV}
-    (pyq2) $ pip install -i https://pyq.enlnt.com --no-binary pyq pyq
+    (pyq2) $ pip install pyq
 
 PyQ is ready and can be launched:
 
@@ -72,7 +72,7 @@ using package manager `Homebrew <https://brew.sh/>`_.
 .. code-block:: bash
 
     (pyq) $ unzip ${HOME}/Downloads/macosx.zip -d ${VIRTUAL_ENV}
-    (pyq) $ pip install -i https://pyq.enlnt.com --no-binary pyq pyq
+    (pyq) $ pip install pyq
 
 PyQ is ready and can be launched:
 

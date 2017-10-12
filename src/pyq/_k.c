@@ -148,20 +148,12 @@ PY_STR_AsStringAndSize(PyObject *obj, char **pstr, Py_ssize_t *psize)
     #endif /* PY_MAJOR_VERSION >= 3 */
 /* ^^^ Py3K compatibility ^^^ */
 
-/* these should be in k.h */
-#if KXVER >= 3 && KXVER2 >= 5
+#define HAVE_EE (KXVER >= 3 && KXVER2 >= 5)
+
+#if HAVE_EE
 K ee(K);
-#elif !defined (WIN32) && !defined(_WIN32)
-V clr(V);
-K1(ee)
-{
-    P(x, x);
-    x = ka(-128);
-    xs = "n/a";
-    clr();
-    R x;
-}
-#endif /* ver >= 3.5 */
+#endif /* have ee() */
+
 ZK
 km(I i)
 {
@@ -324,13 +316,13 @@ K_dot(KObject * self, KObject *args)
     if (K_Check(args)) {
         K x;
         Py_BEGIN_ALLOW_THREADS
-#if KXVER >= 3 && KXVER2 >= 5
+#if HAVE_EE
         x = dot(self->x, args->x);
         if (!x)
             x = ee(x);
 #else
         x = k(0, ".", r1(self->x), r1(args->x), (K)0);
-#endif /* ver >= 3.5 */
+#endif /* have ee() */
         Py_END_ALLOW_THREADS
         return KObject_FromK(Py_TYPE(self), x);
     }
@@ -387,13 +379,13 @@ K_a0(KObject * self)
         return (PyObject *)self;
     }
     Py_BEGIN_ALLOW_THREADS
-#if KXVER >= 3 && KXVER2 >= 5
+#if HAVE_EE
     x = dot(x, k_noargs);
     if (!x)
         x = ee(x);
 #else
     x =  k(0, "@", r1(x), r1(k_none), (K) 0);
-#endif /* ver >= 3.5 */
+#endif /* have ee() */
     Py_END_ALLOW_THREADS
     return KObject_FromK(Py_TYPE(self), x);
 }
@@ -404,7 +396,7 @@ K_a1(KObject * self, KObject *arg)
     if (K_Check(arg)) {
         K x, y;
         Py_BEGIN_ALLOW_THREADS
-#if KXVER >= 3 && KXVER2 >= 5
+#if HAVE_EE
         y = knk(1, r1(arg->x));
         x = dot(self->x, y);
         r0(y);
@@ -413,7 +405,7 @@ K_a1(KObject * self, KObject *arg)
 #else
         y = arg->x;
         x = k(0, "@", r1(self->x), r1(y), (K)0);
-#endif /* ver >= 3.5 */
+#endif /* have ee() */
         Py_END_ALLOW_THREADS
         return KObject_FromK(Py_TYPE(self), x);
     }
@@ -1369,11 +1361,11 @@ K_ktd(PyTypeObject * type, PyObject *args)
        since 2011-01-27, ktd always decrements ref count of input.
        <http://code.kx.com/q/interfaces/c-client-for-q/#creating-dictionaries-and-tables>
     */
-#if defined (WIN32) || defined(_WIN32)
-    return KObject_FromK(type, k(0, "0!", r1(x), (K)0));
-#else
+#if HAVE_EE
     return KObject_FromK(type, ee(ktd(r1(x))));
-#endif
+#else
+    return KObject_FromK(type, k(0, "0!", r1(x), (K)0));
+#endif /* have ee() */
 }
 
 PyDoc_STRVAR(K_err_doc, "sets a K error\n\n>>> K.err('test')\n");
@@ -4235,7 +4227,7 @@ getitem(PyTypeObject * ktype, K x, Py_ssize_t i)
         if (xt >= 20 && xt < ENUMS_END) {
             I j = xI[i];
             K key = k(0, "{value key x}", r1(x), (K)0);
-            ret = PY_STR_InternFromString(j < key->n ? kS(key)[j] : "");
+            ret = PY_STR_InternFromString(j < key->n && j >= 0 ? kS(key)[j] : "");
             r0(key);
         }
         else {

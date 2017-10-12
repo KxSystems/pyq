@@ -4,6 +4,29 @@
 Version History
 ===============
 
+`PyQ 4.1.2 <http://pyq.readthedocs.io/en/pyq-4.1.2/>`_
+------------------------------------------------------
+
+Released on 2017-10-12
+
+Bug fixes and enhancements
+
+    - !589 - BUG #955 Check for negative values (including 0Ni) in enums.
+    - !590 - BUG #956 Do not use clr.
+    - !591 - ENH #958 Support for building wheels.
+    - !594 - BUG #960 Do not colorize the q) prompt on Windows.
+    - !597 - BUG #962 Removed 'collections' from lazy_converters.
+    - !598 - MNT #963 Fixed issue identified by lgtm.com.
+
+
+Documentation
+
+    - !588 - DOC #954 Windows documentation.
+    - !595 - DOC #961 Fixed a typo in an introductory example.
+    - !599 - DOC #964 Updated documentation in preparation for 4.1.2 release.
+
+
+
 `PyQ 4.1.1 <http://pyq.readthedocs.io/en/pyq-4.1.1/>`_
 ------------------------------------------------------
 
@@ -707,3 +730,5 @@ implemented K._ja
    ln
    guid
    aN
+   clr
+   lgtm
