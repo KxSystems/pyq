@@ -3,6 +3,8 @@
 [![Documentation Status](https://readthedocs.org/projects/pyq/badge/?version=latest)](http://pyq.readthedocs.io/en/latest/?badge=latest)
 [![PyPI Version](https://img.shields.io/pypi/v/pyq.svg)](https://pypi.python.org/pypi/pyq)
 
+[![LGTM](https://avatars1.githubusercontent.com/oa/381489)](https://lgtm.com/projects/g/enlnt/pyq)
+
 [PyQ][2] brings the [Python programming language][4] to the [kdb+ database][5]. It allows
 developers to seamlessly integrate Python and q codes in one application.
 This is achieved by bringing the Python and q interpreters in the same process
