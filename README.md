@@ -2,7 +2,7 @@
 
 [![Documentation Status](https://readthedocs.org/projects/pyq/badge/?version=latest)](http://pyq.readthedocs.io/en/latest/?badge=latest)
 [![PyPI Version](https://img.shields.io/pypi/v/pyq.svg)](https://pypi.python.org/pypi/pyq)
-[![LGTM](https://pyq.enlnt.com/_images/lgtm.svg)](https://lgtm.com/projects/g/enlnt/pyq)
+[![LGTM](https://img.shields.io/badge/lgtm-review-blue.svg)](https://lgtm.com/projects/g/enlnt/pyq)
 
 [PyQ][2] brings the [Python programming language][4] to the [kdb+ database][5]. It allows
 developers to seamlessly integrate Python and q codes in one application.
@@ -23,7 +23,7 @@ For detailed installation instructions see [installation instructions][1].
 
 For Python programmers:
 
-```
+```python
 $ pyq
 >>> from pyq import q
 >>> 1 + q.til(10)
@@ -38,9 +38,9 @@ pyq [python options] python-script
 
 For q programmers:
 
-```
+```q
 $ q
-q)p)from math import hypot  / prefix python code with p) 
+q)p)from math import hypot  / prefix python code with p)
 q)p)q.h = hypot             / import a python function
 q)h 3 4                     / call the python function from q
 5f
@@ -59,8 +59,8 @@ cd path/to/pyq/source
 tox
 ```
 
-[1]: http://code.kx.com/q/interfaces/pyq/install/
-[2]: http://code.kx.com/q/interfaces/pyq/quickstart
+[1]: https://code.kx.com/q/interfaces/pyq/install/
+[2]: https://code.kx.com/q/interfaces/pyq/quickstart
 [3]: https://tox.readthedocs.io/en/latest
 [4]: https://www.python.org/about
 [5]: https://kx.com
