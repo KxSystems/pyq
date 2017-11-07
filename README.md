@@ -23,7 +23,7 @@ For detailed installation instructions see [installation instructions][1].
 
 For Python programmers:
 
-```
+```python
 $ pyq
 >>> from pyq import q
 >>> 1 + q.til(10)
@@ -38,7 +38,7 @@ pyq [python options] python-script
 
 For q programmers:
 
-```
+```q
 $ q
 q)p)from math import hypot  / prefix python code with p)
 q)p)q.h = hypot             / import a python function
