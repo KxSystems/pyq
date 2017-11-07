@@ -59,8 +59,8 @@ cd path/to/pyq/source
 tox
 ```
 
-[1]: https://pyq.enlnt.com/install/install.html#installation
-[2]: https://pyq.enlnt.com
+[1]: http://code.kx.com/q/interfaces/pyq/install/
+[2]: http://code.kx.com/q/interfaces/pyq/quickstart
 [3]: https://tox.readthedocs.io/en/latest
 [4]: https://www.python.org/about
 [5]: https://kx.com
