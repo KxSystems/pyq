@@ -40,7 +40,7 @@ For q programmers:
 
 ```
 $ q
-q)p)from math import hypot  / prefix python code with p) 
+q)p)from math import hypot  / prefix python code with p)
 q)p)q.h = hypot             / import a python function
 q)h 3 4                     / call the python function from q
 5f
@@ -59,8 +59,8 @@ cd path/to/pyq/source
 tox
 ```
 
-[1]: http://code.kx.com/q/interfaces/pyq/install/
-[2]: http://code.kx.com/q/interfaces/pyq/quickstart
+[1]: https://code.kx.com/q/interfaces/pyq/install/
+[2]: https://code.kx.com/q/interfaces/pyq/quickstart
 [3]: https://tox.readthedocs.io/en/latest
 [4]: https://www.python.org/about
 [5]: https://kx.com
