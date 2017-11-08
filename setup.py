@@ -99,7 +99,7 @@ METADATA = dict(
                  'Intended Audience :: Developers',
                  'Intended Audience :: Financial and Insurance Industry',
                  'Intended Audience :: Science/Research',
-                 'License :: Other/Proprietary License',
+                 'License :: OSI Approved :: Apache Software License',
                  'Natural Language :: English',
                  'Operating System :: MacOS :: MacOS X',
                  'Operating System :: POSIX :: Linux',
