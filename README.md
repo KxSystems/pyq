@@ -23,8 +23,10 @@ For detailed installation instructions see [installation instructions][1].
 
 For Python programmers:
 
-```python
+```bash
 $ pyq
+```
+```python
 >>> from pyq import q
 >>> 1 + q.til(10)
 k('1 2 3 4 5 6 7 8 9 10')
@@ -38,8 +40,10 @@ pyq [python options] python-script
 
 For q programmers:
 
-```q
+```bash
 $ q
+```
+```q
 q)p)from math import hypot  / prefix python code with p)
 q)p)q.h = hypot             / import a python function
 q)h 3 4                     / call the python function from q
