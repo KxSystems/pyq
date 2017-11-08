@@ -5,9 +5,9 @@
 [![LGTM](https://img.shields.io/badge/lgtm-review-blue.svg)](https://lgtm.com/projects/g/enlnt/pyq)
 
 [PyQ][2] brings the [Python programming language][4] to the [kdb+ database][5]. It allows
-developers to seamlessly integrate Python and q codes in one application.
-This is achieved by bringing the Python and q interpreters in the same process
-so that codes written in either of the languages operate on the same data.
+developers to integrate Python and q codes seamlessly in one application.
+This is achieved by bringing the Python and q interpreters into the same process
+so that code written in either of the languages operates on the same data.
 In PyQ, Python and q objects live in the same memory space and share the same
 data.
 
@@ -60,7 +60,7 @@ tox
 ```
 
 [1]: https://code.kx.com/q/interfaces/pyq/install/
-[2]: https://code.kx.com/q/interfaces/pyq/quickstart
+[2]: https://code.kx.com/q/interfaces/pyq
 [3]: https://tox.readthedocs.io/en/latest
 [4]: https://www.python.org/about
 [5]: https://kx.com
