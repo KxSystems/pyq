@@ -1,5 +1,5 @@
 # PyQ - Python for kdb+
-
+[![Build Status](https://travis-ci.org/abalkin/pyq.svg?branch=travis)](https://travis-ci.org/abalkin/pyq)
 [![Documentation Status](https://readthedocs.org/projects/pyq/badge/?version=latest)](http://pyq.readthedocs.io/en/latest/?badge=latest)
 [![PyPI Version](https://img.shields.io/pypi/v/pyq.svg)](https://pypi.python.org/pypi/pyq)
 [![LGTM](https://img.shields.io/badge/lgtm-review-blue.svg)](https://lgtm.com/projects/g/enlnt/pyq)
