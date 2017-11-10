@@ -6,7 +6,6 @@ q)(`p 2:(`p_init;1))python_dll
 e:('[e;],[;"\000"])
 \d .
 p)import sys, os
-/ p)print(sys.path)
 p)from pyq import q
 p)sys.executable = str(q(".p.pyq_executable"))
 p)script = q("{$[x~`python.q;`;x]}.z.f")
