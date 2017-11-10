@@ -519,8 +519,9 @@ class BuildExe(Command):
                                        macros=self.define,
                                        extra_postargs=extra_args,
                                        output_dir=self.build_temp)
-
+            extra_args = ['-m32'] if '-m32' in os.getenv('CFLAGS', '').split() else []
             compiler.link_executable(objects,
+                                     extra_preargs=extra_args,
                                      output_progname=exe.name,
                                      output_dir=self.build_exe)
 
