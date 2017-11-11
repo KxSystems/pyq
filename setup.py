@@ -49,7 +49,23 @@ version = '{}'
 CFLAGS = ['/WX'] if WINDOWS else ['-Wpointer-arith',
                                   '-Werror',
                                   '-fno-strict-aliasing']
-
+LDFLAGS = []
+if (sys.maxsize + 1).bit_length() == 32 and platform.machine() == 'x86_64':
+    # Building 32-bit pyq on a 64-bit host
+    from distutils.sysconfig import get_config_vars
+    CONFIG_VARS = get_config_vars()
+    CFLAGS.append('-m32')
+    LDFLAGS.append('-m32')
+    def split_replace(string, a, b, sep):
+        x = string.split(sep)
+        for i, part in enumerate(x):
+            if part == a:
+                x[i] = b
+        return sep.join(x)
+    for k, v in CONFIG_VARS.items():
+        if isinstance(v, str):
+            CONFIG_VARS[k] = split_replace(v, 'x86_64', 'i386', '-')
+print(LDFLAGS)
 TEST_REQUIREMENTS = [
     'pytest>=2.6.4,!=3.2.0',
     'pytest-pyq',
@@ -68,15 +84,18 @@ METADATA = dict(
     qlib_scripts=['python.q', 'p.k', 'pyq-operators.q'],
     ext_modules=[
         Extension('pyq._k', sources=['src/pyq/_k.c', ],
-                  extra_compile_args=CFLAGS),
+                  extra_compile_args=CFLAGS,
+                  extra_link_args=LDFLAGS),
     ],
     qext_modules=[
         Extension('p', sources=['src/pyq/p.c', ],
-                  extra_compile_args=CFLAGS),
+                  extra_compile_args=CFLAGS,
+                  extra_link_args=LDFLAGS),
     ],
     executables=[] if WINDOWS else [
         Executable('pyq', sources=['src/pyq.c'],
-                   extra_compile_args=CFLAGS),
+                   extra_compile_args=CFLAGS,
+                   extra_link_args=LDFLAGS),
     ],
     scripts=['src/scripts/pyq-runtests',
              'src/scripts/pyq-coverage',
@@ -430,7 +449,7 @@ class BuildQExt(Command):
                                        macros=define,
                                        extra_postargs=extra_args,
                                        include_dirs=include_dirs)
-            extra_args = conf.extra_link_args[:]
+            extra_args = conf.extra_link_args[:] + ext.extra_link_args
             if WINDOWS:
                 extra_args.extend([r'/DEF:src\pyq\%s.def' % ext.name])
 
@@ -519,9 +538,8 @@ class BuildExe(Command):
                                        macros=self.define,
                                        extra_postargs=extra_args,
                                        output_dir=self.build_temp)
-            extra_args = ['-m32'] if '-m32' in os.getenv('CFLAGS', '').split() else []
             compiler.link_executable(objects,
-                                     extra_preargs=extra_args,
+                                     extra_preargs=LDFLAGS,
                                      output_progname=exe.name,
                                      output_dir=self.build_exe)
 
