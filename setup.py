@@ -107,7 +107,7 @@ METADATA = dict(
                   ],
                   extra_link_args=[
                       '-L' + sysconfig.get_config_var('LIBPL'),
-                      '-rpath', sysconfig.get_config_var('LIBPL'),
+                      '-Wl,-rpath', sysconfig.get_config_var('LIBPL'),
                       '-lpython' + sysconfig.get_config_var('LDVERSION'),
                   ]),
     ],
