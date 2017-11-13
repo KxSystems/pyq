@@ -90,7 +90,7 @@ METADATA = dict(
                   extra_link_args=LDFLAGS),
     ],
     qext_modules=[
-        Extension('p', sources=['src/pyq/p.c', ],
+        Extension('pyq', sources=['src/pyq/pyq.c', ],
                   extra_compile_args=CFLAGS,
                   extra_link_args=LDFLAGS),
     ],

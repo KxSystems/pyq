@@ -5,8 +5,8 @@ include LICENSE
 include README.md
 include src/pyq/_k.c
 include src/pyq/mv.c
-include src/pyq/p.c
-include src/pyq/p.def
+include src/pyq/pyq.c
+include src/pyq/pyq.def
 include src/pyq/p.k
 include src/pyq/python.q
 include src/pyq/pyq-operators.q
