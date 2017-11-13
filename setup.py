@@ -32,6 +32,8 @@ from distutils.command.config import config
 from distutils.command.install import install
 from distutils.command.install_scripts import install_scripts
 from distutils.sysconfig import get_config_vars
+from distutils import sysconfig
+import numpy
 
 WINDOWS = platform.system() == 'Windows'
 if WINDOWS:
@@ -47,8 +49,8 @@ VERSION_PY = """\
 version = '{}'
 """
 
-CFLAGS = ['/WX'] if WINDOWS else ['-Wpointer-arith',
-                                  '-Werror',
+CFLAGS = ['/WX'] if WINDOWS else [#'-Wpointer-arith',
+                                  #'-Werror',
                                   '-fno-strict-aliasing']
 LDFLAGS = []
 if (sys.maxsize + 1).bit_length() == 32 and platform.machine() == 'x86_64':
@@ -83,7 +85,7 @@ METADATA = dict(
     name='pyq',
     packages=['pyq', 'pyq.tests', ],
     package_dir={'': 'src'},
-    qlib_scripts=['python.q', 'p.k', 'pyq-operators.q'],
+    qlib_scripts=['python.q', 'p.k', 'pyq-operators.q', '../../embedPy/p.q'],
     ext_modules=[
         Extension('pyq._k', sources=['src/pyq/_k.c', ],
                   extra_compile_args=CFLAGS,
@@ -91,8 +93,23 @@ METADATA = dict(
     ],
     qext_modules=[
         Extension('pyq', sources=['src/pyq/pyq.c', ],
+
                   extra_compile_args=CFLAGS,
                   extra_link_args=LDFLAGS),
+        Extension('p', sources=['embedPy/p.c', ],
+                  extra_compile_args=CFLAGS + [
+                      '-Isrc/pyq/kx',
+                      '-I' + sysconfig.get_python_inc(),
+                      '-I' + numpy.get_include(),
+                      '-DPH=L"%s:%s"' % (sys.prefix, sys.exec_prefix),
+                      '-DDY="%s"' % sysconfig.get_config_var('LDLIBRARY'),
+                      '-DRP=1',
+                  ],
+                  extra_link_args=[
+                      '-L' + sysconfig.get_config_var('LIBPL'),
+                      '-rpath', sysconfig.get_config_var('LIBPL'),
+                      '-lpython' + sysconfig.get_config_var('LDVERSION'),
+                  ]),
     ],
     executables=[] if WINDOWS else [
         Executable('pyq', sources=['src/pyq.c'],
@@ -108,7 +125,8 @@ METADATA = dict(
     data_files=[
         ('q', ['src/pyq/p.k',
                'src/pyq/pyq-operators.q',
-               'src/pyq/python.q']),
+               'src/pyq/python.q',
+               'embedPy/p.q']),
     ],
     url='http://pyq.enlnt.com',
     author='Enlightenment Research, LLC',
