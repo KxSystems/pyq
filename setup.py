@@ -70,6 +70,11 @@ if (sys.maxsize + 1).bit_length() == 32 and platform.machine() == 'x86_64':
         if isinstance(v, str):
             config_vars[k] = split_replace(v, 'x86_64', 'i386', '-')
 
+LINK_FLAGS = [
+    '-L' + sysconfig.get_config_var('LIBPL'),
+    '-Wl,-rpath', sysconfig.get_config_var('LIBPL'),
+] if os.getenv('CONDA_PREFIX', '') == '' else []
+
 TEST_REQUIREMENTS = [
     'pytest>=2.6.4,!=3.2.0,!=3.3.0',
     'pytest-pyq',
@@ -105,9 +110,7 @@ METADATA = dict(
                       '-DDY="%s"' % sysconfig.get_config_var('LDLIBRARY'),
                       '-DRP=1',
                   ],
-                  extra_link_args=[
-                      '-L' + sysconfig.get_config_var('LIBPL'),
-                      '-Wl,-rpath', sysconfig.get_config_var('LIBPL'),
+                  extra_link_args=LINK_FLAGS + [
                       '-lpython' + sysconfig.get_config_var('LDVERSION'),
                   ]),
     ],
