@@ -31,6 +31,7 @@ from distutils.command.build_ext import build_ext
 from distutils.command.config import config
 from distutils.command.install import install
 from distutils.command.install_scripts import install_scripts
+from distutils.sysconfig import get_config_vars
 
 WINDOWS = platform.system() == 'Windows'
 if WINDOWS:
@@ -52,20 +53,21 @@ CFLAGS = ['/WX'] if WINDOWS else ['-Wpointer-arith',
 LDFLAGS = []
 if (sys.maxsize + 1).bit_length() == 32 and platform.machine() == 'x86_64':
     # Building 32-bit pyq on a 64-bit host
-    from distutils.sysconfig import get_config_vars
-    CONFIG_VARS = get_config_vars()
+    config_vars = get_config_vars()
     CFLAGS.append('-m32')
     LDFLAGS.append('-m32')
+
     def split_replace(string, a, b, sep):
         x = string.split(sep)
         for i, part in enumerate(x):
             if part == a:
                 x[i] = b
         return sep.join(x)
-    for k, v in CONFIG_VARS.items():
+
+    for k, v in config_vars.items():
         if isinstance(v, str):
-            CONFIG_VARS[k] = split_replace(v, 'x86_64', 'i386', '-')
-print(LDFLAGS)
+            config_vars[k] = split_replace(v, 'x86_64', 'i386', '-')
+
 TEST_REQUIREMENTS = [
     'pytest>=2.6.4,!=3.2.0',
     'pytest-pyq',
