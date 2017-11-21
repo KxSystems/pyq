@@ -1,7 +1,7 @@
 include AUTHORS.md
 include INSTALL.rst
 include CHANGES.rst
-include LICENSE.rst
+include LICENSE
 include README.md
 include src/pyq/_k.c
 include src/pyq/mv.c
