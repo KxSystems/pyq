@@ -27,14 +27,11 @@ install:
   - unzip -d $CONDA_PREFIX linuxx86.zip
   - rm -f $CONDA_PREFIX/q/q.q
   - export QHOME=$CONDA_PREFIX/q
-  #
-  - conda install pytest
-  - pip install pytest-pyq
   - if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" ]]; then
       echo "[config]" > setup.cfg;
       echo "python_dll=libpython3.6m.so" >> setup.cfg;
     fi
-  - pip install .
+  - pip install .[test]
 
 
 ## install system packages
