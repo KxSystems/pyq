@@ -31,7 +31,7 @@ install:
       echo "[config]" > setup.cfg;
       echo "python_dll=libpython3.6m.so" >> setup.cfg;
     fi
-  - pip install .[test]
+  - CFLAGS=-m32 LDFLAGS=-m32 pip install .[test]
 
 
 ## install system packages
