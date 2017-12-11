@@ -69,7 +69,7 @@ if (sys.maxsize + 1).bit_length() == 32 and platform.machine() == 'x86_64':
             config_vars[k] = split_replace(v, 'x86_64', 'i386', '-')
 
 TEST_REQUIREMENTS = [
-    'pytest>=2.6.4,!=3.2.0',
+    'pytest>=2.6.4,!=3.2.0,!=3.3.0',
     'pytest-pyq',
     'pytest-cov>=2.4',
     'coverage>=4.2'
