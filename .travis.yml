@@ -27,6 +27,10 @@ install:
   - unzip -d $CONDA_PREFIX linuxx86.zip
   - rm -f $CONDA_PREFIX/q/q.q
   - export QHOME=$CONDA_PREFIX/q
+  #
+  - conda install pytest
+  - conda install numpy
+  - pip install pytest-pyq
   - if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" ]]; then
       echo "[config]" > setup.cfg;
       echo "python_dll=libpython3.6m.so" >> setup.cfg;
@@ -43,3 +47,6 @@ addons:
 script:
   - pyq --versions
   - pyq -mpytest --pyargs pyq
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" ]]; then
+      $QHOME/l32/q src/pyq/tests/test_embed.q;
+    fi

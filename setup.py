@@ -32,6 +32,7 @@ from distutils.command.config import config
 from distutils.command.install import install
 from distutils.command.install_scripts import install_scripts
 from distutils.sysconfig import get_config_vars
+from distutils import sysconfig
 
 WINDOWS = platform.system() == 'Windows'
 if WINDOWS:
@@ -47,8 +48,8 @@ VERSION_PY = """\
 version = '{}'
 """
 
-CFLAGS = ['/WX'] if WINDOWS else ['-Wpointer-arith',
-                                  '-Werror',
+CFLAGS = ['/WX'] if WINDOWS else [#'-Wpointer-arith',
+                                  #'-Werror',
                                   '-fno-strict-aliasing']
 LDFLAGS = []
 if (sys.maxsize + 1).bit_length() == 32 and platform.machine() == 'x86_64':
@@ -68,6 +69,11 @@ if (sys.maxsize + 1).bit_length() == 32 and platform.machine() == 'x86_64':
         if isinstance(v, str):
             config_vars[k] = split_replace(v, 'x86_64', 'i386', '-')
 
+LINK_FLAGS = [
+    '-L' + sysconfig.get_config_var('LIBPL'),
+    '-Wl,-rpath', sysconfig.get_config_var('LIBPL'),
+] if os.getenv('CONDA_PREFIX', '') == '' else []
+
 TEST_REQUIREMENTS = [
     'pytest>=2.6.4,!=3.2.0,!=3.3.0',
     'pytest-pyq',
@@ -83,14 +89,14 @@ METADATA = dict(
     name='pyq',
     packages=['pyq', 'pyq.tests', ],
     package_dir={'': 'src'},
-    qlib_scripts=['python.q', 'p.k', 'pyq-operators.q'],
+    qlib_scripts=['python.q', 'p.k', 'pyq-operators.q', ],
     ext_modules=[
         Extension('pyq._k', sources=['src/pyq/_k.c', ],
                   extra_compile_args=CFLAGS,
                   extra_link_args=LDFLAGS),
     ],
     qext_modules=[
-        Extension('p', sources=['src/pyq/p.c', ],
+        Extension('pyq', sources=['src/pyq/pyq.c', ],
                   extra_compile_args=CFLAGS,
                   extra_link_args=LDFLAGS),
     ],
@@ -108,7 +114,9 @@ METADATA = dict(
     data_files=[
         ('q', ['src/pyq/p.k',
                'src/pyq/pyq-operators.q',
-               'src/pyq/python.q']),
+               'src/pyq/python.q',
+               ]
+         ),
     ],
     url='http://pyq.enlnt.com',
     author='Enlightenment Research, LLC',
@@ -670,8 +678,34 @@ def run_setup(metadata):
             'all': TEST_REQUIREMENTS + IPYTHON_REQUIREMENTS + [
                 'py', 'numpy', 'prompt-toolkit', 'pygments-q'],
         }
+    if sys.version_info >= (3, ):
+        try:
+            import numpy
+        except ImportError:
+            pass
+        else:
+            add_embedpy_components(keywords, numpy)
 
     setup(**keywords)
+
+
+def add_embedpy_components(keywords, numpy):
+    keywords['qlib_scripts'].append('../../embedPy/p.q')
+    keywords['qext_modules'].append(
+        Extension('p', sources=['embedPy/p.c', ],
+                  extra_compile_args=CFLAGS + [
+                      '-Isrc/pyq/kx',
+                      '-I' + sysconfig.get_python_inc(),
+                      '-I' + numpy.get_include(),
+                      '-DPH=L"%s:%s"' % (sys.prefix, sys.exec_prefix),
+                      '-DDY="%s"' % sysconfig.get_config_var('LDLIBRARY'),
+                      '-DRP=1',
+                  ],
+                  extra_link_args=LINK_FLAGS + [
+                      '-lpython' + sysconfig.get_config_var('LDVERSION'),
+                  ]),
+    )
+    add_data_file(keywords['data_files'], 'q', 'embedPy/p.q')
 
 
 if __name__ == '__main__':
