@@ -33,7 +33,6 @@ from distutils.command.install import install
 from distutils.command.install_scripts import install_scripts
 from distutils.sysconfig import get_config_vars
 from distutils import sysconfig
-import numpy
 
 WINDOWS = platform.system() == 'Windows'
 if WINDOWS:
@@ -90,7 +89,7 @@ METADATA = dict(
     name='pyq',
     packages=['pyq', 'pyq.tests', ],
     package_dir={'': 'src'},
-    qlib_scripts=['python.q', 'p.k', 'pyq-operators.q', '../../embedPy/p.q'],
+    qlib_scripts=['python.q', 'p.k', 'pyq-operators.q', ],
     ext_modules=[
         Extension('pyq._k', sources=['src/pyq/_k.c', ],
                   extra_compile_args=CFLAGS,
@@ -98,21 +97,8 @@ METADATA = dict(
     ],
     qext_modules=[
         Extension('pyq', sources=['src/pyq/pyq.c', ],
-
                   extra_compile_args=CFLAGS,
                   extra_link_args=LDFLAGS),
-        Extension('p', sources=['embedPy/p.c', ],
-                  extra_compile_args=CFLAGS + [
-                      '-Isrc/pyq/kx',
-                      '-I' + sysconfig.get_python_inc(),
-                      '-I' + numpy.get_include(),
-                      '-DPH=L"%s:%s"' % (sys.prefix, sys.exec_prefix),
-                      '-DDY="%s"' % sysconfig.get_config_var('LDLIBRARY'),
-                      '-DRP=1',
-                  ],
-                  extra_link_args=LINK_FLAGS + [
-                      '-lpython' + sysconfig.get_config_var('LDVERSION'),
-                  ]),
     ],
     executables=[] if WINDOWS else [
         Executable('pyq', sources=['src/pyq.c'],
@@ -129,7 +115,8 @@ METADATA = dict(
         ('q', ['src/pyq/p.k',
                'src/pyq/pyq-operators.q',
                'src/pyq/python.q',
-               'embedPy/p.q']),
+               ]
+         ),
     ],
     url='http://pyq.enlnt.com',
     author='Enlightenment Research, LLC',
@@ -691,8 +678,34 @@ def run_setup(metadata):
             'all': TEST_REQUIREMENTS + IPYTHON_REQUIREMENTS + [
                 'py', 'numpy', 'prompt-toolkit', 'pygments-q'],
         }
+    if sys.version_info >= (3, ):
+        try:
+            import numpy
+        except ImportError:
+            pass
+        else:
+            add_embedpy_components(keywords, numpy)
 
     setup(**keywords)
+
+
+def add_embedpy_components(keywords, numpy):
+    keywords['qlib_scripts'].append('../../embedPy/p.q')
+    keywords['qext_modules'].append(
+        Extension('p', sources=['embedPy/p.c', ],
+                  extra_compile_args=CFLAGS + [
+                      '-Isrc/pyq/kx',
+                      '-I' + sysconfig.get_python_inc(),
+                      '-I' + numpy.get_include(),
+                      '-DPH=L"%s:%s"' % (sys.prefix, sys.exec_prefix),
+                      '-DDY="%s"' % sysconfig.get_config_var('LDLIBRARY'),
+                      '-DRP=1',
+                  ],
+                  extra_link_args=LINK_FLAGS + [
+                      '-lpython' + sysconfig.get_config_var('LDVERSION'),
+                  ]),
+    )
+    add_data_file(keywords['data_files'], 'q', 'embedPy/p.q')
 
 
 if __name__ == '__main__':
