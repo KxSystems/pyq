@@ -47,3 +47,6 @@ addons:
 script:
   - pyq --versions
   - pyq -mpytest --pyargs pyq
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" ]]; then
+      $QHOME/l32/q src/pyq/tests/test_embed.q;
+    fi
