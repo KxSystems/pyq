@@ -42,4 +42,6 @@ addons:
      - gcc-multilib
 script:
   - pyq --versions
-  - pyq -mpytest --pyargs pyq
+  - pyq -mpytest --pyargs pyq --cov pyq
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
