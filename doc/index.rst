@@ -94,7 +94,6 @@ See the :ref:`ipython section <ipython>` for details.
     User Guide <manual/pyq>
     reference/pyq-auto
     whatsnew/changelog
-    License <license/index>
 
 Navigation
 ----------
