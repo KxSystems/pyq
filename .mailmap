@@ -1,0 +1,12 @@
+# Prevent git from showing duplicate names with commands like "git shortlog"
+
+# The syntax is:
+# Name that should be used <email that should be used> Bad name <bad email>
+
+# This file is up-to-date if the command git log --format="%aN <%aE>" | sort -u
+# gives no duplicates.
+
+Alexander Belopolsky <a@enlnt.com> Alexander Belopolsky <abalkin@users.noreply.github.com>
+Alexander Belopolsky <a@enlnt.com> Alexander Belopolsky <abalkin@enlnt.com>
+Alexander Belopolsky <a@enlnt.com> Alexander Belopolsky <alexander.belopolsky@gmail.com>
+Aleks Bunin <b@enlnt.com> Aleks Bunin <github@compuix.com>

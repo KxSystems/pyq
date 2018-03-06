@@ -5,5 +5,7 @@ import os
 
 
 def test_python_q_exitcode():
-    assert subprocess.call([os.getenv('QBIN'), 'python.q',
-                            '-c@', 'raise Exception']) == 1
+    with open(os.devnull) as rnull, open(os.devnull, 'w') as wnull:
+        assert subprocess.call([os.getenv('QBIN'), 'python.q',
+                                '-c@', 'raise Exception'],
+                               stdin=rnull, stdout=wnull, stderr=wnull) == 1

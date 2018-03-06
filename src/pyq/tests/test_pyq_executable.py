@@ -5,6 +5,7 @@ import subprocess
 import sys
 import platform
 
+import os
 import pytest
 
 pytestmark = pytest.mark.skipif(platform.system() == "Windows",
@@ -177,3 +178,15 @@ def test_p__file__0(tmpdir):
     p.write("print(__file__)")
     out = subprocess.check_output(['pyq', str(p)])
     assert out.strip().endswith(str(p).encode())
+
+
+def test_broken_q(tmpdir, monkeypatch, q_arch):
+    # QHOME not set, $VIRTUAL_ENV/q present with a broken q executable
+    monkeypatch.setenv("VIRTUAL_ENV", tmpdir)
+    monkeypatch.delenv("QHOME")
+    q_exe = tmpdir.join('q', q_arch, 'q')
+    q_exe.ensure()
+    q_exe.chmod(0o422)
+    with open(os.devnull, 'w')as null:
+        p = subprocess.Popen(['pyq'], stdout=null, stderr=subprocess.PIPE)
+        assert (str(q_exe) + ':') in p.stderr.read().decode()

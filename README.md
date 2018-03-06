@@ -1,20 +1,19 @@
 # PyQ - Python for kdb+
 
 [![Build Status](https://travis-ci.org/KxSystems/pyq.svg?branch=master)](https://travis-ci.org/KxSystems/pyq)
-[![Documentation Status](https://readthedocs.org/projects/pyq/badge/?version=latest)](http://pyq.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/pyq/badge/?version=latest)](https://pyq.readthedocs.io/en/latest/?badge=latest)
 [![PyPI Version](https://img.shields.io/pypi/v/pyq.svg)](https://pypi.python.org/pypi/pyq)
 [![LGTM](https://img.shields.io/badge/lgtm-review-blue.svg)](https://lgtm.com/projects/g/enlnt/pyq)
-[![Codecov](https://codecov.io/gh/KxSystems/pyq/branch/master/graph/badge.svg)](https://codecov.io/gh/KxSystems/pyq)
 
-[PyQ][2] brings the [Python programming language][4] to the [kdb+ database][5]. 
-Part of the [_Fusion for kdb+_](http://code.kx.com/q/interfaces/fusion/) interface collection.
+[PyQ][2] brings the [Python programming language][4] to the [kdb+ database][5].
+Part of the [_Fusion for kdb+_][6] interface collection.
 
 It allows developers to integrate Python and q codes seamlessly in one application.
 This is achieved by bringing the Python and q interpreters into the same process so that code written in either of the languages operates on the same data.
 In PyQ, Python and q objects live in the same memory space and share the same
 data.
 
-Please [report issues](https://github.com/KxSystems/pyq/issues) in this repository.
+Please [report issues][7] in this repository.
 
 
 ## Installation
@@ -74,3 +73,5 @@ tox
 [3]: https://tox.readthedocs.io/en/latest
 [4]: https://www.python.org/about
 [5]: https://kx.com
+[6]: https://code.kx.com/q/interfaces/fusion/
+[7]: https://github.com/KxSystems/pyq/issues

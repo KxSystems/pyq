@@ -136,3 +136,9 @@ Gitlab
 Centos
 ubuntu
 kernelspec
+otool
+na
+ldconfig
+gh
+codecov
+sbin

@@ -13,6 +13,8 @@ from pyq import *
 from pyq import _PY3K, Q_VERSION
 from .test_k import K_INT_CODE, K_LONG_CODE
 
+SYM_NA = int(K.int.na if Q_VERSION < 3.6 else K.long.na)
+
 pytestmark = pytest.mark.skipif(numpy is None, reason="numpy is not installed")
 SIZE_OF_PTR = pyq._k.SIZEOF_VOID_P
 
@@ -467,3 +469,8 @@ def test_call_python(q):
         return numpy.array([1.0, 2.0])
     q.f = f
     assert q("f()") == [1.0, 2.0]
+
+
+def test_enum_to_numpy(q):
+    x = q('`sym?`a`b`')
+    assert numpy.asarray(x.data).tolist() == [0, 1, SYM_NA]

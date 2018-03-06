@@ -39,7 +39,7 @@ if WINDOWS:
 else:
     from distutils.core import Command, Distribution, Extension, setup
 
-VERSION = '4.1.2'
+VERSION = '4.1.3'
 IS_RELEASE = True
 VERSION_FILE = 'src/pyq/version.py'
 VERSION_PY = """\
@@ -110,10 +110,9 @@ METADATA = dict(
                'src/pyq/pyq-operators.q',
                'src/pyq/python.q']),
     ],
-    url='http://pyq.enlnt.com',
-    author='Enlightenment Research, LLC',
-    author_email='pyq@enlnt.com',
-    license='PyQ General License',
+    url='https://github.com/KxSystems/pyq',
+    author='PyQ Authors',
+    license='Apache License',
     platforms=['Linux', 'Mac OS-X', 'Solaris'],
     classifiers=['Development Status :: 5 - Production/Stable',
                  'Environment :: Console',
@@ -127,7 +126,6 @@ METADATA = dict(
                  'Operating System :: POSIX :: SunOS/Solaris',
                  'Programming Language :: C',
                  'Programming Language :: Python :: 2.7',
-                 'Programming Language :: Python :: 3.4',
                  'Programming Language :: Python :: 3.5',
                  'Programming Language :: Python :: 3.6',
                  'Programming Language :: Python :: Implementation :: CPython',
@@ -246,14 +244,17 @@ def get_python_dll(executable):
         # (i.e Ubuntu), but provide dynamic libraries in a separate
         # package.
         libpython = 'libpython{}.{}'.format(*sys.version_info[:2]).encode()
-        output = subprocess.check_output(['ldconfig', '-p'])
+        try:
+            output = subprocess.check_output(['ldconfig', '-p'])
+        except subprocess.CalledProcessError:
+            output = subprocess.check_output(['/sbin/ldconfig', '-p'])
         for line in output.splitlines():
             if libpython in line:
                 return decode(line.split()[-1])
 
     elif sysname == 'Darwin':
         output = subprocess.check_output(['otool', '-L', executable])
-        for line in output.splitlines():
+        for line in output.splitlines()[1:]:
             if b'Python' in line:
                 python_dll = decode(line.split()[0])
                 return python_dll.replace('@executable_path',

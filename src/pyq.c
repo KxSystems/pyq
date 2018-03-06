@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/errno.h>
 #include <pwd.h>
 #include <limits.h>
 #ifdef __APPLE__
@@ -307,6 +308,8 @@ main(int argc, char *argv[])
             fflush(stdout);
             fflush(stderr);
             rc = execvp(qpath, args);
+            if (errno != ENOENT)
+                perror(qpath);
             tried_paths[i] = qpath;
         }
         else {

@@ -725,6 +725,13 @@ def test_special_values(q, char, name):
     assert getattr(K, name).na == q('0N' + char)
 
 
+@pytest.mark.skipif("Q_VERSION < 3")
+def test_guid_na():
+    x = K.guid.na
+    assert x.null
+    assert x == q('0Ng')
+
+
 @pytest.mark.parametrize('type_name', [
     'boolean',
     pytest.mark.skipif("Q_VERSION < 3", 'guid'),

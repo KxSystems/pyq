@@ -57,6 +57,9 @@ if _KX3 and Q_DATE >= date(2012, 7, 26):
     # binr was introduced in kdb+3.0 2012.07.26
     _Q_RES.append('binr')
 
+if Q_VERSION >= 3.6:
+    _Q_RES.append('hopen')
+
 
 class K(_K):
     """proxies for kdb+ objects
@@ -573,7 +576,7 @@ def _q_builtins():
     return pairs
 
 
-def _genmethods(cls):
+def _genmethods(cls, obj):
     q('\l pyq-operators.q')
     cls._show = q('{` sv .Q.S[y;z;x]}')
     cls._sizeof = q('.p.sizeof')
@@ -598,6 +601,7 @@ def _genmethods(cls):
     for x, f in _q_builtins():
         if not hasattr(cls, x):
             setattr(cls, x, f)
+            obj.__dict__[x] = f
 
     def cmp_op(op):
         def dunder(self, other):
@@ -648,14 +652,9 @@ class _Q(object):
                 object.__setattr__(self, '_cmd', Cmd())
             self._cmd.cmdloop()
 
-    def __getattribute__(self, attr):
+    def __getattr__(self, attr, _k=K._k):
         try:
-            return object.__getattribute__(self, attr)
-        except AttributeError:
-            pass
-        k = K._k
-        try:
-            return k(0, attr.rstrip('_'))
+            return _k(0, attr.rstrip('_'))
         except kerr:
             pass
         raise AttributeError(attr)
@@ -780,7 +779,7 @@ def __import__(name, globals={}, locals={}, fromlist=[], level=[-1, 0][_PY3K],
 __builtin__.__import__ = __import__
 ###############################################################################
 
-_genmethods(K)
+_genmethods(K, q)
 del _genmethods, _imp
 
 
@@ -853,6 +852,8 @@ def _gendescriptors(cls, string_types=(type(b''), type(u''))):
             if self.code > 4 and int(self.code) != 11:
                 constructor.inf = q('0W' + self.char)
                 constructor.na = q('0N' + self.char)
+            elif self.name == 'guid':
+                constructor.na = q('0Ng')
 
             return constructor
 

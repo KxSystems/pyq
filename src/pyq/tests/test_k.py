@@ -1207,6 +1207,7 @@ def test_attr_n(x, n):
     assert n == x._n
 
 
+@pytest.mark.skipif("Q_VERSION >= 3.6")
 def test_date_range():
     min_date = date(1709, 1, 1)
     max_date = date(2290, 12, 31)
@@ -1238,6 +1239,7 @@ def test_issue_870():
     assert eq(P(datetimes), result)
 
 
+@pytest.mark.skipif("Q_VERSION >= 3.6")
 def test_month_range():
     dates = map(date,
                 [1708, 1709, 2290, 2291],
@@ -1255,6 +1257,13 @@ def test_timestamp_range():
     result = q(
         '-0W 1709.01.01D00:00:00.000000000 2290.12.31D23:59:59.999999000 0Wp')
     assert eq(P(datetimes), result)
+
+
+@pytest.mark.skipif("Q_VERSION < 3.6")
+def test_date_and_month_extremes():
+    dates = [date.min, date.max]
+    assert eq(M(dates), q('0001.01 9999.12m'))
+    assert eq(D(dates), q('0001.01.01 9999.12.31'))
 
 
 @pytest.mark.parametrize("t,f", [
@@ -1383,7 +1392,8 @@ def test_kb_error():
     ('ke', -1e200, 1e200, '0We'),
     ('kf', -float('inf'), float('inf'), '0w'),
     ('kd', -2 ** 31 - 1, 2 ** 31 + 1, '0Wd'),
-    ('kd', date.min, date.max, '0Wd'),
+    pytest.mark.skipif('Q_VERSION >= 3.6', ('kd', date.min, date.max, '0Wd')),
+    ('km', -2 ** 31 - 1, 2 ** 31 + 1, '0Wm'),
     ('ku', -2 ** 31 - 1, 2 ** 31 + 1, '0Wu'),
     ('kv', -2 ** 31 - 1, 2 ** 31 + 1, '0Wv'),
     ('kpz', -2 ** 63 - 1, 2 ** 63 + 1, '0Wp'),

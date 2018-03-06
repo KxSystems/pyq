@@ -22,7 +22,6 @@ install:
   - export CONDA_FORCE_32BIT=1
   - conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION
   - source activate test-env
-  - conda install numpy
   # Install kdb+
   - curl -O https://kx.com/$X/3.5/linuxx86.zip
   - unzip -d $CONDA_PREFIX linuxx86.zip
@@ -43,6 +42,4 @@ addons:
      - gcc-multilib
 script:
   - pyq --versions
-  - pyq -mpytest --pyargs pyq --cov pyq
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - pyq -mpytest --pyargs pyq

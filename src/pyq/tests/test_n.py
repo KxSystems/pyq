@@ -1,12 +1,11 @@
 from __future__ import absolute_import
 import pytest
-from pyq import q
 
 _n = pytest.importorskip('pyq._n')
 numpy = _n.numpy
 
 pytestmark = pytest.mark.skipif(
-    [int(n) for n in numpy.__version__.split('.')] < [1, 11],
+    [int(n) for n in numpy.__version__.split('.', 2)[:2]] < [1, 11],
     reason="numpy>=1.11 is not installed")
 
 

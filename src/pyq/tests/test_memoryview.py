@@ -9,6 +9,8 @@ from pyq import *
 from pyq import _PY3K, Q_VERSION
 from .test_k import K_INT_CODE, K_LONG_CODE
 
+SYM_NA = int(K.int.na if Q_VERSION < 3.6 else K.long.na)
+
 
 def mv_release(m):
     """Release memoryview"""
@@ -126,7 +128,7 @@ def test_memoryview_bytes():
 def test_memoryview_enum(q):
     x = q('`sym?`a`b`c')
     m = x.data
-    assert m.format == K_INT_CODE
+    assert m.format == K_INT_CODE if Q_VERSION < 3.6 else K_LONG_CODE
     mv_release(m)
 
 
@@ -213,3 +215,9 @@ def test_simple_view(x, f, s, u):
         v = struct.unpack(f, m[0])
         assert v[0] == u
     mv_release(m)
+
+
+@pytest.mark.skipif('not _PY3K')
+def test_enum_data(q):
+    x = q('`sym?`a`b`')
+    assert x.data.tolist() == [0, 1, SYM_NA]

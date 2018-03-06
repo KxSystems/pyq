@@ -4,6 +4,42 @@
 Version History
 ===============
 
+
+Version History
+===============
+
+`PyQ 4.1.3 <http://pyq.readthedocs.io/en/pyq-4.1.3/>`_
+------------------------------------------------------
+
+Released on 2018-03-06
+
+Bug fixes and enhancements
+
+    - !604 - BUG #970 Ignore the first line in the otool -L output.
+    - !608 - ENH #980 Implemented K.guid.na.
+    - !610 - STY #916 C code reformat
+    - !614 - ENH #919 Rewrote z2py entirely in C.
+    - !616 - MNT #984 Speed up access to q builtins.
+    - !617 - ENH #936 Support for kdb+ version 3.6
+    - !622 - BUG #988 Use /sbin/ldconfig if ldconfig not in the PATH.
+    - !627 - ENH #990 Better diagnostic on a broken q executable.
+    - gh-33 - MNT Define _GNU_SOURCE conditionally.
+    - gh-38 - MNT Update k.h.
+
+Documentation
+
+    This is the last release, where documentation included with the PyQ source. Starting with PyQ 4.2.0 documentation will be available only at `code.kx.com <http://code.kx.com/q/interfaces/pyq/>`_.
+
+    - !621 - MNT Update metadata and authors list
+    - gh-26 - MNT Updated the license entry in the package classifiers.
+
+CI
+
+    - gh-27, gh-29, gh-46 - BLD Travis CI configuration.
+    - gh-39 - BLD Blacklist pytest 3.3.0.
+    - gh-45 - BLD Send coverage results to Codecov
+
+
 `PyQ 4.1.2 <http://pyq.readthedocs.io/en/pyq-4.1.2/>`_
 ------------------------------------------------------
 
