@@ -3,7 +3,8 @@
 [![Build Status](https://travis-ci.org/KxSystems/pyq.svg?branch=master)](https://travis-ci.org/KxSystems/pyq)
 [![Documentation Status](https://readthedocs.org/projects/pyq/badge/?version=latest)](https://pyq.readthedocs.io/en/latest/?badge=latest)
 [![PyPI Version](https://img.shields.io/pypi/v/pyq.svg)](https://pypi.python.org/pypi/pyq)
-[![LGTM](https://img.shields.io/badge/lgtm-review-blue.svg)](https://lgtm.com/projects/g/enlnt/pyq)
+[![LGTM Alerts](https://img.shields.io/lgtm/alerts/g/enlnt/pyq.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/enlnt/pyq)
+[![LGTM Grade](https://img.shields.io/lgtm/grade/python/g/enlnt/pyq.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/enlnt/pyq)
 [![Codecov](https://codecov.io/gh/KxSystems/pyq/branch/master/graph/badge.svg)](https://codecov.io/gh/KxSystems/pyq)
 
 [PyQ][2] brings the [Python programming language][4] to the [kdb+ database][5].
