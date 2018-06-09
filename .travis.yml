@@ -1,37 +1,58 @@
 # Based on https://conda.io/docs/user-guide/tasks/use-conda-with-travis-ci.html
-language: python
-python:
-  # We don't actually use the Travis Python, but this keeps it organized.
-  - "2.7"
-  - "3.6"
+language: c
+matrix:
+  include:
+    - os: linux
+      env:
+        - BITS=64
+        - PY=3.6
+    - os: linux
+      env:
+        - BITS=64
+        - PY=2.7
+    - os: linux
+      env:
+        - BITS=32
+        - PY=3.6
+    - os: linux
+      env:
+        - BITS=32
+        - PY=2.7
+    - os: osx
+      env:
+        - BITS=64
+        - PY=3.6
+    - os: osx
+      env:
+        - BITS=64
+        - PY=2.7
+  allow_failures:
+    - os: osx
+
 install:
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-    else
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    fi
+  - if [[ "$PY" == "2.7" ]]; then mc=Miniconda2; else mc=Miniconda3; fi
+  - if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then os=Linux; else os=MacOSX; fi
+  - wget https://repo.continuum.io/miniconda/${mc}-latest-${os}-x86_64.sh -O miniconda.sh
   - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
+  - . $HOME/miniconda/etc/profile.d/conda.sh
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   # Useful for debugging any issues with conda
   - conda info -a
-  - export CONDA_FORCE_32BIT=1
-  - conda create -q -n test-env python=$TRAVIS_PYTHON_VERSION
-  - source activate test-env
+  - if [ "${BITS}" = "32" ]; then export CONDA_FORCE_32BIT=1; fi
+  - conda create -q -n test-env python=$PY
+  - conda activate test-env
   # Install kdb+
-  - curl -O https://kx.com/$X/3.5/linuxx86.zip
-  - unzip -d $CONDA_PREFIX linuxx86.zip
-  - rm -f $CONDA_PREFIX/q/q.q
+  - . .travis/getkdb.sh
   - export QHOME=$CONDA_PREFIX/q
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" ]]; then
-      echo "[config]" > setup.cfg;
-      echo "python_dll=libpython3.6m.so" >> setup.cfg;
-    fi
-  - CFLAGS=-m32 LDFLAGS=-m32 pip install .[test]
+  # Install requirements
+  - conda install numpy pytest pytest-cov coverage
+  - pip install pytest-pyq
+  - . .travis/build.sh
+  - gcov src/pyq/_k.c
 
 
 ## install system packages
