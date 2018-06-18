@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import ctypes
 import subprocess
 import sys
 import platform
@@ -122,7 +123,7 @@ def test_q_venv2(tmpdir, monkeypatch, q_arch):
     # QHOME not set, VIRTUAL_ENV not set, HOME set to tempdir
     monkeypatch.setenv("HOME", tmpdir)
     monkeypatch.delenv("QHOME")
-    monkeypatch.delenv("VIRTUAL_ENV")
+    monkeypatch.delenv("VIRTUAL_ENV", raising=False)
     monkeypatch.setenv('PATH', tmpdir, prepend=':')
     tmpdir.join('pyq').mksymlinkto(sys.executable)
 
@@ -141,7 +142,7 @@ def test_q_venv2(tmpdir, monkeypatch, q_arch):
 def test_q_venv3(tmpdir, monkeypatch, q_arch):
     # QHOME not set, VIRTUAL_ENV not set, q is next to bin/pyq
     monkeypatch.delenv("QHOME")
-    monkeypatch.delenv("VIRTUAL_ENV")
+    monkeypatch.delenv("VIRTUAL_ENV", raising=False)
     bindir = tmpdir.join('bin')
     bindir.ensure(dir=1)
     monkeypatch.setenv('PATH', bindir, prepend=':')
@@ -190,3 +191,21 @@ def test_broken_q(tmpdir, monkeypatch, q_arch):
     with open(os.devnull, 'w')as null:
         p = subprocess.Popen(['pyq'], stdout=null, stderr=subprocess.PIPE)
         assert (str(q_exe) + ':') in p.stderr.read().decode()
+
+
+@pytest.mark.parametrize('message,stock', [
+    ('standalone python', True),
+    ('', False),
+]
+                         )
+def test_stock_python(monkeypatch, message, stock):
+    if stock:
+        monkeypatch.setattr(ctypes, 'CDLL', lambda x: None)
+    monkeypatch.setitem(sys.modules, 'pyq._k', None)
+    monkeypatch.delitem(sys.modules, 'pyq', raising=False)
+
+    with pytest.raises(ImportError) as exc:
+        __import__('pyq')
+
+    if stock:
+        assert message in exc.value.args[0]

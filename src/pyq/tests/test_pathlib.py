@@ -22,4 +22,4 @@ pytestmark = pytest.mark.skipif(pathlib is None,
 ])
 def test_convert_path(x):
     p = pathlib.Path(x)
-    assert str(K(p)) == ':' + x
+    assert str(K(p)) == ':' + x.replace(os.sep, '/')

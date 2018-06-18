@@ -5,8 +5,37 @@ Version History
 ===============
 
 
-Version History
-===============
+`PyQ 4.1.4 <http://pyq.readthedocs.io/en/pyq-4.1.4/>`_
+------------------------------------------------------
+
+Released on 2018-06-18
+
+Bug fixes and enhancements
+
+    - !629 - BUG #992 Fixed conversion of mixed lists with unicode entries to q.
+    - !630 - ENH #994 Allow None and Python 2.x unicode in K._S accelerator.
+    - !633 - ENH #995 Optimize conversion for masked array.
+    - !634 - BUG #996 Fixed getitem for kdb+ v3.6.
+    - !636 - MNT #000 Fix codestyle failures.
+    - !640 - BUG #1003 Fixed getitem in the case of legacy 32-bit enums.
+    - !641 - BUG #1005 Fix translation of Windows paths to k
+    - !643 - ENH #0000 Updated k.h to the latest version 2018.05.24.
+    - !646 - BUG #957 Improve detection of standalone Python
+    - !651 - BUG #1008 Added logic to find Python DLL from sysconfig.
+    - !653 - ENH #703 Create conda package
+
+
+CI
+
+    - !632 - TST Use numpy 1.14; drop numpy 1.12 in tests.
+    - !654 - TST #1010 Skip infinite recursion tests when measuring coverage
+    - !655 - BUG #997 Fixed wrongdoings in CI
+
+
+Documentation
+
+    This is the last release series, where documentation is included with the PyQ source. Starting with PyQ 4.2.0 documentation will be available only at `code.kx.com <http://code.kx.com/q/interfaces/pyq/>`_.
+
 
 `PyQ 4.1.3 <http://pyq.readthedocs.io/en/pyq-4.1.3/>`_
 ------------------------------------------------------
@@ -768,3 +797,5 @@ implemented K._ja
    aN
    clr
    lgtm
+   conda
+   codestyle

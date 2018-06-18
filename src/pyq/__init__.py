@@ -21,9 +21,12 @@ except ImportError:
 try:
     from ._k import K as _K, error as kerr, Q_VERSION, Q_DATE, Q_OS
 except ImportError:
-    if 'python' in os.path.basename(sys.executable).lower():
-        import platform
-        message = "Importing pyq from stock python is not supported. "
+    import ctypes
+    import platform
+
+    if not hasattr(ctypes.CDLL(None), 'b9'):
+        message = ("Importing the pyq package from "
+                   "standalone python is not supported. ")
         if platform.system() == 'Windows':
             message += "Run path\\to\\q.exe python.q."
         else:
@@ -496,7 +499,11 @@ class K(_K):
     if _np is not None:
         @property
         def _mask(self):
-            return _np.asarray(self.null)
+            x = self._get_null()
+            if x is None:
+                return _np.ma.nomask
+            else:
+                return _np.asarray(x)
 
         from ._n import array as __array__
 
@@ -577,7 +584,7 @@ def _q_builtins():
 
 
 def _genmethods(cls, obj):
-    q('\l pyq-operators.q')
+    q(r'\l pyq-operators.q')
     cls._show = q('{` sv .Q.S[y;z;x]}')
     cls._sizeof = q('.p.sizeof')
     for spec, verb in [
@@ -730,7 +737,7 @@ if _PY3K:
     converters[bytes] = K._kp
 else:
     converters[unicode] = K._ks
-    _X[unicode] = lambda x: K([i.encode() for i in x])
+    _X[unicode] = K._S
     _X[long] = (K._J if _KX3 else K._I)
 try:
     converters[buffer] = K._kp
@@ -741,11 +748,15 @@ except NameError:
 ###############################################################################
 # Lazy addition of converters
 ###############################################################################
-lazy_converters = {'uuid': [('UUID', lambda u: K._kguid(u.int))],
-                   'py._path.local': [('LocalPath',
-                                       lambda p: q.hsym(p.strpath))],
-                   'pathlib': [('PurePath', lambda p: K(':' + str(p)))],
-                   }
+lazy_converters = {
+    'uuid': [('UUID', lambda u: K._kguid(u.int))],
+    'py._path.local': [
+        ('LocalPath',
+            (lambda p: K(':' + p.strpath)) if os.sep == '/' else
+            lambda p: K(':' + p.strpath.replace(os.sep, '/')))
+    ],
+    'pathlib': [('PurePath', lambda p: K(':' + p.as_posix()))],
+}
 
 lazy_converters['pathlib2'] = lazy_converters['pathlib']
 

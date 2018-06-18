@@ -1,8 +1,8 @@
 from __future__ import absolute_import
-from pyq import q
 import py
 
 
-def test_pypath():
+def test_pypath(q):
     p = py.path.local('/abc/def')
-    assert q('::', p) == ':' + p.strpath
+    # NB: On Windows, the result is ":C:/abc/def"
+    assert str(q('::', p)).endswith(':/abc/def')

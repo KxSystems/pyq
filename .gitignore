@@ -18,3 +18,5 @@ html/
 
 MANIFEST
 
+.pytest_cache/
+

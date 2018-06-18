@@ -140,7 +140,7 @@ class ListTestCase(K_TestCase):
 
     def test_S(self):
         self.assert_k_is(S([]), '`symbol$()')
-        self.assert_k_is(S(['aa', 'bb']), '`aa`bb')
+        self.assert_k_is(S(['aa', 'bb', u'uu', None]), '`aa`bb`uu`')
 
     def test_K(self):
         self.assert_k_is(K([]), '()')

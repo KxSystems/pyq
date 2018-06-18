@@ -96,6 +96,7 @@ round(double d)
 
 #    define PY_INT_From_LongLong PyLong_FromLongLong
 
+
 #    define PY_SET_SN(var, obj)                              \
         {                                                    \
             Py_ssize_t size;                                 \
@@ -2510,14 +2511,31 @@ K_S(PyTypeObject *type, PyObject *arg)
     for (i = 0; i < n; ++i) {
         PyObject *o = PySequence_Fast_GET_ITEM(seq, i);
 
-        if (!PY_STR_Check(o)) {
+        if (PY_STR_Check(o)) {
+            PY_SET_SN(xS[i], o)
+        }
+#if PY_MAJOR_VERSION < 3
+       else if (PyUnicode_Check(o)) {
+            PyObject *s = PyUnicode_AsUTF8String(o);
+            if (s == NULL) {
+                r0(x);
+                Py_DECREF(seq);
+                return NULL;
+            }
+            PY_SET_SN(xS[i], s)
+            Py_DECREF(s);
+       }
+#endif
+       else if (o == Py_None) {
+            xS[i] = ss("");
+       }
+       else {
             r0(x);
             Py_DECREF(seq);
             PyErr_Format(
                 PyExc_TypeError, "K._S: item at %lld is not a string", i);
             return NULL;
         }
-        PY_SET_SN(xS[i], o)
     }
     Py_DECREF(seq);
     return KObject_FromK(type, x);
@@ -3442,6 +3460,72 @@ K_sp(KObject *self)
     return PyBool_FromLong(r);
 }
 
+ZS ns;
+
+PyDoc_STRVAR(K_get_null_doc, "x._get_null() -> None if x has no missing values, q.null(x) otherwise");
+static PyObject *
+K_get_null(KObject *self)
+{
+    I r = 0;
+    K x = self->x;
+    switch (xt) {
+        case KF:
+        case KZ:
+            DO(xn, r|=isnan(xF[i]));
+            break;
+        case KB:
+        case KG:
+            Py_RETURN_NONE;
+        case KE:
+            DO(xn, r|=isnan(xE[i]));
+            break;
+        case KS: {
+            DO(xn, r|=(xS[i]==ns));
+            break;
+        }
+        case KI:
+        case KD:
+        case KT:
+        case KU:
+        case KV:
+            DO(xn, r|=(xI[i]==ni));
+            break;
+        case KJ:
+            DO(xn, r|=(xJ[i]==nj));
+            break;
+        case KH:
+            DO(xn, r|=(xH[i]==nh));
+            break;
+        case KC:
+            DO(xn, r|=(xG[i]==' '));
+            break;
+#if KXVER >= 3
+        case UU:
+            DO(xn,{J j=0;for(;j<16;++j)r|=!xU[i].g[j];});
+            break;
+#endif
+        default:
+            r = -1;
+    }
+    if (r == 0)
+        Py_RETURN_NONE;
+    x = k(0, "null", r1(x), (K)0);
+    if (r == -1) {
+        if (xt < 0) {
+            r = xg;
+        }
+        else {
+            r = 0;
+            DO(xn,r|=xG[i]);
+        }
+        if (r == 0) {
+            r0(x);
+            Py_RETURN_NONE;
+        }
+    }
+    return KObject_FromK(Py_TYPE(self), x);
+}
+
 static PyMethodDef K_methods[] = {
     {"_func", (PyCFunction)K_func, METH_O | METH_CLASS, "func"},
     {"_dot", (PyCFunction)K_dot, METH_O, "dot"},
@@ -3513,6 +3597,7 @@ static PyMethodDef K_methods[] = {
     {"_pys", (PyCFunction)K_pys, METH_NOARGS, K_pys_doc},
     {"_callargs", (PyCFunction)K_callargs, METH_VARARGS | METH_KEYWORDS, NULL},
     {"_sp", (PyCFunction)K_sp, METH_NOARGS, K_sp_doc},
+    {"_get_null", (PyCFunction)K_get_null, METH_NOARGS, K_get_null_doc},
     {NULL, NULL} /* sentinel */
 };
 
@@ -4512,27 +4597,32 @@ getitem(PyTypeObject *ktype, K x, Py_ssize_t i)
         ret = KObject_FromK(ktype, k(0, "@", r1(x), kj(i), (K)0));
         break;
 #if KX36
-    case 20: {
+    case 20: { /* 64-bit enums */
         J j = xJ[i];
         K key = k(0, "{value key x}", r1(x), (K)0);
-        ret = PY_STR_InternFromString(j < key->n && j >= 0 ? kS(key)[j]
-                                                           : "");
+        if (key->t == KS) {
+            ret = PY_STR_InternFromString(j < key->n && j >= 0 ?
+                                          kS(key)[j] : "");
+        }
         r0(key);
         break;
     }
 #endif
     default:
         if (xt >= 20 && xt < ENUMS_END) {
+            /* In kdb+ version >= 3.6, this can only be reached when
+               xt >= 21 corresponding to legacy 32-bit enums. */
             I j = xI[i];
             K key = k(0, "{value key x}", r1(x), (K)0);
-            ret = PY_STR_InternFromString(j < key->n && j >= 0 ? kS(key)[j]
-                                                               : "");
+            if (key->t == KS) {
+                ret = PY_STR_InternFromString(j < key->n && j >= 0 ?
+                                              kS(key)[j] : "");
+            }
             r0(key);
         }
-        else {
-            PyErr_SetString(PyExc_NotImplementedError, "not implemented");
-        }
     }
+    if (ret == NULL)
+        PyErr_SetString(PyExc_NotImplementedError, "not implemented");
     return ret;
 }
 
@@ -4654,6 +4744,7 @@ MOD_INIT(_k)
     k_nil = k(0, "last value(;)", (K)0);
     k_repr = k(0, "-3!", (K)0);
     k_noargs = knk(1, r1(k_none));
+    ns = ss("");
     debug = getenv("PYQDBG") != NULL;
     /* trp support */
     get_backtrace_dl = dl(get_backtrace, 2);

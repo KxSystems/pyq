@@ -9,6 +9,7 @@ import math
 import pytest
 from datetime import timedelta
 import os
+import sys
 
 from pyq import *
 from pyq import Q_VERSION, _PY3K
@@ -680,6 +681,7 @@ def test_string_constructor(x, y):
     assert K.string(x) == k(y)
 
 
+@pytest.mark.skipif("sys.gettrace() is not None")
 def test_string_constructor_error():
     x = [None]
     x[0] = x  # Makes a self-referencing list
@@ -1034,7 +1036,7 @@ def test_long_clip_inf():
     ('scan', "\\"),
     ('prior', "':"),
     ('sv', "/:"),
-    ('vs', "\:"),
+    ('vs', r"\:"),
 ])
 def test_adverb(a, x):
     adverb = getattr(K, a)
@@ -1087,6 +1089,7 @@ def test_cast_string():
     assert x.string == q('"10"')
 
 
+@pytest.mark.skipif("sys.gettrace() is not None")
 def test_too_deep():
     x = []
     x.append(x)
@@ -1203,3 +1206,33 @@ def test_sp(x, sp):
         x = K(x)
 
     assert x._sp() == sp
+
+
+def test_foreign_key(q):
+    q("f:([]a:1 2;b:10 20)")
+    x = q('`f!0 0')
+    with pytest.raises(NotImplementedError):
+        list(x)
+
+
+@pytest.mark.skipif("Q_VERSION < 3.0")
+def test_legacy_enum_getitem(q, tmpdir):
+    path_a = tmpdir.join('a')
+    path_sym = tmpdir.join('sym')
+    # Files prepared in kdb+ 3.5 using
+    # q)`:q35/a set `sym?`a`b`c
+    # q)save`:q35/sym
+    data_a = (b'\xfesym'
+              b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+              b'\x03\x00\x00\x00\x00\x00\x00\x00'
+              b'\x00\x00\x00\x00'
+              b'\x01\x00\x00\x00'
+              b'\x02\x00\x00\x00')
+    data_sym = b'\xff\x01\x0b\x00\x03\x00\x00\x00a\x00b\x00c\x00'
+    path_a.write(data_a, 'wb')
+    path_sym.write(data_sym, 'wb')
+    # NB: On Windows, q.load still expects / in paths.
+    q.load(path_sym.strpath.replace(os.sep, '/'))
+    q.load(path_a.strpath.replace(os.sep, '/'))
+    assert q.a[0] == 'a'
+    assert q.a[1] == 'b'

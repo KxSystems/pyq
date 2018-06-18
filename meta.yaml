@@ -1,0 +1,61 @@
+{% set name = "PyQ" %}
+{% set setup_data = load_setup_py_data() %}
+
+package:
+  name: '{{ name|lower }}'
+  version: '{{ setup_data.version }}'
+
+source:
+  path: .
+
+build:
+  number: 0
+  script_env:
+    - QHOME
+    - QLIC
+  script: 'python setup.py install'
+  requires:
+    - kdb
+  detect_binary_files_with_prefix: false
+  has_prefix_files:
+    - q/pyq-config.q
+
+requirements:
+  host:
+    - python
+    - kdb
+  run:
+    - python
+    - kdb
+
+test:
+  requires:
+    - kdb
+    - pytest
+    - pytest-pyq
+    - numpy
+  commands:
+    # NB: For this to work, use conda build . --no-long-test-prefix
+    - pyq --versions
+    - pyq -mpytest --pyargs pyq
+
+about:
+  home: https://github.com/KxSystems/pyq
+  license: Apache Software License
+  license_family: APACHE
+  license_file: 'LICENSE'
+  summary: PyQ - Python for kdb+
+  description: |
+    PyQ - Python for kdb+
+    =====================
+
+    [PyQ](https://code.kx.com/q/interfaces/pyq) brings the [Python programming language](https://www.python.org/about)
+    to the [kdb+ database](https://kx.com).  It allows developers to seamlessly integrate Python and q codes in one
+    application.  This is achieved by bringing the Python and q interpreters in the same process so that codes written
+    in either of the languages operate on the same data.  In PyQ, Python and q objects live in the same memory space
+    and share the same data.
+  doc_url: 'https://code.kx.com/q/interfaces/pyq'
+  dev_url: 'https://github.com/KxSystems/pyq'
+
+extra:
+  recipe-maintainers: 'pyq@enlnt.com'
