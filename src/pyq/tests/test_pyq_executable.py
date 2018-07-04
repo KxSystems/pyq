@@ -5,7 +5,7 @@ import ctypes
 import subprocess
 import sys
 import platform
-
+import shutil
 import os
 import pytest
 
@@ -209,3 +209,29 @@ def test_stock_python(monkeypatch, message, stock):
 
     if stock:
         assert message in exc.value.args[0]
+
+
+@pytest.mark.skipif("not hasattr(shutil, 'which')")
+def test_run_with_absolute_path():
+    abs_path = shutil.which('pyq')
+    out = subprocess.check_output([abs_path, '-c',
+                                   'import sys;print(sys.executable)'])
+    assert out.strip().decode() == abs_path
+
+
+@pytest.mark.skipif("not hasattr(shutil, 'which')")
+def test_run_with_relative_path(monkeypatch):
+    abs_path = shutil.which('pyq')
+    monkeypatch.chdir(os.path.dirname(abs_path))
+    out = subprocess.check_output(['./pyq', '-c',
+                                   'import sys;print(sys.executable)'])
+    assert out.strip().decode() == abs_path
+
+
+@pytest.mark.skipif("not hasattr(shutil, 'which')")
+def test_run_with_single_dir_in_path(monkeypatch):
+    abs_path = shutil.which('pyq')
+    monkeypatch.setenv('PATH', os.path.dirname(abs_path))
+    out = subprocess.check_output(['pyq', '-c',
+                                   'import sys;print(sys.executable)'])
+    assert out.strip().decode() == abs_path
