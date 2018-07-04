@@ -6,18 +6,22 @@ matrix:
       env:
         - BITS=64
         - PY=3.6
+        - NUMPY=1.14.3
     - os: linux
       env:
         - BITS=64
         - PY=2.7
+        - NUMPY=1.14.3
     - os: linux
       env:
         - BITS=32
         - PY=3.6
+        - NUMPY=1.14.3
     - os: linux
       env:
         - BITS=32
         - PY=2.7
+        - NUMPY=1.14.3
     - os: osx
       env:
         - BITS=64
@@ -47,12 +51,11 @@ install:
   - conda activate test-env
   # Install kdb+
   - . .travis/getkdb.sh
-  - export QHOME=$CONDA_PREFIX/q
   # Install requirements
-  - conda install numpy pytest pytest-cov coverage
+  - conda install pytest pytest-cov coverage
+  - if [ -n "${NUMPY}" ]; then conda install numpy-base==${NUMPY}; fi
   - pip install pytest-pyq
   - . .travis/build.sh
-  - gcov src/pyq/_k.c
 
 
 ## install system packages
