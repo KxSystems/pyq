@@ -1,3 +1,4 @@
+"""IPython magic"""
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
@@ -5,12 +6,11 @@ import io
 import os
 from tempfile import mkstemp
 import pyq
-from io import StringIO
 from getopt import getopt
 import sys
 
+StringIO = io.StringIO  # LGTM.com does not like double import
 STD_STREAM = [sys.stdin, sys.stdout, sys.stderr]
-
 
 try:
     string_types = (str, unicode)
@@ -21,6 +21,7 @@ Q_NONE = pyq.q('::')
 
 
 def logical_lines(lines):
+    """Merge lines into chunks according to q rules"""
     if isinstance(lines, string_types):
         lines = StringIO(lines)
     buf = []
@@ -37,7 +38,7 @@ def logical_lines(lines):
         yield chunk
 
 
-def forward_outputs(outs):
+def _forward_outputs(outs):
     for fd in (1, 2):
         if fd in outs:
             os.lseek(fd, 0, os.SEEK_SET)
@@ -99,14 +100,14 @@ def q(line, cell=None, _ns=None):
                     r.show()
                 r = h((pyq.kp(func),) + args)
                 if outs:
-                    forward_outputs(outs)
+                    _forward_outputs(outs)
         else:
             for chunk in logical_lines(cell):
                 if r != Q_NONE:
                     r.show()
                 r = h(pyq.kp(chunk))
                 if outs:
-                    forward_outputs(outs)
+                    _forward_outputs(outs)
     except pyq.kerr as e:
         print("'%s" % e)
     else:
@@ -126,6 +127,7 @@ def _q_formatter(x, p, _):
 
 
 def load_ipython_extension(ipython):
+    """Register %q and %%q magics and pretty display for K objects"""
     ipython.register_magic_function(q, 'line_cell')
     fmr = ipython.display_formatter.formatters['text/plain']
     fmr.for_type(pyq.K, _q_formatter)
