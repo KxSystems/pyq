@@ -1,3 +1,4 @@
+"""pyq - python for kdb+"""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -795,6 +796,7 @@ del _genmethods, _imp
 
 
 def versions():
+    """Report versions"""
     stream = sys.stdout if _PY3K else sys.stderr
     print('PyQ', __version__, file=stream)
     if _np is not None:

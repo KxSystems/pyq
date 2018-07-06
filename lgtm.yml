@@ -1,0 +1,12 @@
+extraction:
+  cpp:
+    index:
+      build_command: |
+         cat <<EOF > setup.cfg
+         [config]
+         q_home = unused
+         q_version = 3.5
+         q_arch = m64
+         python_dll = unused
+         EOF
+         python setup.py build

@@ -37,6 +37,7 @@ style_dict = {
 
 
 def get_bottom_toolbar_tokens(cli):
+    """Return a list of tokens for the bottom toolbar"""
     mem = q('.Q.w', '') // 1024  # memory info in KiB
     return [(Token.Toolbar, "{0} {1.used}/{1.mphy} KiB".format(KDB_INFO, mem))]
 
@@ -45,6 +46,7 @@ history = InMemoryHistory()
 
 
 def get_prompt_tokens(_):
+    """Return a list of tokens for the prompt"""
     namespace = q(r'\d')
     if namespace == '.':
         namespace = ''
@@ -67,6 +69,7 @@ class QCompleter(Completer):
                            (list(q.key(namespace)), str(namespace))]
 
     def get_completions(self, document, complete_event):
+        """Yield completions"""
         # Detect a file handle
         m = HSYM_RE.match(document.text_before_cursor)
         if m:
@@ -85,6 +88,7 @@ class QCompleter(Completer):
 
 
 def cmdloop(self, intro=None):
+    """A Cmd.cmdloop implementation"""
     style = style_from_pygments(BasicStyle, style_dict)
     self.preloop()
     stop = None

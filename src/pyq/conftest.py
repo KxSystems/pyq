@@ -1,3 +1,4 @@
+"""pytest fixtures and settings for pyq"""
 from __future__ import absolute_import
 import os
 
@@ -6,17 +7,20 @@ import subprocess
 
 
 def pytest_configure(config):
+    """set pytest sentinel"""
     import sys
     sys._called_from_test = True
 
 
 def pytest_unconfigure(config):
+    """unset pytest sentinel"""
     import sys
     del sys._called_from_test
 
 
 @pytest.fixture(autouse=True)
 def add_array(doctest_namespace):
+    """Allow using numpy array in doctests"""
     try:
         from numpy import array
     except ImportError:
@@ -27,6 +31,7 @@ def add_array(doctest_namespace):
 
 @pytest.fixture(autouse=True)
 def add_dt(doctest_namespace):
+    """Allow using datetime classes in doctests"""
     from datetime import datetime, date, time, timedelta
     doctest_namespace['datetime'] = datetime
     doctest_namespace['date'] = date

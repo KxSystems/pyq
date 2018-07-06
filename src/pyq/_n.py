@@ -48,6 +48,7 @@ K_STAMP_SHIFT = K_DATE_SHIFT * 24 * 60 * 60 * 10 ** 9
 
 
 def get_unit(a):
+    """Extract the time unit from array's dtype"""
     typestr = a.dtype.str
     i = typestr.find('[')
     if i == -1:
@@ -107,6 +108,7 @@ _DTYPES = [
 
 
 def dtypeof(x):
+    """Return the dtype corresponding to a given q object"""
     t = abs(x._t)
     if t < 20:
         return _DTYPES[t]
@@ -139,6 +141,7 @@ def k2a(a, x):
 
 
 def array(self, dtype=None):
+    """An implementation of __array__()"""
     t = self._t
     # timestamp (12) through last enum (76)
     if 11 <= t < 77:

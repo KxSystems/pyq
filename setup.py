@@ -537,7 +537,8 @@ class BuildExe(Command):
         from distutils.sysconfig import customize_compiler
 
         for exe in self.distribution.executables:
-            compiler = new_compiler(  # compiler=self.compiler,
+            compiler = new_compiler(
+                compiler=self.compiler,
                 verbose=self.verbose,
                 dry_run=self.dry_run,
                 force=self.force)

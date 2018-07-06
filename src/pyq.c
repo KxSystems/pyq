@@ -22,7 +22,7 @@
 
 #define TRACE if(pyq_trace) printf
 static int pyq_trace;
-static char progpath[PATH_MAX];
+static char progpath_buffer[PATH_MAX];
 
 #ifdef __APPLE__
 static char*
@@ -30,8 +30,8 @@ get_progpath(const char *progname)
 {
     uint32_t nsexeclength = PATH_MAX;
     /* TODO: Check for error and dynamically allocate progpath. */
-    _NSGetExecutablePath(progpath, &nsexeclength);
-    return strdup(progpath);
+    _NSGetExecutablePath(progpath_buffer, &nsexeclength);
+    return strdup(progpath_buffer);
 }
 #elif defined(__linux__) /* __APPLE__ */
 #include <sched.h>
@@ -45,20 +45,20 @@ get_progpath(const char *progname)
     if (progname[0] == '/')
         return strdup(progname);
     if (progname[0] == '.' || strchr(progname, '/')) {
-        if (!getcwd(progpath, sizeof(progpath))) {
+        if (!getcwd(progpath_buffer, sizeof(progpath_buffer))) {
             perror("getcwd");
             exit(1);
         }
         if (!strncmp(progname, "./", 2)) {
-            strcat(progpath, progname + 1);
-            TRACE("Replace '.' in %s with cwd.  Got %s\n", progname, progpath);
+            strcat(progpath_buffer, progname + 1);
+            TRACE("Replace '.' in %s with cwd.  Got %s\n", progname, progpath_buffer);
         }
         else {
-            strcat(progpath, "/");
-            strcat(progpath, progname);
-            TRACE("Prepend %s with cwd.  Got %s\n", progname, progpath);
+            strcat(progpath_buffer, "/");
+            strcat(progpath_buffer, progname);
+            TRACE("Prepend %s with cwd.  Got %s\n", progname, progpath_buffer);
         }
-        return strdup(progpath);
+        return strdup(progpath_buffer);
     }
     /* search from prog in the path */
     path = getenv("PATH");
@@ -267,9 +267,7 @@ main(int argc, char *argv[])
     args = malloc((sizeof (char*)) * (argc + 3));
     fullprogpath = get_progpath(argv[0]);
 #ifdef __APPLE__
-
-    args[0] = progpath;
-    setenv("PYTHONEXECUTABLE", progpath, 1);
+    setenv("PYTHONEXECUTABLE", fullprogpath, 1);
 #endif
     args[0] = fullprogpath;
     args[1] = "python.q";

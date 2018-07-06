@@ -1,3 +1,4 @@
+"""REPL based on prompt-toolkit"""
 from __future__ import print_function
 import sys
 import os
@@ -15,6 +16,7 @@ from pyq import q, kerr
 
 
 def console_size(fd=1):
+    """Return console size as a (LINES, COLUMNS) tuple"""
     try:
         import fcntl
         import termios
@@ -28,6 +30,7 @@ def console_size(fd=1):
 
 
 def run(q_prompt=False):
+    """Run a prompt-toolkit based REPL"""
     lines, columns = console_size()
     q(r'\c %d %d' % (lines, columns))
     if len(sys.argv) > 1:

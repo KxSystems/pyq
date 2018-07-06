@@ -1,3 +1,4 @@
+"""q REPL"""
 from __future__ import absolute_import, print_function
 from __future__ import unicode_literals
 
@@ -22,6 +23,7 @@ else:
 
 
 class Cmd(_cmd.Cmd, object):
+    """q REPL"""
     _prompt = 'q{ns})'
 
     @property
@@ -31,6 +33,7 @@ class Cmd(_cmd.Cmd, object):
         return _colorize(code, prompt)
 
     def precmd(self, line):
+        """Support for help"""
         if line.startswith('help'):
             if not q("`help in key`.q"):
                 try:
@@ -42,6 +45,7 @@ class Cmd(_cmd.Cmd, object):
         return line
 
     def onecmd(self, line):
+        """Interpret the line"""
         if line == '\\':
             return True
         elif line == 'EOF':
