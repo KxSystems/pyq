@@ -1,0 +1,28 @@
+version: '4.2.0.{build}'
+image:
+- Visual Studio 2017
+
+clone_folder: c:\projects\pyq
+
+environment:
+  W64_URL:
+    secure: YKzquOJIhEj5tg3bZeJX0fo5Gb0zfKSAnl2QsOGwf/a9vGIQt1C3p3+F9L2d084z
+  QLIC_KC:
+    secure: tacVLssCfPV1tMh8o7v+1hmq/L4GS2rHvQtATIXo3uS7TiZysEUpbVY4C5ZObqp4+wyDCVImwkvhbnfvxH2OY8S6FPtse/0b2rVFac7D5s9ch2h2x1rg4DFrVXeYX2ZkTuw/DDtGAg8Wh2Zxo36ygcCvtP2y8Vg2evr1o3pUUiF/ciFVwN9dsjbL2ktPUJiOl+/yaaUweBZ31Mdggd6u8QVsXBSyoU0tRMOCXuvi5F5SLf1HPxF4kEZ3VetHAUW8kl4upt1svweANNAuVdVIvmMprip0t7gKr8FzXoeyAWKc4nQgCOHjMPg2ScZmItabkgODLNgeaQxpIZcqNL4POI3+pnlWUTa9h3AeD90duhlN6dcV89hI4DBCdOwyF3JzmcM30A8/RVO7b6UTbVxg3Oo2QjCAF7/Z1IWODjgLr1pxTRfTtvUN/ryHh90RJ1jrvLnQem6n8rAKPYWlV9zIn5f9RTVWiT+BvuRJytdhbcs2IQsSTVgpJKlpe6l0WSpdozLGy/QJHDd/wdZzr+8vQzbO8+fGxt1d2YTTgFtihdHgzLMIpfm8z2vr2CAuhjpHYAb5FriU/+3UcSekXc1pVw8kJoL3Tt1m4WIVz6WaXPtW0mbcO7HC5qFH+SMvJ3mb
+  QHOME: "C:\\Python36-x64\\q"
+  matrix:
+    - PYTHON: "C:\\Python36-x64"
+
+install:
+  - "%PYTHON%\\python.exe -m pip install numpy pytest pytest-pyq"
+  - curl -q -OL %W64_URL%
+  - 7z x -y -o%QHOME% w64.zip > nul
+  - "%PYTHON%\\python.exe c:\\projects\\pyq\\lic.py"
+
+build_script:
+  - "%PYTHON%\\python.exe -m pip install ."
+
+test_script:
+  - "set QBIN=%QHOME%\\w64\\q.exe"
+  - "set PATH=%PATH%;%PYTHON%"
+  - "%QBIN% python.q -mpytest --pyargs pyq -q"
