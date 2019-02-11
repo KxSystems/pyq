@@ -178,22 +178,22 @@ def test_datetime64_vector():
     a = numpy.array(['2001-01-01'] * 3, dtype='M8')
     assert K(a) == q('3#2001.01.01')
 
-    a = numpy.array(['2001-01-01T00Z'], dtype='M8[ns]')
+    a = numpy.array(['2001-01-01T00'], dtype='M8[ns]')
     assert K(a) == q('enlist 2001.01.01D00')
 
-    a = numpy.array(['2001-01-01T00Z'], dtype='M8[h]')
+    a = numpy.array(['2001-01-01T00'], dtype='M8[h]')
     assert K(a) == q('enlist 2001.01.01D00')
 
-    a = numpy.array(['2001-01-01T00Z'], dtype='M8[m]')
+    a = numpy.array(['2001-01-01T00'], dtype='M8[m]')
     assert K(a) == q('enlist 2001.01.01D00')
 
-    a = numpy.array(['2001-01-01T00Z'], dtype='M8[s]')
+    a = numpy.array(['2001-01-01T00'], dtype='M8[s]')
     assert K(a) == q('enlist 2001.01.01D00')
 
-    a = numpy.array(['2001-01-01T00Z'], dtype='M8[ms]')
+    a = numpy.array(['2001-01-01T00'], dtype='M8[ms]')
     assert K(a) == q('enlist 2001.01.01D00')
 
-    a = numpy.array(['2001-01-01T00Z'], dtype='M8[us]')
+    a = numpy.array(['2001-01-01T00'], dtype='M8[us]')
     assert K(a) == q('enlist 2001.01.01D00')
 
 
@@ -210,22 +210,22 @@ def test_datetime64_scalar():
     a = numpy.datetime64(1, 'W')
     assert K(a) == q('1970.01.08')
 
-    a = numpy.array('2001-01-01T00Z', dtype='M8[ns]')
+    a = numpy.array('2001-01-01T00', dtype='M8[ns]')
     assert K(a) == q('2001.01.01D00')
 
-    a = numpy.array('2001-01-01T00Z', dtype='M8[h]')
+    a = numpy.array('2001-01-01T00', dtype='M8[h]')
     assert K(a) == q('2001.01.01D00')
 
-    a = numpy.array('2001-01-01T00Z', dtype='M8[m]')
+    a = numpy.array('2001-01-01T00', dtype='M8[m]')
     assert K(a) == q('2001.01.01D00')
 
-    a = numpy.array('2001-01-01T00Z', dtype='M8[s]')
+    a = numpy.array('2001-01-01T00', dtype='M8[s]')
     assert K(a) == q('2001.01.01D00')
 
-    a = numpy.array('2001-01-01T00Z', dtype='M8[ms]')
+    a = numpy.array('2001-01-01T00', dtype='M8[ms]')
     assert K(a) == q('2001.01.01D00')
 
-    a = numpy.array('2001-01-01T00Z', dtype='M8[us]')
+    a = numpy.array('2001-01-01T00', dtype='M8[us]')
     assert K(a) == q('2001.01.01D00')
 
 

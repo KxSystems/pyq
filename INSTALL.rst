@@ -1,1 +1,0 @@
-doc/install/install.rst

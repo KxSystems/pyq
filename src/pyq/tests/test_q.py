@@ -8,14 +8,20 @@ from keyword import iskeyword
 import math
 import pytest
 from datetime import timedelta
-import os
-import sys
 
 from pyq import *
 from pyq import Q_VERSION, _PY3K
 
 
 q("\\e 0")  # disable q's debug on error
+
+if not _PY3K:
+    import sys
+
+    def test_deprecation_py2k(monkeypatch):
+        monkeypatch.delitem(sys.modules, 'pyq')
+        with pytest.deprecated_call():
+            __import__('pyq')
 
 
 class TestPickle(unittest.TestCase):
@@ -736,7 +742,7 @@ def test_guid_na():
 
 @pytest.mark.parametrize('type_name', [
     'boolean',
-    pytest.mark.skipif("Q_VERSION < 3", 'guid'),
+    pytest.param('guid', marks=pytest.mark.skipif("Q_VERSION < 3")),
     'short',
     'int',
     'long',
@@ -855,7 +861,7 @@ BASE_SIZE = object.__sizeof__(K([]))
 
 @pytest.mark.parametrize('x, n', [
     ('0b', 9),
-    pytest.mark.skipif("Q_VERSION < 3", ('0Ng', 24)),
+    pytest.param('0Ng', 24, marks=pytest.mark.skipif("Q_VERSION < 3")),
     ('0x0', 9),
     ('0h', 10),
     ('0i', 12),
@@ -891,7 +897,8 @@ def test_misc_sizeof(q, x, n32, n64):
     # Atoms
     ('0b', b'\0'),
     ('1b', b'\1'),
-    pytest.mark.skipif("Q_VERSION < 3 or not _PY3K", ('0Ng', 16 * b'\0')),
+    pytest.param('0Ng', 16 * b'\0',
+                 marks=pytest.mark.skipif("Q_VERSION < 3 or not _PY3K")),
     ('0x42', b'\x42'),
     ('0h', b''),
     ('0i', b''),
@@ -910,8 +917,8 @@ def test_misc_sizeof(q, x, n32, n64):
     # Lists
     ('2#0b', 2 * b'\0'),
     ('2#1b', 2 * b'\1'),
-    pytest.mark.skipif("Q_VERSION < 3 or not _PY3K",
-                       ('2#0Ng', 2 * 16 * b'\0')),
+    pytest.param('2#0Ng', 2 * 16 * b'\0',
+                 marks=pytest.mark.skipif("Q_VERSION < 3 or not _PY3K")),
     ('2#0x42', 2 * b'\x42'),
     ('2#0h', 2 * 2 * b'\0'),
     ('2#0i', 2 * 4 * b'\0'),
@@ -1208,6 +1215,40 @@ def test_sp(x, sp):
     assert x._sp() == sp
 
 
+@pytest.mark.parametrize('args, kwds, result', [
+    ((), {}, '()!()'),
+    ([[('a', 1)]], {}, '(enlist`a)!enlist 1'),
+    ([{'a': 1}], {}, '(enlist`a)!enlist 1'),
+    ((), {'a': 1}, '(enlist`a)!enlist 1'),
+])
+def test_dict_constructor(q, args, kwds, result):
+    assert K.dict(*args, **kwds) == q(result)
+
+
+@pytest.mark.parametrize('args, kwds, error', [
+    ((1, 2), {}, TypeError),
+])
+def test_dict_constructor_error(args, kwds, error):
+    with pytest.raises(error):
+        K.dict(*args, **kwds)
+
+
+@pytest.mark.parametrize('args, kwds, result', [
+    ([[('a', [1])]], {}, '([]a:enlist 1)'),
+    ((), {'a': [1]}, '([]a:enlist 1)'),
+])
+def test_table_constructor(q, args, kwds, result):
+    assert K.table(*args, **kwds) == q(result)
+
+
+@pytest.mark.parametrize('args, kwds, error', [
+    ((), {}, TypeError),
+])
+def test_table_constructor_error(args, kwds, error):
+    with pytest.raises(error):
+        K.table(*args, **kwds)
+
+
 def test_foreign_key(q):
     q("f:([]a:1 2;b:10 20)")
     x = q('`f!0 0')
@@ -1236,3 +1277,8 @@ def test_legacy_enum_getitem(q, tmpdir):
     q.load(path_a.strpath.replace(os.sep, '/'))
     assert q.a[0] == 'a'
     assert q.a[1] == 'b'
+
+
+def test_none_is_null(q):  # issue #1025
+    q.none = None
+    assert q.none.null

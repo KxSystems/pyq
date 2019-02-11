@@ -23,6 +23,9 @@ then
 elif [ -f "${QZIP}" ]; then
     QHOME=${VIRTUAL_ENV}/q
     unzip -q "${QZIP}" -d "${QHOME}"
+elif [ -f "${HOME}/Downloads/m64.zip" ]; then
+    QHOME=${VIRTUAL_ENV}/q
+    unzip -q -n "${HOME}/Downloads/m64.zip" -d "${VIRTUAL_ENV}/q"
 elif [ -f "${HOME}/Downloads/m32.zip" ]; then
     QHOME=${VIRTUAL_ENV}/q
     unzip -q -n "${HOME}/Downloads/m32.zip" -d "${VIRTUAL_ENV}/q"

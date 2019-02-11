@@ -7,10 +7,6 @@ import itertools
 from datetime import datetime, date, time
 from collections import Mapping as _Mapping
 
-try:
-    import __builtin__
-except ImportError:
-    import builtins as __builtin__
 import sys
 import os
 
@@ -46,6 +42,15 @@ __metaclass__ = type
 _KX3 = Q_VERSION >= 3
 
 _PY3K = sys.hexversion >= 0x3000000
+
+
+if _PY3K:
+    import builtins as __builtin__
+else:
+    import __builtin__
+    import warnings
+    warnings.warn("Python 2 support will be discontinued soon",
+                  DeprecationWarning)
 
 # List of q builtin functions that are not defined in .q.
 # NB: This is similar to .Q.res, but excludes non-function constructs
@@ -549,6 +554,53 @@ class K(_K):
             return complex(float(self))
         return complex(float(self.re), float(self.im))
 
+    @classmethod
+    def dict(cls, *args, **kwds):
+        """Construct a q dictionary
+
+        K.dict() -> new empty q dictionary (q('()!()')
+        K.dict(mapping) -> new dictionary initialized from a mapping object's
+            (key, value) pairs
+        K.dict(iterable) -> new dictionary initialized from an iterable
+            yielding (key, value) pairs
+        K.dict(**kwargs) -> new dictionary initialized with the name=value
+            pairs in the keyword argument list.
+            For example: K.dict(one=1, two=2)
+        """
+        if args:
+            if len(args) > 1:
+                raise TypeError("Too many positional arguments")
+            x = args[0]
+            keys = []
+            vals = []
+            try:
+                x_keys = x.keys
+            except AttributeError:
+                for k, v in x:
+                    keys.append(k)
+                    vals.append(v)
+            else:
+                keys = x_keys()
+                vals = [x[k] for k in keys]
+            return q('!', keys, vals)
+        else:
+            if kwds:
+                keys = []
+                vals = []
+                for k, v in kwds.items():
+                    keys.append(k)
+                    vals.append(v)
+                return q('!', keys, vals)
+            else:
+                return q('()!()')
+
+    @classmethod
+    def table(cls, *args, **kwds):
+        if args or kwds:
+            return cls.dict(*args, **kwds).flip
+        else:
+            raise TypeError("A table must have at least one column")
+
 
 if _PY3K:
     setattr(K, 'exec', K.exec_)
@@ -587,7 +639,7 @@ def _q_builtins():
 def _genmethods(cls, obj):
     q(r'\l pyq-operators.q')
     cls._show = q('{` sv .Q.S[y;z;x]}')
-    cls._sizeof = q('.p.sizeof')
+    cls._sizeof = q('.pyq.sizeof')
     for spec, verb in [
         ('add', '+'), ('sub', '-'), ('rsub', '{y-x}'),
         ('mul', '*'), ('pow', 'xexp'), ('rpow', '{y xexp x}'),
@@ -628,7 +680,7 @@ def _genmethods(cls, obj):
     for x in ['', 'r']:
         for y in 'lr':
             op = x + y + 'shift'
-            setattr(cls, '__%s__' % op, q('.p.' + op))
+            setattr(cls, '__%s__' % op, q('.pyq.' + op))
 
 
 def d9(x):
@@ -732,6 +784,8 @@ converters = {
     type(sum): K._func,
     dict: lambda x: K._xD(K(x.keys()), K(x.values())),
     complex: lambda z: K._xD(K._S(['re', 'im']), K._F([z.real, z.imag])),
+    bytearray: K._from_memoryview,
+    memoryview: K._from_memoryview,
 }
 
 if _PY3K:
@@ -760,6 +814,9 @@ lazy_converters = {
 }
 
 lazy_converters['pathlib2'] = lazy_converters['pathlib']
+
+if _PY3K:
+    lazy_converters['array'] = [('array', K._from_memoryview)]
 
 
 # If module is already loaded, register converters for its classes

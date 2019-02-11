@@ -42,6 +42,7 @@ def add_dt(doctest_namespace):
 @pytest.fixture
 def kdb_server(q, tmpdir):
     """Starts a kdb server and yields connection handle"""
+    from pyq import kerr
     prog = os.getenv('QBIN')
     script = tmpdir.join('srv.q')
     script.write("""\
@@ -51,15 +52,16 @@ p:1024;while[0~@[system;"p ",string p;0];p+:1];-1 string p;
         process = subprocess.Popen([prog, script.strpath],
                                    stdout=subprocess.PIPE,
                                    stdin=devnull)
-        c = None
+        line = process.stdout.readline()
+        port = int(line.strip())
+        c = q.hopen(port)
+        c(q('".z.pc:{exit 0}"'))  # stop server on port close
         try:
-            line = process.stdout.readline()
-            port = int(line.strip())
-            c = q.hopen(port)
-            c(q('".z.pc:{exit 0}"'))  # stop server on port close
             yield c
         finally:
-            if c is not None:
-                q.hclose(c)
+            try:
+                c.hclose()
+            except kerr:
+                pass
             process.stdout.close()
             process.wait()

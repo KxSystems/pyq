@@ -1,4 +1,4 @@
-\d .p
+\d .pyq
 / Implementation of K shift (<< and >>) operators
 xprev_:{$[type y;x xprev y;.z.s[x]each y]}
 rshift:{xprev_[y;x]}

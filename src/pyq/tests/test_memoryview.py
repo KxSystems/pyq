@@ -7,7 +7,9 @@ import pytest
 
 from pyq import *
 from pyq import _PY3K, Q_VERSION
+from pyq._k import KG, KH, KI, KJ, KE, KF
 from .test_k import K_INT_CODE, K_LONG_CODE
+from array import array
 
 SYM_NA = int(K.int.na if Q_VERSION < 3.6 else K.long.na)
 
@@ -38,7 +40,8 @@ def test_format(t, r):
 
 @pytest.mark.parametrize(('t', 'size'), [
     ('b', 1),
-    pytest.mark.skipif("1 or Q_VERSION < 3", ('g', 16)),  # TODO
+    pytest.param('g', 16,
+                 marks=pytest.mark.skipif("1 or Q_VERSION < 3")),  # TODO
     ('x', 1),
     ('h', 2),
     ('i', 4),
@@ -71,7 +74,7 @@ def test_itemsize(t, size):
 @pytest.mark.parametrize(('expr', 'ndim'), [
     ('0', 0),
     ('0 0', 1),
-    ('(1 2;3 4)', 2),
+    # ('(1 2;3 4)', 2),
 ])
 def test_ndim(expr, ndim):
     x = q(expr)
@@ -83,7 +86,7 @@ def test_ndim(expr, ndim):
 @pytest.mark.parametrize(('expr', 'shape'), [
     ('0', None if sys.version_info[:2] < (3, 3) else ()),
     ('0 0', (2,)),
-    ('(1 2 3;4 5 6)', (2, 3)),
+    # ('(1 2 3;4 5 6)', (2, 3)),
 ])
 def test_shape(expr, shape):
     x = q(expr)
@@ -95,7 +98,7 @@ def test_shape(expr, shape):
 @pytest.mark.parametrize(('expr', 'ro'), [
     ('0', False),
     ('`s#0 1', True),
-    ('(1 2;3 4)', False),
+    # ('(1 2;3 4)', False),
 ])
 def test_readonly(expr, ro):
     x = q(expr)
@@ -186,7 +189,8 @@ def test_data_attr_eq_memoryview(t):
     ('00:00', K_INT_CODE, 4, 0),
     ('00:00:00', K_INT_CODE, 4, 0),
     ('00:00:00.000', K_INT_CODE, 4, 0),
-    pytest.mark.skipif("'not implemented'", ('0Ng', "16B", 16, 0)),
+    pytest.param('0Ng', "16B", 16, 0,
+                 marks=pytest.mark.skipif("'not implemented'")),
     # TODO: Q_VERSION >= 3
 ])
 def test_simple_view(x, f, s, u):
@@ -221,3 +225,78 @@ def test_simple_view(x, f, s, u):
 def test_enum_data(q):
     x = q('`sym?`a`b`')
     assert x.data.tolist() == [0, 1, SYM_NA]
+
+
+@pytest.mark.skipif('not _PY3K')
+@pytest.mark.parametrize('t, kind', [
+    (KG, 'B'),
+    (KH, 'h'),
+    (KI, 'i'),
+    (KJ, 'q'),
+    (KE, 'f'),
+    (KF, 'd'),
+])
+def test_from_memoryview_array(t, kind):
+    a = array(kind, [])
+    x = K._from_memoryview(a)
+    assert x._t == t
+    b = array(kind, [1, 2])
+    assert list(K._from_memoryview(b)) == b.tolist()
+
+
+@pytest.mark.skipif('not _PY3K')
+@pytest.mark.parametrize('t, kind', [
+    (KG, 'B'),
+    (KH, 'h'),
+    (KI, 'i'),
+    (KJ, 'q'),
+    (KE, 'f'),
+    (KF, 'd'),
+])
+def test_from_memoryview_scalar(t, kind):
+    m = memoryview(struct.pack(kind, 42))
+    x = K(m.cast(kind, shape=()))
+    assert x._t == -t
+    assert x.enlist[0] == 42
+
+
+@pytest.mark.skipif('not _PY3K')
+def test_from_memoryview_bytes(q):
+    assert K._from_memoryview(bytes([1, 2])) == q('0x0102')
+    assert K._from_memoryview(bytearray([1, 2])) == q('0x0102')
+
+
+@pytest.mark.skipif('not _PY3K')
+def test_from_memoryview_error():
+    with pytest.raises(NotImplementedError):
+        K._from_memoryview(array('u', 'abc'))
+
+
+@pytest.mark.skipif('not _PY3K')
+@pytest.mark.parametrize('t, kind', [
+    (KG, 'B'),
+    (KH, 'h'),
+    (KI, 'i'),
+    (KJ, 'q'),
+    (KE, 'f'),
+    (KF, 'd'),
+])
+def test_array_conversion(t, kind):
+    x = K(array(kind, []))
+    assert x._t == t
+
+
+def test_bytearray_conversion(q):
+    x = K(bytearray([1, 2, 3]))
+    assert x == q('0x010203')
+
+
+def test_memoryview_conversion(q):
+    x = memoryview(b"abc")
+    assert x == q('0x616263')
+
+
+def test_ndim_data(q):
+    x = q('2 2#', q.til(4))
+    with pytest.raises(AttributeError):
+        x.data

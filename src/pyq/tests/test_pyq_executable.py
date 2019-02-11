@@ -8,6 +8,7 @@ import platform
 import shutil
 import os
 import pytest
+import py
 
 pytestmark = pytest.mark.skipif(platform.system() == "Windows",
                                 reason="pyq.exe is not implemented")
@@ -16,8 +17,19 @@ linux_only = pytest.mark.skipif('linux' not in sys.platform.lower(),
                                 reason="requires linux")
 
 
-def test_pyq_executable_success():
-    version = subprocess.check_output(['pyq', '-V'], stderr=subprocess.STDOUT)
+@pytest.fixture(scope='session')
+def pyq_cmd():
+    try:
+        subprocess.check_call(['valgrind', '--version'])
+    except (OSError, subprocess.CalledProcessError):
+        return ['pyq']
+    else:
+        return ['valgrind', '-q', 'pyq']
+
+
+def test_pyq_executable_success(pyq_cmd):
+    version = subprocess.check_output(pyq_cmd + ['-V'],
+                                      stderr=subprocess.STDOUT)
     assert version.startswith(b'Python')
 
     executable = subprocess.check_output(
@@ -25,14 +37,15 @@ def test_pyq_executable_success():
     assert executable.strip().endswith(b'pyq')
 
 
-def test_pyq_executable_error():
-    rc = subprocess.call(['pyq', '-c', 'raise SystemExit(42)'])
+def test_pyq_executable_error(pyq_cmd):
+    rc = subprocess.call(pyq_cmd + ['-c', 'raise SystemExit(42)'])
     assert rc == 42
 
 
-def test_pyq_executable_versions():
+def test_pyq_executable_versions(pyq_cmd):
     stream = 'stderr' if str is bytes else 'stdout'
-    p = subprocess.Popen(['pyq', '--versions'], **{stream: subprocess.PIPE})
+    p = subprocess.Popen(pyq_cmd + ['--versions'],
+                         **{stream: subprocess.PIPE})
     versions = getattr(p, stream).read()
     assert b'PyQ ' in versions
     assert b'KDB+ ' in versions
@@ -60,19 +73,19 @@ def test_pyq_executable_versions():
     ('0 , 1', 'n = 2\n0 1 \n'),
     ('0 ,1', 'n = 2\n0 1 \n'),
 ])
-def test_pyq_taskset(c, r, monkeypatch):
+def test_pyq_taskset(c, r, monkeypatch, pyq_cmd):
     monkeypatch.setenv('CPUS', c)
     monkeypatch.setenv('TEST_CPUS', 'y')
-    assert r == subprocess.check_output(['pyq']).decode()
+    assert r == subprocess.check_output(pyq_cmd).decode()
 
 
-def test_q_not_found(tmpdir, monkeypatch):
-    monkeypatch.setenv('QHOME', tmpdir)
-    monkeypatch.setenv('HOME', tmpdir.join('empty').ensure(dir=True))
-    monkeypatch.setenv("VIRTUAL_ENV", tmpdir)
-    monkeypatch.setenv('PATH', tmpdir, prepend=':')
+def test_q_not_found(tmpdir, monkeypatch, pyq_cmd):
+    monkeypatch.setenv('QHOME', str(tmpdir))
+    monkeypatch.setenv('HOME', str(tmpdir.join('empty').ensure(dir=True)))
+    monkeypatch.setenv("VIRTUAL_ENV", str(tmpdir))
+    monkeypatch.setenv('PATH', str(tmpdir), prepend=':')
     tmpdir.join('pyq').mksymlinkto(sys.executable)
-    p = subprocess.Popen(['pyq'], stderr=subprocess.PIPE)
+    p = subprocess.Popen(pyq_cmd, stderr=subprocess.PIPE)
     errors = p.stderr.read()
     rc = p.wait()
     assert rc != 0
@@ -84,16 +97,16 @@ def q_arch(q):
     return str(q('.z.o'))
 
 
-def test_q_venv0(tmpdir, monkeypatch, q_arch):
+def test_q_venv0(tmpdir, monkeypatch, q_arch, pyq_cmd):
     # QHOME not set, $VIRTUAL_ENV/q present with q executable
-    monkeypatch.setenv("VIRTUAL_ENV", tmpdir)
+    monkeypatch.setenv("VIRTUAL_ENV", str(tmpdir))
     monkeypatch.delenv("QHOME")
     venv = tmpdir.join('q')
     venv.join('python.q').ensure()
     q_exe = venv.join(q_arch, 'q')
     q_exe.write("#!/usr/bin/env bash\necho 'pass'", ensure=True)
     q_exe.chmod(0o755)
-    p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE,
+    p = subprocess.Popen(pyq_cmd, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
     err = p.stderr.readlines()
     assert err == []
@@ -101,15 +114,15 @@ def test_q_venv0(tmpdir, monkeypatch, q_arch):
     assert out[0].strip() == b'pass'
 
 
-def test_q_venv1(tmpdir, monkeypatch):
+def test_q_venv1(tmpdir, monkeypatch, pyq_cmd):
     # QHOME not set, $VIRTUAL_ENV/q present, but no q executable
-    monkeypatch.setenv("VIRTUAL_ENV", tmpdir)
-    monkeypatch.setenv("HOME", tmpdir.join("empty").ensure(dir=True))
+    monkeypatch.setenv("VIRTUAL_ENV", str(tmpdir))
+    monkeypatch.setenv("HOME", str(tmpdir.join("empty").ensure(dir=True)))
     monkeypatch.delenv("QHOME")
-    monkeypatch.setenv('PATH', tmpdir, prepend=':')
-    tmpdir.join('pyq').mksymlinkto(sys.executable)
+    monkeypatch.setenv('PATH', str(tmpdir), prepend=':')
+    py.path.local(sys.executable).copy(tmpdir.join('pyq'), mode=True)
     qhome = tmpdir.join('q').ensure(dir=True)
-    p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE,
+    p = subprocess.Popen(pyq_cmd, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
     err = p.stderr.read()
     out = p.stdout.read()
@@ -119,77 +132,79 @@ def test_q_venv1(tmpdir, monkeypatch):
     assert rc != 0
 
 
-def test_q_venv2(tmpdir, monkeypatch, q_arch):
+def test_q_venv2(tmpdir, monkeypatch, q_arch, pyq_cmd):
     # QHOME not set, VIRTUAL_ENV not set, HOME set to tempdir
-    monkeypatch.setenv("HOME", tmpdir)
+    monkeypatch.setenv("HOME", str(tmpdir))
     monkeypatch.delenv("QHOME")
     monkeypatch.delenv("VIRTUAL_ENV", raising=False)
-    monkeypatch.setenv('PATH', tmpdir, prepend=':')
-    tmpdir.join('pyq').mksymlinkto(sys.executable)
+    monkeypatch.setenv('PATH', str(tmpdir), prepend=':')
+    py.path.local(sys.executable).copy(tmpdir.join('pyq'), mode=True)
 
     q_exe = tmpdir.join('q', q_arch, 'q')
     q_exe.write("#!/usr/bin/env bash\necho 'pass'", ensure=True)
     q_exe.chmod(0o755)
 
-    p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE,
+    p = subprocess.Popen(pyq_cmd, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
     out = p.stdout.readlines()
     err = p.stderr.readlines()
     assert out[0].strip() == b'pass'
     assert err == []
+    assert p.wait() == 0
 
 
-def test_q_venv3(tmpdir, monkeypatch, q_arch):
+def test_q_venv3(tmpdir, monkeypatch, q_arch, pyq_cmd):
     # QHOME not set, VIRTUAL_ENV not set, q is next to bin/pyq
     monkeypatch.delenv("QHOME")
     monkeypatch.delenv("VIRTUAL_ENV", raising=False)
     bindir = tmpdir.join('bin')
     bindir.ensure(dir=1)
-    monkeypatch.setenv('PATH', bindir, prepend=':')
-    bindir.join('pyq').mksymlinkto(sys.executable)
+    monkeypatch.setenv('PATH', str(bindir), prepend=':')
+    py.path.local(sys.executable).copy(bindir.join('pyq'), mode=True)
 
     q_exe = tmpdir.join('q', q_arch, 'q')
     q_exe.write("#!/usr/bin/env bash\necho 'pass'", ensure=True)
     q_exe.chmod(0o755)
 
-    p = subprocess.Popen(['pyq'], stdout=subprocess.PIPE,
+    p = subprocess.Popen(pyq_cmd, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
     out = p.stdout.readlines()
     err = p.stderr.readlines()
     assert out[0].strip() == b'pass'
     assert err == []
+    assert p.wait() == 0
 
 
-def test_pyq_trace():
-    output = subprocess.check_output(['pyq', '--pyq-trace', '-c', '0'])
+def test_pyq_trace(pyq_cmd):
+    output = subprocess.check_output(pyq_cmd + ['--pyq-trace', '-c', '0'])
     assert b"pyq trace is on" in output
 
 
-def test_pyq_preload(tmpdir, q):
+def test_pyq_preload(tmpdir, q, pyq_cmd):
     db = tmpdir.join('db')
     q.x = q.til(3)
     q.save(db.join('x'))
-    output = subprocess.check_output(
-        ['pyq', str(db), "-c", "from pyq import q; print(q.x)"])
+    output = subprocess.check_output(pyq_cmd + [
+        str(db), "-c", "from pyq import q; print(q.x)"])
     assert output == b"0 1 2\n"
 
 
-def test_p__file__0(tmpdir):
+def test_p__file__0(tmpdir, pyq_cmd):
     p = tmpdir.join('test.py')
     p.write("print(__file__)")
-    out = subprocess.check_output(['pyq', str(p)])
+    out = subprocess.check_output(pyq_cmd + [str(p)])
     assert out.strip().endswith(str(p).encode())
 
 
-def test_broken_q(tmpdir, monkeypatch, q_arch):
+def test_broken_q(tmpdir, monkeypatch, q_arch, pyq_cmd):
     # QHOME not set, $VIRTUAL_ENV/q present with a broken q executable
-    monkeypatch.setenv("VIRTUAL_ENV", tmpdir)
+    monkeypatch.setenv("VIRTUAL_ENV", str(tmpdir))
     monkeypatch.delenv("QHOME")
     q_exe = tmpdir.join('q', q_arch, 'q')
     q_exe.ensure()
     q_exe.chmod(0o422)
     with open(os.devnull, 'w')as null:
-        p = subprocess.Popen(['pyq'], stdout=null, stderr=subprocess.PIPE)
+        p = subprocess.Popen(pyq_cmd, stdout=null, stderr=subprocess.PIPE)
         assert (str(q_exe) + ':') in p.stderr.read().decode()
 
 
@@ -209,6 +224,27 @@ def test_stock_python(monkeypatch, message, stock):
 
     if stock:
         assert message in exc.value.args[0]
+
+
+def test_dash_dash(pyq_cmd):
+    # NB: -P is q command line option to set display precision
+    output = subprocess.check_output(pyq_cmd + ['-c', r'print(q(r"\P"))',
+                                                '--', '-P', '10'])
+    assert b'10' in output
+
+
+@pytest.mark.parametrize('option, message', [
+    ('qhome', b'QHOME='),
+    ('qarch', b'QARCH='),
+    ('qbin', b'QBIN='),
+])
+def test_print_options(option, message):
+    output = subprocess.check_output(['pyq', '--pyq-' + option])
+    assert message in output
+    value = 'xyz'
+    output = subprocess.check_output(['pyq', '--pyq-' + option,
+                                      '--pyq-' + option + '=' + value])
+    assert (message + value.encode()) in output
 
 
 @pytest.mark.skipif("not hasattr(shutil, 'which')")

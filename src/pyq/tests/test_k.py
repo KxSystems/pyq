@@ -19,9 +19,9 @@ else:
 # extract _k.K class methods
 for m in ('func k knk ktd err dot a1'
           ' ka kb kg kh ki kj ke kf kc ks km kd kz ku kv kt kp'
-          ' ktn ktj kzz knz kpz b9 d9'
+          ' knt ktn ktj kzz knz kpz b9 d9'
           ' B G H I J E F S K P M D N U V T xT xD').split():
-    globals()[m] = getattr(_k.K, '_' + m)
+    globals()[m] = getattr(_k.K, '_' + m, None)
 del m
 
 
@@ -493,7 +493,7 @@ else:
     class NumPyTestCase(unittest.TestCase):
         def test_scalar(self):
             x = ki(0)
-            self.assertEquals(array(x).shape, ())
+            self.assertEqual(array(x).shape, ())
 
 
 def eq(a, b):
@@ -1305,7 +1305,7 @@ def test_n_attribute_error():
     ('1j', 't', -7),
     # pytest.mark.skipif("Q_VERSION < 3", ('1', 'a', 3)),
     # -- unpredictable values
-    pytest.mark.skipif("Q_VERSION < 3", ('1', 'm', 0)),
+    pytest.param('1', 'm', 0, marks=pytest.mark.skipif("Q_VERSION < 3")),
     ('"x"', 'c', b'x'),
     ('enlist 0x42', 'G', 0x42),
     ('enlist 42h', 'H', 42),
@@ -1359,15 +1359,15 @@ def test_call_kw_error():
 def test_data_attr_errors():
     # Empty list
     x = ktn(0, 0)
-    with pytest.raises(BufferError):
+    with pytest.raises(AttributeError):
         x.data
     # Scalar in generic list
     x = knk(2, ki(0), kj(0))
-    with pytest.raises(BufferError):
+    with pytest.raises(AttributeError):
         x.data
     # Size varies
     x = knk(2, I([]), I([0]))
-    with pytest.raises(BufferError):
+    with pytest.raises(AttributeError):
         x.data
 
 
@@ -1393,7 +1393,8 @@ def test_kb_error():
     ('ke', -1e200, 1e200, '0We'),
     ('kf', -float('inf'), float('inf'), '0w'),
     ('kd', -2 ** 31 - 1, 2 ** 31 + 1, '0Wd'),
-    pytest.mark.skipif('Q_VERSION >= 3.6', ('kd', date.min, date.max, '0Wd')),
+    pytest.param('kd', date.min, date.max, '0Wd',
+                 marks=pytest.mark.skipif('Q_VERSION >= 3.6')),
     ('km', -2 ** 31 - 1, 2 ** 31 + 1, '0Wm'),
     ('ku', -2 ** 31 - 1, 2 ** 31 + 1, '0Wu'),
     ('kv', -2 ** 31 - 1, 2 ** 31 + 1, '0Wv'),
@@ -1463,3 +1464,22 @@ def test_inf_time_pys(x):
     x = q(x)
     with pytest.raises(OverflowError):
         x._pys()
+
+
+@pytest.mark.skipif("Q_VERSION < 3.5")
+def test_knt():
+    t = q('([]a:1 2;b:3 4)')
+    kt = q('([a:1 2];b:3 4)')
+    assert eq(knt(1, t), kt)
+    with pytest.raises(ValueError):
+        knt(0, t)
+    with pytest.raises(_k.error):
+        knt(2, t)
+
+
+def test_none_in_float_list():
+    a = [1., None]
+    b = F(a)
+    assert eq(b, q('1 0n'))
+    b = E(a)
+    assert eq(b, q('1 0ne'))

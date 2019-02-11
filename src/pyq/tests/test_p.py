@@ -39,7 +39,9 @@ def test(a, b, c):
 q("p)print('ok' if test(1, 2, 3) else 'fail')")
 sys.exit(0)
 """)
-    out = subprocess.check_output([os.environ['QBIN'], str(p)])
+    with open(os.devnull) as null:
+        out = subprocess.check_output([os.environ['QBIN'], str(p)],
+                                      stderr=subprocess.PIPE, stdin=null)
     assert b'ok' in out
 
 

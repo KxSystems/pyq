@@ -25,13 +25,13 @@ import platform
 import subprocess
 import sys
 
-from distutils.cmd import install_misc
 from distutils.command.build import build
 from distutils.command.build_ext import build_ext
 from distutils.command.config import config
 from distutils.command.install import install
+from distutils.command.install_data import install_data
 from distutils.command.install_scripts import install_scripts
-from distutils.sysconfig import get_config_vars
+
 import sysconfig
 
 WINDOWS = platform.system() == 'Windows'
@@ -40,7 +40,7 @@ if WINDOWS:
 else:
     from distutils.core import Command, Distribution, Extension, setup
 
-VERSION = '4.1.4'
+VERSION = '4.2.0'
 IS_RELEASE = True
 VERSION_FILE = 'src/pyq/version.py'
 VERSION_PY = """\
@@ -48,13 +48,15 @@ VERSION_PY = """\
 version = '{}'
 """
 
-CFLAGS = ['/WX'] if WINDOWS else ['-Wpointer-arith',
-                                  '-Werror',
-                                  '-fno-strict-aliasing']
+CFLAGS = ['/WX', '/wd4090'] if WINDOWS else ['-fno-strict-aliasing']
+
+if sys.version_info >= (3, ) and not WINDOWS:
+    CFLAGS.append('-Werror')
+
 LDFLAGS = []
 if (sys.maxsize + 1).bit_length() == 32 and platform.machine() == 'x86_64':
     # Building 32-bit pyq on a 64-bit host
-    config_vars = get_config_vars()
+    config_vars = sysconfig.get_config_vars()
     CFLAGS.append('-m32')
     LDFLAGS.append('-m32')
 
@@ -70,11 +72,11 @@ if (sys.maxsize + 1).bit_length() == 32 and platform.machine() == 'x86_64':
             config_vars[k] = split_replace(v, 'x86_64', 'i386', '-')
 
 TEST_REQUIREMENTS = [
-    'pytest>=2.6.4,!=3.2.0,!=3.3.0',
-    'pytest-pyq',
-    'pytest-cov>=2.4',
-    'coverage>=4.2'
-] + (['pathlib2>=2.0'] if sys.version_info[0] < 3 else [])
+                        'pytest>=2.6.4,!=3.2.0,!=3.3.0',
+                        'pytest-pyq',
+                        'pytest-cov>=2.4',
+                        'coverage>=4.2'
+                    ] + (['pathlib2>=2.0'] if sys.version_info[0] < 3 else [])
 
 IPYTHON_REQUIREMENTS = ['ipython']
 
@@ -84,14 +86,14 @@ METADATA = dict(
     name='pyq',
     packages=['pyq', 'pyq.tests', ],
     package_dir={'': 'src'},
-    qlib_scripts=['python.q', 'p.k', 'pyq-operators.q'],
+    qlib_scripts=['python.q', 'p.k', 'pyq-operators.q', 'pyq-print.q', ],
     ext_modules=[
         Extension('pyq._k', sources=['src/pyq/_k.c', ],
                   extra_compile_args=CFLAGS,
                   extra_link_args=LDFLAGS),
     ],
     qext_modules=[
-        Extension('p', sources=['src/pyq/p.c', ],
+        Extension('pyq', sources=['src/pyq/pyq.c', ],
                   extra_compile_args=CFLAGS,
                   extra_link_args=LDFLAGS),
     ],
@@ -109,7 +111,9 @@ METADATA = dict(
     data_files=[
         ('q', ['src/pyq/p.k',
                'src/pyq/pyq-operators.q',
-               'src/pyq/python.q']),
+               'src/pyq/python.q',
+               ]
+         ),
     ],
     url='https://github.com/KxSystems/pyq',
     author='PyQ Authors',
@@ -266,7 +270,9 @@ def get_python_dll(executable):
     ldlibrary = sysconfig.get_config_var('LDLIBRARY')
     libdir = sysconfig.get_config_var('LIBDIR')
     if ldlibrary and libdir:
-        return os.path.join(libdir, ldlibrary)
+        libfile = os.path.join(libdir, ldlibrary)
+        if os.path.exists(libfile):
+            return libfile
     raise RuntimeError('no python dll')
 
 
@@ -328,7 +334,7 @@ class Config(config):
 
 
 PYQ_CONFIG = """\
-\\d .p
+\\d .pyq
 python_dll:"{python_dll}\\000"
 pyq_executable:"{pyq_executable}"
 """
@@ -433,7 +439,7 @@ class BuildQExt(Command):
         from distutils.ccompiler import new_compiler
         from distutils.sysconfig import customize_compiler
 
-        include_dirs = ['src/pyq', ]
+        include_dirs = ['src/pyq/kx', ]
 
         conf = self.get_finalized_command("config")
         for ext in self.extensions:
@@ -446,7 +452,7 @@ class BuildQExt(Command):
                                     force=self.force)
             customize_compiler(compiler)
             define = self.define[:]
-            if sys.version_info >= (3, ):
+            if sys.version_info >= (3,):
                 py3k = '{:d}{:d}'.format(*sys.version_info[:2])
                 define.append(('PY3K', py3k))
             if WINDOWS:
@@ -554,7 +560,7 @@ class BuildExe(Command):
                                      output_dir=self.build_exe)
 
 
-class InstallQLib(install_misc):
+class InstallQLib(install_data):
     description = "install q/k scripts"
 
     build_dir = None
@@ -572,7 +578,7 @@ class InstallQLib(install_misc):
         self.outfiles = self.copy_tree(self.build_dir, self.install_dir)
 
 
-class InstallQExt(install_misc):
+class InstallQExt(install_data):
     description = "install q/k scripts"
 
     q_home = None
@@ -678,8 +684,24 @@ def run_setup(metadata):
             'all': TEST_REQUIREMENTS + IPYTHON_REQUIREMENTS + [
                 'py', 'numpy', 'prompt-toolkit', 'pygments-q'],
         }
+    if (sys.version_info >= (3,) and not WINDOWS and
+            'CONDA_PREFIX' not in os.environ):
+        try:
+            import numpy
+        except ImportError:
+            pass
+        else:
+            add_embedpy_components(keywords)
 
     setup(**keywords)
+
+
+def add_embedpy_components(keywords):
+    keywords['qlib_scripts'].append('../../embedPy/p.q')
+    keywords['qext_modules'].append(
+        Extension('p', sources=['embedPy/py.c', ]),
+    )
+    add_data_file(keywords['data_files'], 'q', 'embedPy/p.q')
 
 
 if __name__ == '__main__':

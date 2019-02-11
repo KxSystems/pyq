@@ -52,8 +52,8 @@ For q programmers:
 $ q
 ```
 ```q
-q)p)from math import hypot  # prefix python code with p)
-q)p)q.h = hypot             # import a python function
+q)p)from math import hypot  / prefix python code with p)
+q)p)q.h = hypot             / import a python function
 q)h 3 4                     / call the python function from q
 5f
 ```

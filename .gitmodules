@@ -1,0 +1,3 @@
+[submodule "embedPy"]
+	path = embedPy
+	url = https://github.com/KxSystems/embedPy

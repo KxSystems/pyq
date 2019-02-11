@@ -67,3 +67,9 @@ def test_issue_615(q):
     x = q('0#`')
     a = _n.array(x)
     assert a.dtype == numpy.dtype('O')
+
+
+@pytest.mark.parametrize('t', "dmtuvnp")
+def test_nat(q, t):
+    a = numpy.array(q('enlist 0N' + t))
+    assert str(a[0]) == 'NaT'

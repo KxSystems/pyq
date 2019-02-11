@@ -1,0 +1,1 @@
+-1 raze each 2 cut .z.x;exit 0;

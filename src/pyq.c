@@ -11,7 +11,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <pwd.h>
 #include <limits.h>
 #ifdef __APPLE__
@@ -38,48 +38,10 @@ get_progpath(const char *progname)
 static char *
 get_progpath(const char *progname)
 {
-    char* path;
-    char *b, *e, *r;
-    int n, m;
-    struct stat sb;
-    if (progname[0] == '/')
+    if (readlink("/proc/self/exe",
+            progpath_buffer, sizeof(progpath_buffer)) == -1)
         return strdup(progname);
-    if (progname[0] == '.' || strchr(progname, '/')) {
-        if (!getcwd(progpath_buffer, sizeof(progpath_buffer))) {
-            perror("getcwd");
-            exit(1);
-        }
-        if (!strncmp(progname, "./", 2)) {
-            strcat(progpath_buffer, progname + 1);
-            TRACE("Replace '.' in %s with cwd.  Got %s\n", progname, progpath_buffer);
-        }
-        else {
-            strcat(progpath_buffer, "/");
-            strcat(progpath_buffer, progname);
-            TRACE("Prepend %s with cwd.  Got %s\n", progname, progpath_buffer);
-        }
-        return strdup(progpath_buffer);
-    }
-    /* search from prog in the path */
-    path = getenv("PATH");
-    n = strlen(progname);
-    for (b = e = path; e; b = e + 1) {
-        e = strchr(b, ':');
-        if (e == NULL)
-            e = b + strlen(b);
-        m = e - b;
-        r = malloc(n + m + 2);
-        strncpy(r, b, m);
-        r[m] = '/';
-        strcpy(r + m + 1, progname);
-        if (stat(r, &sb) != -1) {
-            /* TODO: Check the executable bit. */
-            return r;
-        }
-        free(r);
-    }
-    /* If not found - leave as is */
-    return strdup(progname);
+    return strdup(progpath_buffer);
 }
 
 
@@ -147,12 +109,11 @@ print_cpus(void)
 }
 
 static int
-taskset(void)
+taskset(char *cpus)
 {
-    char *cpus, *test_cpus;
-    cpus = getenv("CPUS");
+    char *test_cpus;
     test_cpus = getenv("TEST_CPUS");
-    if (cpus) {
+    if (cpus && *cpus) {
         parse_cpus(cpus);
         if (test_cpus) {
             print_cpus();
@@ -178,21 +139,39 @@ taskset(void)
 #define xstr(s) str(s)
 #define str(s) #s
 
+
+struct pyq_opts {
+    char *qhome;
+    char *qarch;
+    char *qbin;
+    char *cpus;
+    union {
+        struct {
+            unsigned int print_qhome: 1;
+            unsigned int print_qarch: 1;
+            unsigned int print_qbin: 1;
+            unsigned int print_cpus: 1;
+        };
+        unsigned int print;
+    };
+    unsigned int trace: 1;
+    unsigned int run_q;
+};
+
 /* QHOME priority:
     1. QHOME is already set in the environment.
     2. VIRTUAL_ENV is set -> QHOME/$VIRTUAL_ENV/q
     3. Next to pyq executable
     4. ~/q
 */
-char *
-find_q(const char* progpath)
+int
+find_q(const char* progpath, struct pyq_opts *opts, int attempt)
 {
-    char *qhome = NULL, *prefix = NULL, *qpath = NULL, *p;
-    static int attempt = 0;
+    char *qhome = opts->qhome, *prefix = NULL, *qpath = NULL, *p;
     switch (++attempt) {
         case 1:
-            if ((qhome = getenv("QHOME"))) {
-                qhome = strdup(qhome);
+            if (qhome) {
+                attempt = 4;
                 break;
             }
             ++attempt;
@@ -206,6 +185,7 @@ find_q(const char* progpath)
                 break;
             }
             ++attempt;
+            /* fall through */
         case 3:
             p = strrchr(progpath, '/');
             if (p && (p -= 4) > progpath && !strncmp(p, "/bin/", 5)) {
@@ -234,65 +214,181 @@ find_q(const char* progpath)
              ++attempt;
              /* fall through */
         default:
-            return NULL;
+            return -1;
     }
+    opts->qhome = qhome;
     TRACE("qhome = %s\n", qhome);
-    qpath = malloc(strlen(qhome) + strlen(xstr(QARCH)) + 4);
+    opts->qbin = qpath = malloc(strlen(qhome) + strlen(opts->qarch) + 4);
     strcpy(qpath, qhome);
-    strcat(qpath, "/" xstr(QARCH) "/q");
+    strcat(strcat(strcat(qpath, "/"), opts->qarch), "/q");
     setenv("QBIN", qpath, 1);
 
-    return qpath;
+    return attempt;
 }
 
 #define NPATHS 4
 
+
+void
+parse_opts(struct pyq_opts *opts, int *p_argc, char *argv[])
+{
+    int argc = *p_argc, i, j;
+    char *p;
+
+    memset(opts, 0, sizeof(*opts));
+    for (i = 0, j = 0; i < argc; ++i) {
+        if (!strncmp(argv[i], "--pyq-", 6)) {
+            --(*p_argc);
+            p = argv[i] + 6;
+            if (!strcmp(p, "trace"))
+                opts->trace = 1;
+            else if (!strcmp(p, "run-q"))
+                opts->run_q = 1;
+            else if (!strcmp(p, "qhome"))
+                opts->print_qhome = 1;
+            else if (!strcmp(p, "qarch"))
+                opts->print_qarch = 1;
+            else if (!strcmp(p, "qbin"))
+                opts->print_qbin = 1;
+            else if (!strcmp(p, "cpus"))
+                opts->print_cpus = 1;
+            else if (!strncmp(p, "qhome=", 6))
+                opts->qhome = p + 6;
+            else if (!strncmp(p, "qarch=", 6))
+                opts->qarch = p + 6;
+            else if (!strncmp(p, "qbin=", 5))
+                opts->qbin = p + 5;
+            else if (!strncmp(p, "cpus=", 5))
+                opts->cpus = p + 5;
+            else {
+                printf("unrecognized option %s\n", argv[i]);
+                exit(1);
+            }
+        }
+        else {
+            argv[j++] = argv[i];
+        }
+    }
+    /* defaults */
+    if (!opts->qhome)
+        opts->qhome = getenv("QHOME");
+    if (!opts->qarch)
+        opts->qarch = xstr(QARCH);
+    if (!opts->cpus)
+        opts->cpus = getenv("CPUS");
+    if (!opts->cpus)
+        opts->cpus = "";
+}
+
+void
+exec_q(const struct pyq_opts *opts, char **args) {
+    if (opts->print) {
+        int i; /* NB: args ends with "-q", NULL */
+        for (i = 2; args[i+1]; i+=2) {
+            if (!strcmp(args[i], "QHOME="))
+                args[i+1] = opts->qhome;
+            if (!strcmp(args[i], "QBIN="))
+                args[i+1] = opts->qbin;
+        }
+    }
+    else if (opts->run_q) {
+        ++args;
+        *args = opts->qbin;
+    }
+    /* Flush streams before exec. */
+    fflush(stdout);
+    fflush(stderr);
+    execvp(opts->qbin, args);
+    if (errno != ENOENT)
+        perror(opts->qbin);
+}
+
+static unsigned int
+count_bits(unsigned int n)
+{
+    unsigned int count = 0;
+    while (n) {
+      n &= (n-1) ;
+      count++;
+    }
+    return count;
+}
+
 int
 main(int argc, char *argv[])
 {
-    char *tried_paths[NPATHS];
-    int rc = 0, i, n;
-    char **args, *p, *qpath;
+    char *tried_paths[NPATHS], *exec_errors[NPATHS];
+    int i = 0, j, n = NPATHS, dashdash = 0, m;
+    char **args, *p;
     char *fullprogpath;
-    pyq_trace = argc > 1 && !strcmp("--pyq-trace", argv[1]);
-    if (pyq_trace) {
-        /* remove option from argv */
-        --argc;
-        for (i = 1; i < argc; ++i) {
-            argv[i] = argv[i+1];
-        }
-        argv[argc] = NULL;
-        printf("pyq trace is on\n");
-    }
-    args = malloc((sizeof (char*)) * (argc + 3));
+    struct pyq_opts opts;
+
     fullprogpath = get_progpath(argv[0]);
-#ifdef __APPLE__
-    setenv("PYTHONEXECUTABLE", fullprogpath, 1);
-#endif
-    args[0] = fullprogpath;
-    args[1] = "python.q";
-    args[argc + 1] = "-q";
-    args[argc + 2] = NULL;
-    for (i = 1; i < argc; ++i) {
-        if (argv[i][0] == '-' && strlen(argv[i] + 1) == 1) {
-            args[i+1] = p = malloc(4);
-            strcpy(p, argv[i]);
-            p[2] = '@';
-            p[3] = '\0';
+    parse_opts(&opts, &argc, argv);
+    pyq_trace = opts.trace;
+    TRACE("pyq trace is on\n");
+    if ((m = count_bits(opts.print))) {
+        args = malloc((sizeof (char*)) * (2*m + 4));
+        args[0] = fullprogpath;
+        args[j = 1] = "pyq-print.q";
+        if (opts.print_qbin) {
+            args[++j] = "QBIN=";
+            args[++j] = "?";
         }
-        else {
-            args[i+1] = argv[i];
+        if (opts.print_qhome) {
+            args[++j] = "QHOME=";
+            args[++j] = "?";
+        }
+        if (opts.print_qarch) {
+            args[++j] = "QARCH=";
+            args[++j] = opts.qarch;
+        }
+         if (opts.print_cpus) {
+            args[++j] = "CPUS=";
+            args[++j] = opts.cpus;
         }
     }
+    else {
+        args = malloc((sizeof (char*)) * (argc + 4));
+    #ifdef __APPLE__
+        setenv("PYTHONEXECUTABLE", fullprogpath, 1);
+    #endif
+        args[0] = fullprogpath;
+        args[1] = "python.q";
+        for (i = j = 1; i < argc; ++i) {
+            if (!dashdash && !opts.run_q && strlen(argv[i]) == 2 && argv[i][0] == '-') {
+                if (argv[i][1] == '-') {
+                    dashdash = 1;
+                }
+                else {
+                    args[++j] = p = malloc(4);
+                    strcpy(p, argv[i]);
+                    p[2] = '@';
+                    p[3] = '\0';
+                }
+            }
+            else {
+                args[++j] = argv[i];
+            }
+        }
+    }
+    if (!dashdash && !opts.run_q)
+        args[++j] = "-q";
+    args[++j] = NULL;
     TRACE("prog = %s\n", fullprogpath);
 #ifdef __linux__
-    taskset();
+    taskset(opts.cpus);
 #endif
 
-    for(i = 0; ;++i) {
-        qpath = find_q(args[0]);
-        if (qpath) {
-            TRACE("qbin = %s\n", qpath);
+    if (opts.qbin)
+        exec_q(&opts, args);
+    else {
+        int attempt = 0;
+        for(i = 0; ;++i) {
+           attempt = find_q(args[0], &opts, attempt);
+            if (attempt == -1)
+                break;
+            TRACE("qbin = %s\n", opts.qbin);
             if (pyq_trace) {
                 printf("args =");
                 char **p;
@@ -300,25 +396,30 @@ main(int argc, char *argv[])
                     printf(" %s", *p);
                 }
                 printf("\n");
-
             }
-            /* Flush streams before exec. */
-            fflush(stdout);
-            fflush(stderr);
-            rc = execvp(qpath, args);
-            if (errno != ENOENT)
-                perror(qpath);
-            tried_paths[i] = qpath;
-        }
-        else {
-            break;
+            exec_q(&opts, args);
+            tried_paths[i] = opts.qbin;
+            exec_errors[i] = strdup(strerror(errno));
         }
     }
     /* we can only get here on error */
-    if (!pyq_trace) /* In verbose mode, paths are already printed */
+    /* Normally diagnostic printing is done by q, but if q could not be exec'd we still want to see it */
+    if (opts.print_qhome)
+        printf("QHOME=%s\n", opts.qhome);
+    if (opts.print_qbin)
+        printf("QBIN=%s\n", opts.qbin);
+    if (opts.print_qarch)
+        printf("QARCH=%s\n", opts.qarch);
+    if (opts.print_cpus)
+        printf("CPUS=%s\n", opts.cpus);
+
+    if (!opts.print) {
+        fprintf(stderr, "Failed to find working q executable. Tried paths:\n");
         for (n = i, i = 0; i < n; ++i) {
-            fprintf(stderr, "qbinpath = %s\n", tried_paths[i]);
+            fprintf(stderr, "  %s: %s\n", tried_paths[i], exec_errors[i]);
         }
-    perror(qpath);
-    return rc;
+        return 1;
+    }
+    return 0;
 }
+

@@ -10,7 +10,7 @@ typedef HMODULE DL;
 static const char *
 dlerror()
 {
-    static char buffer[1024]; 
+    static char buffer[1024];
     DWORD err;
     err = GetLastError();
     if (err) {
@@ -161,6 +161,5 @@ K1(p_init){S er;DL h;
   init();
   eit();
   ts = est();
-  R n=k(0,"{.p.e:x;.z.exit:y;.p.py:z}",
+  R n=k(0,"{.pyq.e:x;.z.exit:y;.pyq.py:z}",
         dl(p_eval,1),dl(p_fini,1),dl(py,2),(K)0);}
-

@@ -139,6 +139,11 @@ def k2a(a, x):
         func = getattr(numpy, func)
         a[:] = func(a.view(dtype='i8'), scale)
 
+    if a.dtype.char in 'mM':
+        n = x.null
+        if n.any:
+            a[n] = None
+
 
 def array(self, dtype=None):
     """An implementation of __array__()"""
