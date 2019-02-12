@@ -54,7 +54,7 @@ author = 'PyQ Authors'
 # built documents.
 #
 # The short X.Y version.
-version = '4.2.0'
+version = '4.2.1'
 # The full version, including alpha/beta/rc tags.
 release = version
 

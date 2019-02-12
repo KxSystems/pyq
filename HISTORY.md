@@ -1,5 +1,12 @@
 # PyQ History
 
+## PyQ 4.2.1
+
+Released on 2019-02-12
+
+- Fixed a bug preventing installation from source tarball.
+- Updated classifiers and supported operating systems.
+
 ## PyQ 4.2.0
 
 Released on 2019-02-11

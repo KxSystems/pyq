@@ -16,7 +16,7 @@ and share the same data.
 .. |PyPI Version| image:: https://img.shields.io/pypi/v/pyq.svg
    :target: https://pypi.python.org/pypi/pyq
 
-.. _PyQ: https://pyq.enlnt.com
+.. _PyQ: https://code.kx.com/q/interfaces/pyq/
 .. _`Python programming language`: https://www.python.org/about
 .. _`kdb+ database`: https://kx.com
 """
@@ -40,7 +40,7 @@ if WINDOWS:
 else:
     from distutils.core import Command, Distribution, Extension, setup
 
-VERSION = '4.2.0'
+VERSION = '4.2.1'
 IS_RELEASE = True
 VERSION_FILE = 'src/pyq/version.py'
 VERSION_PY = """\
@@ -116,9 +116,10 @@ METADATA = dict(
          ),
     ],
     url='https://github.com/KxSystems/pyq',
-    author='PyQ Authors',
+    maintainer='PyQ Authors',
+    maintainer_email='pyq@enlnt.com',
     license='Apache License',
-    platforms=['Linux', 'Mac OS-X', 'Solaris'],
+    platforms=['Linux', 'MacOS X', 'Windows'],
     classifiers=['Development Status :: 5 - Production/Stable',
                  'Environment :: Console',
                  'Intended Audience :: Developers',
@@ -128,11 +129,12 @@ METADATA = dict(
                  'Natural Language :: English',
                  'Operating System :: MacOS :: MacOS X',
                  'Operating System :: POSIX :: Linux',
-                 'Operating System :: POSIX :: SunOS/Solaris',
+                 'Operating System :: Microsoft :: Windows :: Windows 10',
                  'Programming Language :: C',
                  'Programming Language :: Python :: 2.7',
                  'Programming Language :: Python :: 3.5',
                  'Programming Language :: Python :: 3.6',
+                 'Programming Language :: Python :: 3.7',
                  'Programming Language :: Python :: Implementation :: CPython',
                  'Topic :: Database',
                  'Topic :: Software Development :: Libraries' +
@@ -685,7 +687,8 @@ def run_setup(metadata):
                 'py', 'numpy', 'prompt-toolkit', 'pygments-q'],
         }
     if (sys.version_info >= (3,) and not WINDOWS and
-            'CONDA_PREFIX' not in os.environ):
+            'CONDA_PREFIX' not in os.environ and
+            os.path.exists('embedPy/p.q')):
         try:
             import numpy
         except ImportError:
