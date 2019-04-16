@@ -71,10 +71,10 @@ cd path/to/pyq/source
 tox
 ```
 
-[1]: https://code.kx.com/q/interfaces/pyq/install/
-[2]: https://code.kx.com/q/interfaces/pyq
+[1]: https://code.kx.com/v2/interfaces/pyq/install/
+[2]: https://code.kx.com/v2/interfaces/pyq
 [3]: https://tox.readthedocs.io/en/latest
 [4]: https://www.python.org/about
 [5]: https://kx.com
-[6]: https://code.kx.com/q/interfaces/fusion/
+[6]: https://code.kx.com/v2/interfaces/fusion/
 [7]: https://github.com/KxSystems/pyq/issues
