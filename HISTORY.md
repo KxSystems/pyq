@@ -73,7 +73,7 @@ CI
 
 Documentation
 
-This is the last release series, where documentation is included with the PyQ source. Starting with PyQ 4.2.0 documentation will be available only at [code.kx.com](http://code.kx.com/v2/interfaces/pyq/).
+This is the last release series, where documentation is included with the PyQ source. Starting with PyQ 4.2.0 documentation will be available only at [code.kx.com](https://code.kx.com/v2/interfaces/pyq/).
 
 ## [PyQ 4.1.3](https://pyq.readthedocs.io/en/pyq-4.1.3)
 
@@ -93,7 +93,7 @@ Bug fixes and enhancements
 
 Documentation
 
-This is the last release, where documentation included with the PyQ source. Starting with PyQ 4.2.0 documentation will be available only at [code.kx.com](http://code.kx.com/v2`/interfaces/pyq/).
+This is the last release, where documentation included with the PyQ source. Starting with PyQ 4.2.0 documentation will be available only at [code.kx.com](https://code.kx.com/v2/interfaces/pyq/).
 
 - !621 - MNT Update metadata and authors list
 - gh-26 - MNT Updated the license entry in the package classifiers.
