@@ -253,7 +253,7 @@ def get_python_dll(executable):
         libpython = 'libpython{}.{}'.format(*sys.version_info[:2]).encode()
         try:
             output = subprocess.check_output(['ldconfig', '-p'])
-        except subprocess.CalledProcessError:
+        except (subprocess.CalledProcessError, OSError):
             output = subprocess.check_output(['/sbin/ldconfig', '-p'])
         for line in output.splitlines():
             if libpython in line:
