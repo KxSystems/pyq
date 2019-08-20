@@ -24,7 +24,4 @@ def test_closed_connection(kdb_server):
     with pytest.raises(kerr) as info:
         kdb_server(cmd)
     msg = info.value.args[0]
-    if WIN:
-        assert msg.startswith('rcv.')
-    else:
-        assert msg == 'close'
+    assert msg.startswith('rcv.' if WIN else 'close')
