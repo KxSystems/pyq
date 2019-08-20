@@ -32,13 +32,14 @@ matrix:
         - PY=2.7
   allow_failures:
     - os: osx
+    - env: BITS=32
 
 install:
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
   - if [[ "$PY" == "2.7" ]]; then mc=Miniconda2; else mc=Miniconda3; fi
   - if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then os=Linux; else os=MacOSX; fi
-  - if [[ "${BITS}" = "32" ]]; then bt="x86"; else bt="x86_64"; fi
+  - if [[ "${BITS}" = "32" ]]; then bt="x86"; export CONDA_FORCE_32BIT=1; else bt="x86_64"; fi
   - wget "https://repo.continuum.io/miniconda/${mc}-latest-${os}-${bt}.sh" -O miniconda.sh
   - bash miniconda.sh -b -p $HOME/miniconda
   - . $HOME/miniconda/etc/profile.d/conda.sh
