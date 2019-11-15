@@ -12,16 +12,6 @@ matrix:
         - BITS=64
         - PY=2.7
         - NUMPY=1.16.4
-    - os: linux
-      env:
-        - BITS=32
-        - PY=3.6
-        - NUMPY=1.16.4
-    - os: linux
-      env:
-        - BITS=32
-        - PY=2.7
-        - NUMPY=1.16.4
     - os: osx
       env:
         - BITS=64
@@ -32,10 +22,6 @@ matrix:
         - PY=2.7
   allow_failures:
     - os: osx
-    - os: linux
-      env: BITS=32 PY=2.7 NUMPY=1.16.4
-    - os: linux
-      env: BITS=32 PY=3.6 NUMPY=1.16.4
 
 install:
   # We do this conditionally because it saves us some downloading if the
