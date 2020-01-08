@@ -1,11 +1,12 @@
 # PyQ - Python for kdb+
 
+[![PyPI Version](https://img.shields.io/pypi/v/pyq.svg)](https://pypi.python.org/pypi/pyq)
 [![Build Status](https://travis-ci.org/KxSystems/pyq.svg?branch=master)](https://travis-ci.org/KxSystems/pyq)
 [![Windows build status](https://ci.appveyor.com/api/projects/status/ejiwxrll523smdca?svg=true)](https://ci.appveyor.com/project/abalkin/pyq)
 
-[![PyPI Version](https://img.shields.io/pypi/v/pyq.svg)](https://pypi.python.org/pypi/pyq)
-[![LGTM Alerts](https://img.shields.io/lgtm/alerts/g/enlnt/pyq.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/enlnt/pyq)
-[![LGTM Grade](https://img.shields.io/lgtm/grade/python/g/enlnt/pyq.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/enlnt/pyq)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/KxSystems/pyq.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/KxSystems/pyq/alerts/)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/KxSystems/pyq.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/KxSystems/pyq/context:python)
+[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/KxSystems/pyq.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/KxSystems/pyq/context:cpp)
 [![Codecov](https://codecov.io/gh/KxSystems/pyq/branch/master/graph/badge.svg)](https://codecov.io/gh/KxSystems/pyq)
 
 [PyQ][2] brings the [Python programming language][4] to the [kdb+ database][5].
