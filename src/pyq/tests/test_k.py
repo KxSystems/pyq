@@ -7,7 +7,9 @@ import unittest
 from datetime import datetime, date, time, timedelta
 import math
 import struct
-from pyq import _k, Q_VERSION, Q_OS, _PY3K
+from pyq import _k, Q_VERSION, Q_OS
+
+_PY3K = 1
 
 WIN = Q_OS.startswith('w')
 if sys.maxsize == 2147483647 or WIN:  # 32-bit Unix or any Windows

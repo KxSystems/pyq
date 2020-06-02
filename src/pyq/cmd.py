@@ -1,7 +1,4 @@
 """q REPL"""
-from __future__ import absolute_import, print_function
-from __future__ import unicode_literals
-
 import cmd as _cmd
 
 from . import q, kerr, Q_OS

@@ -37,8 +37,6 @@ And four timedelta-like types
 18  "v"  second     int32_t
 19  "t"  time       int32_t
 """
-from __future__ import absolute_import
-
 from datetime import date
 
 import numpy

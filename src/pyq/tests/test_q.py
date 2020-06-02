@@ -10,8 +10,9 @@ import pytest
 from datetime import timedelta
 
 from pyq import *
-from pyq import Q_VERSION, _PY3K
+from pyq import Q_VERSION
 
+_PY3K = 1
 
 q("\\e 0")  # disable q's debug on error
 
@@ -1282,3 +1283,9 @@ def test_legacy_enum_getitem(q, tmpdir):
 def test_none_is_null(q):  # issue #1025
     q.none = None
     assert q.none.null
+
+
+@pytest.mark.skipif("Q_VERSION < 3.2")
+def test_stat_funcs(q):  # issue #1064
+    assert q.svar([1, 2, 3]) == q.sdev([1, 2, 3]) == 1.0
+    assert q.scov([1, 2, 3], [1, 2, 3]) == 1.0

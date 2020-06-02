@@ -30,17 +30,17 @@ dlerror()
 #include <stdlib.h>
 #include <string.h>
 #include "kx/k.h"
+#define yt y->t
+#define yn y->n
+#define yC y->G0
 
-#ifdef PY3K
+
 #include <locale.h>
 typedef int (*Py_Mainfunc)(int argc, wchar_t **argv);
 typedef wchar_t *(*c2w_func)(char*, size_t *);
 static c2w_func c2w;
 typedef void (*PyMem_FreeFunc)(void *);
 static PyMem_FreeFunc PyMem_Free;
-#else
-typedef int (*Py_Mainfunc)(int argc, char **argv);
-#endif
 
 typedef I (*runfunc)(G*);
 typedef V (*finifunc)(V);
@@ -51,6 +51,7 @@ typedef V (*eitfunc)(V);
 typedef enum {LOCKED, UNLOCKED} STATE;
 typedef V (*gsrfunc)(STATE);
 typedef STATE (*gsefunc)(V);
+typedef V (*spnfunc)(const wchar_t *);
 /*
 PyAPI_FUNC(PyThreadState *) PyEval_SaveThread(void);
 PyAPI_FUNC(void) PyEval_RestoreThread(PyThreadState *);
@@ -58,7 +59,7 @@ PyAPI_FUNC(void) PyGILState_Release(PyGILState_STATE);
 PyAPI_FUNC(PyGILState_STATE) PyGILState_Ensure(void);
 */
 Z runfunc run;Z finifunc fini;Z initfunc init;Z eitfunc eit;
-Z estfunc est;Z ertfunc ert;Z gsrfunc gsr;Z gsefunc gse;
+Z estfunc est;Z ertfunc ert;Z gsrfunc gsr;Z gsefunc gse; Z spnfunc spn;
 ZK n;ZV *ts;
 Z K1(p_fini){ert(ts);fini();R r1(n);}
 Z K1(p_eval){
@@ -79,11 +80,9 @@ py(K f, K x)
     char *p, *buf;
     J argc, m;
     I r;
-#ifdef PY3K
     wchar_t **wargv;
     wchar_t **wargv_copy;
     char *oldloc;
-#endif
     P(f->t != -KS, krr("f type"));
     P(xt, krr("argv type"));
     m = 0;     /* buf length */
@@ -103,7 +102,6 @@ py(K f, K x)
        argv[i+1] = memcpy(p, kG(y), (size_t)y->n);
        p += y->n; *p++ = '\0');
     gse();
-#ifdef PY3K
     wargv = malloc(sizeof(wchar_t*)*(size_t)(argc+1));
     wargv_copy = malloc(sizeof(wchar_t*)*(size_t)(argc+1));
     oldloc = strdup(setlocale(LC_ALL, NULL));
@@ -117,9 +115,6 @@ py(K f, K x)
     DO(argc,PyMem_Free(wargv_copy[i]));
     free(wargv_copy);
     free(wargv);
-#else
-    r = Py_Main((int)argc, argv);
-#endif
     free(argv);
     free(buf);
     /* Returning to q after finalizing Python is asking for trouble. */
@@ -127,9 +122,10 @@ py(K f, K x)
     R r1(n);
 }
 
-K1(p_init){S er;DL h;
+K2(p_init){S er;DL h;
   P(n,r1(n));
   P(xt!=KC||xC[xn-1],krr("type"));
+  P(yt!=KC||yC[yn-1],krr("type"));
   h=dlopen((S)xC,RTLD_NOW|RTLD_GLOBAL);
   er=(S)dlerror();P(!h,krr(er));
   DLF(h,run,PyRun_SimpleString);
@@ -141,23 +137,16 @@ K1(p_init){S er;DL h;
   DLF(h,gsr,PyGILState_Release);
   DLF(h,eit,PyEval_InitThreads);
   DLF(h,Py_Main,Py_Main);
-#ifdef PY3K
-    const char *error;
-    dlerror();    /* Clear any existing error */
-#if PY3K < 35
-    c2w = (c2w_func)dlsym(h, "_Py_char2wchar");
-#else
-    c2w = (c2w_func)dlsym(h, "Py_DecodeLocale");
-#endif
-    P(!c2w, (error = dlerror(),krr((S)error)));
-    dlerror();    /* Clear any existing error */
-#if PY3K < 34
-    PyMem_Free = (PyMem_FreeFunc)dlsym(h, "PyMem_Free");
-#else
-    PyMem_Free = (PyMem_FreeFunc)dlsym(h, "PyMem_RawFree");
-#endif
-    P(!PyMem_Free, (error = dlerror(),krr((S)error)));
-#endif
+  DLF(h,spn,Py_SetProgramName);
+
+  const char *error;
+  dlerror();    /* Clear any existing error */
+  c2w = (c2w_func)dlsym(h, "Py_DecodeLocale");
+  P(!c2w, (error = dlerror(),krr((S)error)));
+  dlerror();    /* Clear any existing error */
+  PyMem_Free = (PyMem_FreeFunc)dlsym(h, "PyMem_RawFree");
+  P(!PyMem_Free, (error = dlerror(),krr((S)error)));
+  spn(c2w((char*)yC, NULL)); /* XXX: memory leak */
   init();
   eit();
   ts = est();

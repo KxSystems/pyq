@@ -20,3 +20,4 @@ MANIFEST
 
 .pytest_cache/
 
+.kdb/

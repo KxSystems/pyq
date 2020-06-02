@@ -28,9 +28,10 @@ def pyq_cmd():
 
 
 def test_pyq_executable_success(pyq_cmd):
-    version = subprocess.check_output(pyq_cmd + ['-V'],
-                                      stderr=subprocess.STDOUT)
-    assert version.startswith(b'Python')
+    out = subprocess.check_output(pyq_cmd + ['-V'],
+                                  stderr=subprocess.STDOUT)
+    version = [x for x in out.splitlines() if not x.startswith(b'profiling')]
+    assert version[0].startswith(b'Python')
 
     executable = subprocess.check_output(
         ['pyq', '-c', 'import sys; print(sys.executable)'])
@@ -252,7 +253,7 @@ def test_run_with_absolute_path():
     abs_path = shutil.which('pyq')
     out = subprocess.check_output([abs_path, '-c',
                                    'import sys;print(sys.executable)'])
-    assert out.strip().decode() == abs_path
+    assert os.stat(out.strip().decode()) == os.stat(abs_path)
 
 
 @pytest.mark.skipif("not hasattr(shutil, 'which')")
@@ -261,7 +262,7 @@ def test_run_with_relative_path(monkeypatch):
     monkeypatch.chdir(os.path.dirname(abs_path))
     out = subprocess.check_output(['./pyq', '-c',
                                    'import sys;print(sys.executable)'])
-    assert out.strip().decode() == abs_path
+    assert os.stat(out.strip().decode()) == os.stat(abs_path)
 
 
 @pytest.mark.skipif("not hasattr(shutil, 'which')")
@@ -270,4 +271,4 @@ def test_run_with_single_dir_in_path(monkeypatch):
     monkeypatch.setenv('PATH', os.path.dirname(abs_path))
     out = subprocess.check_output(['pyq', '-c',
                                    'import sys;print(sys.executable)'])
-    assert out.strip().decode() == abs_path
+    assert os.stat(out.strip().decode()) == os.stat(abs_path)

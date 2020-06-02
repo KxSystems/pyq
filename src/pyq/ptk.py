@@ -1,10 +1,6 @@
-"""Prompt toolkit
-
-"""
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
+"""Prompt toolkit"""
 import re
+
 from prompt_toolkit.completion import Completion
 from prompt_toolkit.contrib.completers import PathCompleter
 from prompt_toolkit.contrib.completers.base import Completer
@@ -12,6 +8,7 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.history import InMemoryHistory
 from prompt_toolkit import prompt
 from prompt_toolkit.styles import style_from_pygments
+
 from pygments.token import Token
 from pygments.styles.monokai import MonokaiStyle as BasicStyle
 from pygments.lexers import get_lexer_by_name

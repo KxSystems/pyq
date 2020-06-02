@@ -6,12 +6,13 @@ import struct
 import pytest
 
 from pyq import *
-from pyq import _PY3K, Q_VERSION
+from pyq import Q_VERSION
 from pyq._k import KG, KH, KI, KJ, KE, KF
 from .test_k import K_INT_CODE, K_LONG_CODE
 from array import array
 
 SYM_NA = int(K.int.na if Q_VERSION < 3.6 else K.long.na)
+_PY3K = 1
 
 
 def mv_release(m):

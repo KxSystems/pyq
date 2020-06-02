@@ -3,7 +3,6 @@ include HISTORY.md
 include LICENSE
 include README.md
 include src/pyq/_k.c
-include src/pyq/mv.c
 include src/pyq/pyq.c
 include src/pyq/pyq.def
 include src/pyq/p.k
@@ -11,10 +10,17 @@ include src/pyq/python.q
 include src/pyq/pyq-operators.q
 include src/pyq/pyq-print.q
 include src/pyq.c
-include doc/*.rst
 include src/pyq/kx/*
 include src/pyq/kx/*/*
-include embedPy/p.q
-include embedPy/py.c
-include embedPy/py.h
-
+prune .travis
+prune src/ipy
+prune doc
+exclude *.yml
+exclude .*.yml
+exclude *.sh
+exclude .git*
+exclude .mailmap
+exclude meta.yaml
+exclude tox.ini
+exclude .clang-format
+exclude .coveragerc

@@ -1,5 +1,29 @@
 # PyQ History
 
+## PyQ 5.0
+
+Released on 2020-06-02
+
+Deprecations and removals:
+
+- !688 - #1037 - remove python 2 support; python >=3.6 is now required;
+  users of python 2.7 - see 4.2.x series.
+- !703 - drop embedPy
+
+
+Enhancements:
+
+- !702 - #1051 - add support for deleting columns using `.delete()`
+- !707 - #1057 - add support for numpy 1.18
+- !703 - #1055 - use setuptools_scm to specify version
+- !697 - #1048 - drop 32-bit support
+
+Bug fixes:
+
+- !695 - #1047 Fix `K.inspect(str)`
+- !704 - #1054 Don't try to define scov when running under older versions of kdb+
+- !722 - #1068 Set program name in pyq.so, which fixes several issues related to venv and virtualenv20 modules on macOS.
+
 ## PyQ 4.2.1
 
 Released on 2019-02-12

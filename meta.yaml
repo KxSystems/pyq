@@ -1,28 +1,24 @@
 {% set name = "PyQ" %}
-{% set setup_data = load_setup_py_data() %}
 
 package:
   name: '{{ name|lower }}'
-  version: '{{ setup_data.version }}'
+  version: '5.0.0'
 
 source:
   path: .
 
 build:
   number: 0
-  script_env:
-    - QHOME
-    - QLIC
-  script: 'python setup.py install'
-  requires:
-    - kdb
+  script:
+    - python -m pip install -f file://`pwd`/dist pyq
   detect_binary_files_with_prefix: false
   has_prefix_files:
     - q/pyq-config.q
 
 requirements:
-  host:
+  build:
     - python
+    - setuptools_scm
     - kdb
   run:
     - python
@@ -35,6 +31,7 @@ test:
     - pytest-pyq
     - numpy
   commands:
+    - echo .z.l | q
     # NB: For this to work, use conda build . --no-long-test-prefix
     - pyq --versions
     - pyq -mpytest --pyargs pyq

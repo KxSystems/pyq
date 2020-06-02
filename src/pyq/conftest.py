@@ -1,5 +1,4 @@
 """pytest fixtures and settings for pyq"""
-from __future__ import absolute_import
 import os
 
 import pytest

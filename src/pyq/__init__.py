@@ -1,12 +1,9 @@
 """pyq - python for kdb+"""
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import itertools
 from datetime import datetime, date, time
 from collections import Mapping as _Mapping
 
+import builtins
 import sys
 import os
 
@@ -41,17 +38,6 @@ __metaclass__ = type
 # Convenience constant to select code branches according to Q_VERSION
 _KX3 = Q_VERSION >= 3
 
-_PY3K = sys.hexversion >= 0x3000000
-
-
-if _PY3K:
-    import builtins as __builtin__
-else:
-    import __builtin__
-    import warnings
-    warnings.warn("Python 2 support will be discontinued soon",
-                  DeprecationWarning)
-
 # List of q builtin functions that are not defined in .q.
 # NB: This is similar to .Q.res, but excludes non-function constructs
 # such as "do", "if", "select" etc. We also exclude the "exit" function
@@ -59,7 +45,7 @@ else:
 _Q_RES = ['abs', 'acos', 'asin', 'atan', 'avg', 'bin',  'cor', 'cos',
           'cov', 'dev', 'div', 'ema', 'enlist', 'exp', 'getenv', 'in',
           'insert', 'last', 'like', 'log', 'max', 'min', 'prd', 'reval',
-          'scov', 'sdev', 'setenv', 'sin', 'sqrt', 'ss', 'sum', 'svar',
+          'setenv', 'sin', 'sqrt', 'ss', 'sum',
           'tan', 'var', 'wavg', 'within', 'wsum', 'xexp']
 
 if _KX3 and Q_DATE >= date(2012, 7, 26):
@@ -253,7 +239,7 @@ class K(_K):
         k('1 2 3')
         """
         t = self._t
-        if t == 98:
+        if t == 98 and not a.startswith('_'):
             return self._k(0, '{x`%s}' % a, self)
 
         if t == 99:
@@ -274,9 +260,7 @@ class K(_K):
 
         raise AttributeError(a)
 
-    _fields = b" g@ ghijefgsjiifjiii"
-    if _PY3K:
-        _fields = [bytes([_x]) for _x in _fields]
+    _fields = " g@ ghijefgsjiifjiii"
 
     def __int__(self):
         """converts K scalars to python int
@@ -288,8 +272,6 @@ class K(_K):
         if t >= 0:
             raise TypeError("cannot convert non-scalar to int")
         return int(self.inspect(self._fields[-t]))
-
-    __long__ = __int__
 
     def __float__(self):
         """converts K scalars to python float
@@ -309,8 +291,6 @@ class K(_K):
         raise TypeError("Only scalar short/int/long K objects "
                         "can be converted to an index")
 
-    # Strictly speaking, this is only needed for Python 3.x, but
-    # there is no harm if this is defined and not used in Python 2.x.
     def __bytes__(self):
         t = self._t
         if -5 >= t >= -7:
@@ -473,14 +453,16 @@ class K(_K):
         """
         return self._seu('select', columns, by, where, kwds)
 
-    def exec_(self, columns=(), by=(), where=(), **kwds):
+    def exec(self, columns=(), by=(), where=(), **kwds):
         """exec from self
 
         >>> t = q('([]a:1 2 3; b:10 20 30)')
-        >>> t.exec_('a', where='b > 10').show()
+        >>> t.exec('a', where='b > 10').show()
         2 3
         """
         return self._seu('exec', columns, by, where, kwds)
+
+    exec_ = exec  # TODO: deprecate
 
     def update(self, columns=(), by=(), where=(), **kwds):
         """update from self
@@ -495,6 +477,19 @@ class K(_K):
         6 30
         """
         return self._seu('update', columns, by, where, kwds)
+
+    def delete(self, columns=(), where=()):
+        """delete from self
+
+        >>> t = q('([]a:1 2 3; b:10 20 30)')
+        >>> t.delete('a').show()  # doctest: +NORMALIZE_WHITESPACE
+        b
+        --
+        10
+        20
+        30
+        """
+        return self._seu('delete', columns, (), where, {})
 
     @property
     def ss(self):
@@ -602,10 +597,6 @@ class K(_K):
             raise TypeError("A table must have at least one column")
 
 
-if _PY3K:
-    setattr(K, 'exec', K.exec_)
-
-
 def _q_builtins():
     from keyword import iskeyword
 
@@ -613,7 +604,7 @@ def _q_builtins():
     def q(x):
         return K._k(0, x)
 
-    kver = q('.z.K').inspect(b'f')
+    kver = q('.z.K').inspect('f')
     names = _Q_RES + list(q("1_key[.q]except`each`over`scan"))
     if kver < 3.4:
         # ema is present since kdb+3.4
@@ -621,10 +612,6 @@ def _q_builtins():
     if kver < 3.3:
         # restricted eval was added in 3.3
         q(r'.q.reval:eval')
-
-    if kver < 3.0:
-        for new in ['scov', 'svar', 'sdev']:
-            names.remove(new)
 
     pairs = []
     for x in names:
@@ -784,20 +771,10 @@ converters = {
     type(sum): K._func,
     dict: lambda x: K._xD(K(x.keys()), K(x.values())),
     complex: lambda z: K._xD(K._S(['re', 'im']), K._F([z.real, z.imag])),
+    bytes: K._kp,
     bytearray: K._from_memoryview,
     memoryview: K._from_memoryview,
 }
-
-if _PY3K:
-    converters[bytes] = K._kp
-else:
-    converters[unicode] = K._ks
-    _X[unicode] = K._S
-    _X[long] = (K._J if _KX3 else K._I)
-try:
-    converters[buffer] = K._kp
-except NameError:
-    buffer = str
 
 
 ###############################################################################
@@ -814,9 +791,7 @@ lazy_converters = {
 }
 
 lazy_converters['pathlib2'] = lazy_converters['pathlib']
-
-if _PY3K:
-    lazy_converters['array'] = [('array', K._from_memoryview)]
+lazy_converters['array'] = [('array', K._from_memoryview)]
 
 
 # If module is already loaded, register converters for its classes
@@ -833,19 +808,19 @@ _pre_register_converters()
 del _pre_register_converters
 
 # Replace builtin import to add lazy registration logic
-_imp = __builtin__.__import__
+_imp = builtins.__import__
 
 
-def __import__(name, globals={}, locals={}, fromlist=[], level=[-1, 0][_PY3K],
+def __import__(name, globals={}, locals={}, fromlist=[], level=0,
                _imp=_imp, _c=converters, _lc=lazy_converters):
     m = _imp(name, globals, locals, fromlist, level)
-    pairs = _lc.get(name)
+    pairs = _lc.get(m.__name__)
     if pairs is not None:
         _c.update((getattr(m, cname), conv) for cname, conv in pairs)
     return m
 
 
-__builtin__.__import__ = __import__
+builtins.__import__ = __import__
 ###############################################################################
 
 _genmethods(K, q)
@@ -854,7 +829,7 @@ del _genmethods, _imp
 
 def versions():
     """Report versions"""
-    stream = sys.stdout if _PY3K else sys.stderr
+    stream = sys.stdout
     print('PyQ', __version__, file=stream)
     if _np is not None:
         print('NumPy', _np.__version__, file=stream)
