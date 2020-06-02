@@ -5,27 +5,27 @@ matrix:
     - os: linux
       env:
         - PY=3.6
-        - NUMPY=1.18.4
+        - NUMPY=1.18.1
     - os: linux
       env:
         - PY=3.7
-        - NUMPY=1.18.4
+        - NUMPY=1.18.1
     - os: linux
       env:
         - PY=3.8
-        - NUMPY=1.18.4
+        - NUMPY=1.18.1
     - os: osx
       env:
         - PY=3.6
-        - NUMPY=1.18.4
+        - NUMPY=1.18.1
     - os: osx
       env:
         - PY=3.7
-        - NUMPY=1.18.4
+        - NUMPY=1.18.1
     - os: osx
       env:
         - PY=3.8
-        - NUMPY=1.18.4
+        - NUMPY=1.18.1
   allow_failures:
     - os: osx
 
