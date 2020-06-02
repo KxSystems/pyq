@@ -4,32 +4,36 @@ matrix:
   include:
     - os: linux
       env:
-        - BITS=64
         - PY=3.6
-        - NUMPY=1.16.4
+        - NUMPY=1.18.4
     - os: linux
       env:
-        - BITS=64
-        - PY=2.7
-        - NUMPY=1.16.4
+        - PY=3.7
+        - NUMPY=1.18.4
+    - os: linux
+      env:
+        - PY=3.8
+        - NUMPY=1.18.4
     - os: osx
       env:
-        - BITS=64
         - PY=3.6
+        - NUMPY=1.18.4
     - os: osx
       env:
-        - BITS=64
-        - PY=2.7
+        - PY=3.7
+        - NUMPY=1.18.4
+    - os: osx
+      env:
+        - PY=3.8
+        - NUMPY=1.18.4
   allow_failures:
     - os: osx
 
 install:
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
-  - if [[ "$PY" == "2.7" ]]; then mc=Miniconda2; else mc=Miniconda3; fi
   - if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then os=Linux; else os=MacOSX; fi
-  - if [[ "${BITS}" = "32" ]]; then bt="x86"; else bt="x86_64"; fi
-  - wget "https://repo.continuum.io/miniconda/${mc}-latest-${os}-${bt}.sh" -O miniconda.sh
+  - wget "https://repo.continuum.io/miniconda/Miniconda3-latest-${os}-x86_64.sh" -O miniconda.sh
   - bash miniconda.sh -b -p $HOME/miniconda
   - . $HOME/miniconda/etc/profile.d/conda.sh
   - hash -r
