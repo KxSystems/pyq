@@ -1,7 +1,7 @@
 # PyQ - Python for kdb+
 
 [![PyPI Version](https://img.shields.io/pypi/v/pyq.svg)](https://pypi.python.org/pypi/pyq)
-[![Build Status](https://travis-ci.org/KxSystems/pyq.svg?branch=master)](https://travis-ci.org/KxSystems/pyq)
+![Build](https://github.com/KxSystems/pyq/workflows/Build/badge.svg?branch=master)
 [![Windows build status](https://ci.appveyor.com/api/projects/status/ejiwxrll523smdca?svg=true)](https://ci.appveyor.com/project/abalkin/pyq)
 
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/KxSystems/pyq.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/KxSystems/pyq/alerts/)
