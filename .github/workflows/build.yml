@@ -52,18 +52,18 @@ jobs:
         conda install -q -c kx -c enlnt kdb pytest pytest-cov coverage numpy tox pytest-pyq pip
         python3 -V
         echo -n "$QLIC_KC" | base64 --decode > "$QHOME/kc.lic"
-        python setup.py config
-        python setup.py install_qlib
-        python setup.py install_scripts
+        python3 setup.py config
+        python3 setup.py install_qlib
+        python3 setup.py install_scripts
         if [ "$RUNNER_OS" == "Linux" ]; then lgcov=" -lgcov"; fi
         LDFLAGS="--coverage${lgcov}"
         CFLAGS="--coverage"
         CC="gcc $LDFLAGS"
         export CFLAGS LDFLAGS CC
-        python setup.py build_ext --build-temp .
-        python setup.py install_lib
-        python setup.py install_exe
-        python setup.py install_qext
+        python3 setup.py build_ext --build-temp .
+        python3 setup.py install_lib
+        python3 setup.py install_exe
+        python3 setup.py install_qext
         unset CFLAGS LDFLAGS CC
       shell: bash
 
