@@ -1,0 +1,76 @@
+name: Build
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+  schedule:
+    - cron: '0 12 * * 2,5'
+
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+        python-version: [3.6, 3.7, 3.8]
+
+    steps:
+    - name: Git checkout
+      uses: actions/checkout@v2
+
+    - name: Install conda on ${{ matrix.os }}
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          os=Linux;
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          os=MacOSX;
+        else
+          echo "unsupported OS";
+          exit 127
+        fi
+        wget -q "https://repo.continuum.io/miniconda/Miniconda3-latest-${os}-x86_64.sh" -O "miniconda.sh"
+        bash miniconda.sh -b -p $HOME/miniconda
+        . $HOME/miniconda/etc/profile.d/conda.sh
+        hash -r
+        conda config --set always_yes yes --set changeps1 no
+        conda config --add channels anaconda
+        conda config --add channels conda-forge
+        conda update -q conda
+      shell: bash
+
+    - name: Create conda environment with Python ${{ matrix.python-version }} on ${{ matrix.os }}
+      env:
+        QLIC_KC: ${{ secrets.QLIC_KC }}
+      run: |
+        . $HOME/miniconda/etc/profile.d/conda.sh
+        conda create -q -n ci python=${{ matrix.python-version }}
+        conda activate ci
+        conda install -q -c kx -c enlnt kdb pytest pytest-cov coverage numpy tox pytest-pyq pip
+        python3 -V
+        echo -n "$QLIC_KC" | base64 --decode > "$QHOME/kc.lic"
+        python3 setup.py config
+        python3 setup.py install_qlib
+        python3 setup.py install_scripts
+        if [ "$RUNNER_OS" == "Linux" ]; then lgcov=" -lgcov"; fi
+        LDFLAGS="--coverage${lgcov}"
+        CFLAGS="--coverage"
+        CC="gcc $LDFLAGS"
+        export CFLAGS LDFLAGS CC
+        python3 setup.py build_ext --build-temp .
+        python3 setup.py install_lib
+        python3 setup.py install_exe
+        python3 setup.py install_qext
+        unset CFLAGS LDFLAGS CC
+      shell: bash
+
+    - name: Test PyQ with Python ${{ matrix.python-version }} on ${{ matrix.os }}
+      run: |
+        . $HOME/miniconda/etc/profile.d/conda.sh
+        conda activate ci
+        pyq --versions
+        pyq -mpytest --pyargs pyq
+      shell: bash

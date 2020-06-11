@@ -12,7 +12,7 @@ include src/pyq/pyq-print.q
 include src/pyq.c
 include src/pyq/kx/*
 include src/pyq/kx/*/*
-prune .travis
+prune .github
 prune src/ipy
 prune doc
 exclude *.yml

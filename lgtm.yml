@@ -1,4 +1,7 @@
 extraction:
+  python:
+    python_setup:
+      version: 3
   cpp:
     index:
       build_command: |
@@ -9,4 +12,4 @@ extraction:
          q_arch = m64
          python_dll = unused
          EOF
-         python setup.py build
+         python3 setup.py build
