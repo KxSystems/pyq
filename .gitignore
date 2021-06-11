@@ -9,6 +9,9 @@ doc/_build/
 src/pyq/version.py
 html/
 
+.venv*/
+venv*/
+
 *.pyc
 .coverage
 .coverage.*
