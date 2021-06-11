@@ -1052,3 +1052,27 @@ if 'PYQ_BACKTRACE' in os.environ and q('.z.K >= 3.5'):
     _set_excepthook(sys.excepthook)
     K._k = classmethod(_trp_k)
     K.__call__ = _trp_call
+
+
+# HACK: Fixes https://github.com/KxSystems/pyq/issues/133
+try:
+    import pandas
+except ImportError:
+    pass
+else:
+    # Pandas thinks all non-atom K objects are dicts. This function performs
+    # the same dict-checking logic used by Pandas, but with a special case for
+    # K objects.
+    def _is_dict_like_override(x):
+        # The import is necessary for K to be in scope because the __code__
+        # of this function is used elsewhere, with different globals and locals
+        from pyq import K
+        if isinstance(x, K):
+            return x.type() == 99
+        dict_like_attrs = ("__getitem__", "keys", "__contains__")
+        return all(hasattr(x, attr) for attr in dict_like_attrs) and not \
+            isinstance(x, type)
+
+    # XXX
+    pandas.core.dtypes.inference.is_dict_like.__code__ = \
+        _is_dict_like_override.__code__
