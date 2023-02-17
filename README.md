@@ -1,4 +1,4 @@
-# PyQ - Python for kdb+
+# ![PyQ](docs/img/pyq.png) PyQ – Python for kdb+
 
 [![PyPI Version](https://img.shields.io/pypi/v/pyq.svg)](https://pypi.python.org/pypi/pyq)
 ![Build](https://github.com/KxSystems/pyq/workflows/Build/badge.svg?branch=master)

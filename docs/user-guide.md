@@ -1,10 +1,4 @@
----
-title: PyQ user guide – Interfaces – kdb+ and q documentation
-description: PyQ lets you enjoy the power of kdb+ in a Python environment.
-author: Alex Belopolsky, Aleks Bunin
-keywords: fusion, interface, kdb+, library, pyq, python, q
----
-# ![PyQ](../img/pyq.png) PyQ user guide
+# ![PyQ](img/pyq.png) PyQ user guide
 
 
 
@@ -271,18 +265,18 @@ k('`s#1 3 5 7 9')
 k('9 7 5 3 1')
 ```
 
-!!! note "Sorted attribute"
+**Sorted attribute**
 
-    The `s#` prefix that appears in the display of the output for the `asc()` function indicates that the resulting vector has a _sorted_ attribute set. An attribute can be queried by calling the `attr()` function or accessing the `attr` property of the result:
-
-    ```python
-    >>> s = q.asc(a) 
-    >>> q.attr(s) k('s')
-    >>> s.attr
-    k('s')
-    ```
-
-    When the`asc()` function gets a vector with the `s` attribute set, it skips sorting and immediately returns the same vector.
+> The `s#` prefix that appears in the display of the output for the `asc()` function indicates that the resulting vector has a _sorted_>  attribute set. An attribute can be queried by calling the `attr()` function or accessing the `attr` property of the result:
+> 
+> ```python
+> >>> s = q.asc(a) 
+> >>> q.attr(s) k('s')
+> >>> s.attr
+> k('s')
+> ```
+> 
+> When the`asc()` function gets a vector with the `s` attribute set, it skips sorting and immediately returns the same vector.
 
 Functions `iasc()` and `idesc()` return the indices indicating the order in which the items of the incoming list should be arranged to be sorted.
 
@@ -729,9 +723,7 @@ One exception is the Python `time` type. Starting with version 3.5 all `time` in
 [True, False]
 ```
 
-!!! info
-
-    Python changed the rule for `time(0)` because `time` instances can be timezone-aware and because they do not support addition, making 0 less than special. Neither of those arguments apply to `q` time, second or minute data types which behave more like `timedelta`.
+> Note: Python changed the rule for `time(0)` because `time` instances can be timezone-aware and because they do not support addition, making 0 less than special. Neither of those arguments apply to `q` time, second or minute data types which behave more like `timedelta`.
 
 
 #### Arithmetic operations
@@ -953,7 +945,7 @@ Finally, the `scan` iterator is similar to the [`itertools.accumulate()`](https:
 
 #### Each
 
-The Each iterator serves double duty in q. When it is applied to a **function**, it derives a new [function](../../ref/iterators.md) that expects lists as arguments and maps the original function over those lists. For example, we can write a ‘daily return’ function in q that takes yesterday’s price as the first argument `x`, today’s price as the second `y`, and dividend as the third `z` as follows:
+The Each iterator serves double duty in q. When it is applied to a **function**, it derives a new [function](https://code.kx.com/q/ref/iterators) that expects lists as arguments and maps the original function over those lists. For example, we can write a ‘daily return’ function in q that takes yesterday’s price as the first argument `x`, today’s price as the second `y`, and dividend as the third `z` as follows:
 
 ```python
 >>> r = q('{(y+z-x)%x}') # Recall that % is the division operator in q.
@@ -976,8 +968,8 @@ When the Each iterator is applied to an **integer vector**, it derives a n-ary f
 k('1 100 30')
 ```
 
-:fontawesome-regular-hand-point-right: 
-[Case](../../ref/maps.md#case) iterator
+:point_right: 
+[Case](https://code.kx.com/q/ref/maps#case) iterator
 
 Note that atoms passed to `v.each` are treated as infinitely repeated values. Vector arguments must all be of the same length.
 
@@ -1095,9 +1087,9 @@ $$f.prior(v)=(f(v_1, v_0), f(v_2, v_1), ⋯)$$
 
 #### Keywords `vs` and `sv`
 
-!!! note "`vs` and `sv`"
-
-    `K.vs` and `K.sv` correspond to q’s `vs` and `sv` and _also_ behave as the iterators Each Left and Each Right.
+> **`vs` and `sv`**
+> 
+> `K.vs` and `K.sv` correspond to q’s `vs` and `sv` and _also_ behave as the iterators Each Left and Each Right.
 
 Of all the q keywords, these two have the most cryptic names and offer some non-obvious features.
 
@@ -1408,7 +1400,7 @@ array([('a', datetime.timedelta(0, 34260), 100),
 If you have IPython installed in your environment, you can run an interactive IPython shell as follows:
 
 ```bash
-$ pyq -m IPython
+pyq -m IPython
 ```
 
 or use the `ipyq` script.
@@ -1570,12 +1562,12 @@ q)fmt("%10.6f";acos -1)
 When a Python function is called from q, the returned Python objects are automatically converted to q. Any type accepted by the `K()` constructor can be successfully converted. For example, the `numpy.eye` function returns a 2-D array with 1s on the diagonal and 0s elsewhere. It can be called from q as follows:
 
 ```q
-  q)p)import numpy
-  q)p)q.eye = numpy.eye
-  q)eye 3 4 1
-  0 1 0 0
-  0 0 1 0
-  0 0 0 1
+q)p)import numpy
+q)p)q.eye = numpy.eye
+q)eye 3 4 1
+0 1 0 0
+0 0 1 0
+0 0 0 1
 ```
 
 Exported functions are called from q by supplying a single argument that contains a list of objects to be passed to the Python functions as `K`-valued arguments.

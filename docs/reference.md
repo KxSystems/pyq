@@ -1,11 +1,4 @@
----
-title: PyQ reference | Interfaces | kdb+ and q documentation
-description: A reference guide to the PyQ interface between kdb+ and Python
-author: Alex Belopolsky, Aleks Bunin
-keywords: interface, kdb+, library, pyq, python, q, reference
----
-
-# ![PyQ](../img/pyq.png) Reference
+# ![PyQ](img/pyq.png) Reference
 
 
 <!-- This section is generated from the PyQ source code.  -->

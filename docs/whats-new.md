@@ -1,11 +1,4 @@
----
-title: What’s new in PyQ – Interfaces – kdb+ and q documentation
-description: A log of changes and additions to the PyQ interface between kdb+ and Python
-author: Alex Belopolsky, Aleks Bunin
-keywords: interface, kdb+, library, pyq, python, q
----
-
-# ![PyQ](../img/pyq.png) What’s new
+# ![PyQ](img/pyq.png) What’s new
 
 
 ## Version 4.1
@@ -91,7 +84,8 @@ PyQ can now be installed on Windows. We tested PyQ 4.1.0 with Python 3.6 build u
 
 PyQ 4.1.1 adds support for Python 2.7.x with [Microsoft Visual C++ Compiler for Python 2.7](http://aka.ms/vcpython27).
 
-Latest updates on Windows support, as well as latest patches can be found at [Github](https://github.com/kxsystems/pyq/issues/1).
+:point_right:
+Latest [updates](../../../issues/1) on Windows support
 
 
 ## Version 4.0

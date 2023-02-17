@@ -1,15 +1,9 @@
----
-title: Installing PyQ | Interfaces | kdb+ and q documentation
-description: How to install the PyQ interface between kdb+ and Python
-author: Alex Belopolsky, Aleks Bunin
-keywords: fusion, interface, kdb+, library, pyq, python, q
----
-# ![PyQ](../img/pyq.png)  Installation
+# ![PyQ](img/pyq.png)  Installation
 
 
 PyQ can be installed using the standard Python package management tool `pip`.
 
-:fontawesome-regular-hand-point-right: [Installing Python Modules](https://docs.python.org/3/installing/)
+:point_right: [Installing Python Modules](https://docs.python.org/3/installing/)
 
 To install the latest version, run the following command
 
@@ -17,12 +11,12 @@ To install the latest version, run the following command
 pip install pyq
 ```
 
-!!! tip "Extras"
-
-    For the best experience with PyQ, you should also install some third-party
-    packages such as NumPy and IPython.  The extra packages recommended by
-    the PyQ developers can be installed using the `pip install pyq[all]`
-    command.
+> Tip: Extras
+> 
+> For the best experience with PyQ, you should also install some third-party
+> packages such as NumPy and IPython.  The extra packages recommended by
+> the PyQ developers can be installed using the `pip install pyq[all]`
+> command.
 
 
 ## Requirements
@@ -35,7 +29,7 @@ Python | 2.7 or 3.5+ :fontawesome-solid-download: [Download](https://www.python.
 compiler |`gcc` or `clang`
 
 
-## :fontawesome-solid-download: Installing from the package repository
+## Installing from the package repository
 
 Use the following `pip` command to install the latest version of PyQ into your environment.
 
@@ -49,11 +43,11 @@ pip install pyq==4.1.2
 ```
 
 
-## :fontawesome-solid-code: Install from source code
+## Install from source code
 
- Get the source code:
+Get the source code:
 
-=== ":fontawesome-brands-github: GitHub"
+-   GitHub
 
     Clone the repository:
 
@@ -61,14 +55,14 @@ pip install pyq==4.1.2
     git clone https://github.com/kxsystems/pyq.git
     ```
 
-=== ":fontawesome-solid-download: Download"
+-   Download
 
-    Download the source archive as a [tar file](https://github.com/kxsystems/pyq/archive/master.tar.gz) or a [zip file](https://github.com/kxsystems/pyq/archive/master.zip) and extract it.
+    Download the source archive as a [tar file](../archive/master.tar.gz) or a [ZIP file](../archive/master.zip) and extract it.
 
-Install the sources into your environment using `pip`:
+Install the sources into your environment using Pip:
 
 ```bash
-pip install path-to-the-source
+pip 0install path-to-the-source
 ```
 
 
@@ -116,16 +110,17 @@ pip install pyq
 
 
 
-## :fontawesome-brands-redhat: Install 32-bit PyQ with 32-bit kdb+ on 64-bit CentOS&nbsp;7
+## Install 32-bit PyQ with 32-bit kdb+ on 64-bit CentOS&nbsp;7
 
-??? tip "Python 2.7"
+> Tip: Python 2.7
+> 
+> This guide is for installing Python 3.6.
+> 
+> To use Python 2.7, replace `3.6.0` with `2.7.13` where necessary.
 
-    This guide is for installing Python 3.6.
 
-    To use Python 2.7, replace `3.6.0` with `2.7.13` where necessary.
+1.  Install the development tools and libraries to build 32-bit Python
 
-
-1. Install the development tools and libraries to build 32-bit Python
     ```bash
     sudo yum install gcc gcc-c++ rpm-build subversion git zip unzip bzip2 \
     libgcc.i686 glibc-devel.i686 glibc.i686 zlib-devel.i686 \
@@ -134,8 +129,7 @@ pip install pyq
     tk-devel.i686 libpcap-devel.i686 xz-devel.i686 libffi-devel.i686
     ```
 
-2. Download, compile and install 32-bit Python 3.6.0
-into `/opt/python3.6.i686`
+2.  Download, compile and install 32-bit Python 3.6.0 into `/opt/python3.6.i686`
 
     ```bash
     mkdir -p ${HOME}/Archive ${HOME}/Build
@@ -163,7 +157,7 @@ into `/opt/python3.6.i686`
 
     Yes, exactly what we wanted.
 
-3.    We are going to use virtual environments, so download, extract, and install virtualenv
+3.  We are going to use virtual environments, so download, extract, and install virtualenv
 
     ```bash
     curl -Ls https://pypi.org/packages/source/v/virtualenv/virtualenv-15.1.0.tar.gz \
@@ -171,7 +165,7 @@ into `/opt/python3.6.i686`
     tar xzf ${HOME}/Archive/virtualenv-15.1.0.tar.gz -C ${HOME}/Build
     ```
 
-4. Create a 32-bit Python virtual environment; first, create a virtual environment:
+4.  Create a 32-bit Python virtual environment; first, create a virtual environment:
 
     ```bash
     /opt/python3.6.i686/bin/python3.6 ${HOME}/Build/virtualenv-15.1.0/virtualenv.py \
@@ -186,22 +180,22 @@ into `/opt/python3.6.i686`
     32
     ```
 
-5. Download the 32-bit Linux x86 version of kdb+ from [kx.com](https://kx.com/download/) and save it as `${HOME}/Work/linux-x86.zip`.
+5.  Download the 32-bit Linux x86 version of kdb+ from [kx.com](https://kx.com/download/) and save it as `${HOME}/Work/linux-x86.zip`.
 
 
-6. Extract and install kdb+
+6.  Extract and install kdb+
 
     ```bash
     (pyq3) $ unzip ${HOME}/Work/linux-x86.zip -d ${VIRTUAL_ENV}
     ```
 
-7. Install PyQ 3.8.2 or newer
+7.  Install PyQ 3.8.2 or newer
 
     ```bash
     (pyq3) $ pip install pyq>=3.8.2
     ```
 
-8. Start PyQ
+8.  Start PyQ
 
     ```bash
     (pyq3) $ pyq
@@ -219,7 +213,7 @@ into `/opt/python3.6.i686`
     ```
 
 
-## :fontawesome-brands-ubuntu: Install on Ubuntu 16.04
+## Install on Ubuntu 16.04
 
 Since Python provided by Ubuntu is statically linked, shared libraries need to be installed before PyQ can be installed.
 
@@ -267,13 +261,13 @@ Install PyQ:
 
 
 
-## :fontawesome-brands-apple: Install with 32-bit kdb+ on macOS
+## Install with 32-bit kdb+ on macOS
 
 To use PyQ with the free 32-bit kdb+ on macOS, you need a 32-bit version of Python.
 
-??? info "Python installed on macOS"
-
-    MacOS Sierra and High Sierra ship with a universal version of Python 2.7.10.
+> **Python installed on macOS**
+> 
+> MacOS Sierra and High Sierra ship with a universal version of Python 2.7.10.
 
 
 ### System Python 2
@@ -353,7 +347,7 @@ PyQ is ready and can be launched:
 
 
 
-## :fontawesome-brands-windows: Install on Windows
+## Install on Windows
 
 PyQ 4.1.0 introduced **experimental support** for Windows.
 
@@ -376,9 +370,9 @@ You can start PyQ by running
 c:\q\w32\q.exe python.q
 ```
 
-!!! warning "Known limitation"
-
-    You will have to press `^Z` and then `Enter` key in order to get into the Python REPL.
+> :warning: **Known limitation**
+> 
+> You will have to press `^Z` and then `Enter` key in order to get into the Python REPL.
 
 You can run tests too: first install the required packages:
 
@@ -402,7 +396,7 @@ Since we have not ported the `pyq` executable to the Windows platform yet, setti
 
 First, you are strongly recommended to use a dedicated Python virtual environment and install `q` in `%VIRTUAL_ENV%`. Assuming that you have downloaded `windows.zip` from [kx.com](https://kx.com/download/) into your `Downloads` folder, enter the following commands:
 
-```bash
+```powershell
 python -mvenv py36
 py36\Scripts\activate.bat
 set QHOME=%VIRTUAL_ENV%\q
@@ -414,18 +408,18 @@ set QBIN=%QHOME%\w32\q.exe
 
 Now you should be able to install `jupyter`, `pyq` and `pyq-kernel` in one command:
 
-```bash
+```powershell
 pip install jupyter pyq pyq-kernel
 ```
 
 Finally, to install PyQ kernel specs, run
 
-```bash
+```powershell
 %QBIN% python.q -mpyq.kernel install
 ```
 If everything is successful, you should see `pyq_3` listed in the `kernelspec` list:
 
-```bash
+```powershell
 >jupyter kernelspec list
 Available kernels:
   pyq_3      C:\Users\a\AppData\Roaming\jupyter\kernels\pyq_3
@@ -434,11 +428,11 @@ Available kernels:
 
 Now, start the notebook server
 
-```bash
+```powershell
 jupyter-notebook
 ```
 
 and select _PyQ 3_ from the _New_ menu.
 
-:fontawesome-brands-youtube: 
+
 _YouTube_: [What can be done in a PyQ notebook](https://youtu.be/v2UoP0l6mOw "YouTube")
