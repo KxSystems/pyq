@@ -21,3 +21,5 @@ MANIFEST
 .pytest_cache/
 
 .kdb/
+
+**/.DS_Store
