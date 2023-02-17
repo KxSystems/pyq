@@ -643,7 +643,7 @@ k('`time$()')
 
 constructor   | accepts                          | description
 --------------|----------------------------------|-----------------------------------------------
-`K.boolean()` | [`int`](https://docs.python.org/3.6/library/functions.html#int "in Python V3.6" "in Python V3.6"), [`bool`](https://docs.python.org/3.6/library/functions.html#bool "in Python V3.6")               | logical type `0b` is false and `1b` is true
+`K.boolean()` | [`int`](https://docs.python.org/3.6/library/functions.html#int "in Python V3.6"), [`bool`](https://docs.python.org/3.6/library/functions.html#bool "in Python V3.6")               | logical type `0b` is false and `1b` is true
 `byte()`      | [`int`](https://docs.python.org/3.6/library/functions.html#int "in Python V3.6"), [`bytes`](https://docs.python.org/3.6/library/functions.html#bytes "in Python V3.6")                              | 8-bit bytes
 `short()`     | [`int`](https://docs.python.org/3.6/library/functions.html#int "in Python V3.6")                                                                                                                    | 16-bit integers
 `int()`       | [`int`](https://docs.python.org/3.6/library/functions.html#int "in Python V3.6")                                                                                                                    | 32-bit integers
