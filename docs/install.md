@@ -23,7 +23,7 @@ pip install pyq
 
 &nbsp; | &nbsp;
 -------|---------
-operating system | :fontawesome-brands-linux: Linux or macOS 10.11+<br><br>Solaris is supported, but has not been tested recently.<br><br>Windows is [supported as an experiment](#installing-on-windows)
+operating system | Linux or macOS 10.11+<br><br>Solaris is supported, but has not been tested recently.<br><br>Windows is [supported as an experiment](#installing-on-windows)
 kdb+ | V2.8+ [Download](https://kx.com/download/) :point_right: [Install](https://code.kx.com/q/)
 Python | 2.7 or 3.5+ [Download](https://www.python.org/downloads/)
 compiler |`gcc` or `clang`
