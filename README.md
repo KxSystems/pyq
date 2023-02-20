@@ -1,4 +1,4 @@
-# PyQ - Python for kdb+
+# ![PyQ](docs/img/pyq.png) PyQ – Python for kdb+
 
 [![PyPI Version](https://img.shields.io/pypi/v/pyq.svg)](https://pypi.python.org/pypi/pyq)
 ![Build](https://github.com/KxSystems/pyq/workflows/Build/badge.svg?branch=master)
@@ -33,7 +33,7 @@ See detailed [installation instructions][1].
 For Python programmers:
 
 ```bash
-$ pyq
+pyq
 ```
 ```python
 >>> from pyq import q
@@ -50,7 +50,7 @@ pyq [python options] python-script
 For q programmers:
 
 ```bash
-$ q
+q
 ```
 ```q
 q)p)from math import hypot  / prefix python code with p)
@@ -61,7 +61,7 @@ q)h 3 4                     / call the python function from q
 
 ## Documentation
 
-Documentation is available on the [PyQ homepage][2].
+:open_file_folder: [`docs`](docs/README.md)
 
 ## Testing
 
@@ -72,10 +72,10 @@ cd path/to/pyq/source
 tox
 ```
 
-[1]: https://code.kx.com/v2/interfaces/pyq/install/
-[2]: https://code.kx.com/v2/interfaces/pyq
+[1]: docs/install.md/
+[2]: docs/README.md
 [3]: https://tox.readthedocs.io/en/latest
 [4]: https://www.python.org/about
 [5]: https://kx.com
-[6]: https://code.kx.com/v2/interfaces/fusion/
-[7]: https://github.com/KxSystems/pyq/issues
+[6]: https://code.kx.com/q/interfaces/#fusion-interfaces
+[7]: ../../issues
