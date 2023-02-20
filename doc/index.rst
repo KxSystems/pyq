@@ -15,7 +15,7 @@ In PyQ, Python and q objects live in the same memory space and share the same
 data.
 
 
-.. PyQ Documentation is available at `<https://code.kx.com/q/interfaces/pyq/>`_.
+PyQ Documentation is available at `<'https://github.com/KxSystems/pyq/tree/master/docs'>`_.
 
 
 .. _Python programming language: https://www.python.org/about
