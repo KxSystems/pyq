@@ -77,5 +77,5 @@ tox
 [3]: https://tox.readthedocs.io/en/latest
 [4]: https://www.python.org/about
 [5]: https://kx.com
-[6]: https://code.kx.com/q/interfaces#fusion
+[6]: https://code.kx.com/q/interfaces/#fusion-interfaces
 [7]: ../../issues
